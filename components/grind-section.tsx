@@ -109,7 +109,6 @@ const gymJourney = [
 // Placeholder math board images - you'll replace these with your actual images
 const mathImages = [
   "/m3.jpg",
-  "/m1.jpg",
   "/m2.jpg",
   "/m4.jpg",
 ]
