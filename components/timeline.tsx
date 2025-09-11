@@ -5,12 +5,13 @@ import { useMobile } from "@/hooks/use-mobile"
 
 const experiences = [
   {
-    title: "Fullstack Developer",
+    title: "Founding Software Engineer",
     company: "Alumco",
     period: "2025 - Present",
     description:
-      "Working as a fullstack developer in a venture studio environment, building and scaling early-stage startups from idea to launch. Responsible for frontend and backend development across multiple products, including AI-powered web apps, browser extensions, and MVP tooling. Collaborate closely with founders, designers, and product teams to ship rapidly and iterate fast.",
+      "Developed and iterated on 8 AI product builds, applying rapid prototyping and statistical A/B testing to drive engagement. Engineered and deployed 2 production-grade platforms, translating algorithms into scalable, real-time systems. Built a forward-deployed feedback agent in 4 days, leveraging context engineering and applied machine learning to improve prediction accuracy and user interaction. Collaborate closely with founders, designers, and product teams in a venture studio environment to rapidly launch and scale startups.",
   },
+
   {
     title: "Mathematics Tutor",
     company: "MentorNorge",

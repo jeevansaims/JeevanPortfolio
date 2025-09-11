@@ -51,7 +51,7 @@ export default function Portfolio() {
             {/* 3. Software engineer badge */}
             <div className="flex justify-center">
               <div className="relative px-3 py-1 text-xs font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <span className="relative z-10">Software Engineer & Quantitative Developer</span>
+                <span className="relative z-10">Software Engineer & Quantitative Researcher</span>
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function Portfolio() {
             <div className="space-y-6 text-left">
               <div className="inline-block">
                 <div className="relative px-3 py-1 text-sm font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-4">
-                  <span className="relative z-10">Software Engineer & Quantitative Developer</span>
+                  <span className="relative z-10">Software Engineer & Quantitative Researcher</span>
                   <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
                 </div>
               </div>
@@ -231,13 +231,13 @@ export default function Portfolio() {
             <div className="space-y-6">
               <GlassmorphicCard>
                 <p className="text-lg text-zinc-300">
-                  I'm a second-year student in  M.Sc physics and mathematics, specializing in industrial mathematics. I build full-stack tools that sit directly on top of deep math, whether it's a real-time arrythmia classifier, a quant backtester, or a LaTeX-aware AI pipeline.
+                  I'm a third-year M.Sc. student in physics and mathematics, specializing in industrial mathematics. My work lives at the intersection of theory and engineering: I build full-stack systems powered by deep math, from real-time arrhythmia detectors to quant backtesters and forward deployed engineers.
                 </p>
                 <p className="text-lg text-zinc-300 mt-4">
-                  In 2024, I was diagnosed with heart failure. While recovering, I kept studying, training, and coding, often while dealing with irregular heartbeats that showed up on my own ECG data. That experience pushed me to focus on building systems that actually matter. Tools that monitor, predict, or automate something critical in real life.
+                  In 2024, I was diagnosed with heart failure. Instead of stepping back, I doubled down - studying, training, and coding through irregular heartbeats that I could literally see in my own ECG data. That experience shifted my focus. I don't just want to build “projects.” I want to engineer systems that matter, tools that monitor, predict, and automate things critical to real life.
                 </p>
                 <p className="text-lg text-zinc-300 mt-4">
-                  I work mostly in Next.js, Python, and C++, and my current focus is split between real-time arrhythmia detection, cardinality-constrained portfolio optimization, and high-frequency crypto strategies using custom indicators and BTC context logic. I'm here to solve hard problems, not polish pitch decks.
+                  Today, I work mostly in Python, C++ and Next.js. My current focus spans real-time ECG analysis, cardinality-constrained portfolio optimization, and high-frequency crypto strategies. Whether in health or finance, my goal is the same: to take complex problems and engineer solutions that actually work.
                 </p>
 
 
@@ -264,12 +264,12 @@ export default function Portfolio() {
 
                 <div className="mt-8">
                   <a
-                    href="/Antonije_CV.pdf"
+                    href="/antonije_resume.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-md"
                   >
-                    View CV
+                    View Resume
                   </a>
 
                 </div>
@@ -307,6 +307,7 @@ export default function Portfolio() {
                 <SkillBadge name="PostgreSQL" level={75} />
                 <SkillBadge name="Julia" level={60} />
                 <SkillBadge name="Git" level={60} />
+                <SkillBadge name="R" level={80} />
               </Marquee>
               <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-zinc-900"></div>
               <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-zinc-900"></div>
@@ -373,12 +374,13 @@ export default function Portfolio() {
               image="/trade.png"
             />
             <ProjectCard
-              title="Simmerlund Coaching"
-              description="A custom-built coaching website for a personal trainer, featuring a clean and responsive UI with registration and contact functionality. The platform serves as a digital entry point for potential clients to sign up for personalized coaching plans."
-              tags={["Next.js", "MongoDB", "Tailwind CSS", "Typescript"]}
+              title="GoCoachly"
+              description="GoCoachly helps high-ticket coaches scale by automating workflows, surfacing personalized insights, and tracking key metrics. I built forward-deployed engineer systems that let coaches give direct feedback on features and fixes, making the platform evolve faster while staying aligned with their real needs."
+              tags={["Next.js", "Supabase", "Tailwind CSS", "Typescript"]}
               image="/coaching.png"
-              demoUrl="https://simmerlund.com/"
-              repoUrl="https://github.com/mirkovicdev/Simmerlund"
+              demoUrl="https://gocoachly.com/"
+              studioUrl="https://kairoventures.com"
+              studioName="Kairo Ventures"
             />
 
             <ProjectCard
