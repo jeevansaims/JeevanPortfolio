@@ -13,9 +13,10 @@ export function HeroAnimation() {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    const devicePixelRatio = window.devicePixelRatio || 1
+
     // Set canvas dimensions
     const setCanvasDimensions = () => {
-      const devicePixelRatio = window.devicePixelRatio || 1
       const rect = canvas.getBoundingClientRect()
 
       canvas.width = rect.width * devicePixelRatio
@@ -27,6 +28,10 @@ export function HeroAnimation() {
     setCanvasDimensions()
     window.addEventListener("resize", setCanvasDimensions)
 
+    // Store canvas dimensions
+    const getCanvasWidth = () => canvas.width / devicePixelRatio
+    const getCanvasHeight = () => canvas.height / devicePixelRatio
+
     // Particle class
     class Particle {
       x: number
@@ -37,8 +42,8 @@ export function HeroAnimation() {
       color: string
 
       constructor() {
-        this.x = (Math.random() * canvas.width) / devicePixelRatio
-        this.y = (Math.random() * canvas.height) / devicePixelRatio
+        this.x = Math.random() * getCanvasWidth()
+        this.y = Math.random() * getCanvasHeight()
         this.size = Math.random() * 5 + 1
         this.speedX = Math.random() * 2 - 1
         this.speedY = Math.random() * 2 - 1
@@ -49,16 +54,17 @@ export function HeroAnimation() {
         this.x += this.speedX
         this.y += this.speedY
 
-        if (this.x > canvas.width / devicePixelRatio || this.x < 0) {
+        if (this.x > getCanvasWidth() || this.x < 0) {
           this.speedX = -this.speedX
         }
 
-        if (this.y > canvas.height / devicePixelRatio || this.y < 0) {
+        if (this.y > getCanvasHeight() || this.y < 0) {
           this.speedY = -this.speedY
         }
       }
 
       draw() {
+        if (!ctx) return
         ctx.fillStyle = this.color
         ctx.beginPath()
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
@@ -76,6 +82,8 @@ export function HeroAnimation() {
 
     // Animation loop
     const animate = () => {
+      if (!ctx || !canvas) return
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       // Draw connections
