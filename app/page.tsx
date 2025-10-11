@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, Github, Linkedin, Mail, Twitter } from "lucide-react"
+import { ArrowRight, Github, GraduationCap, Linkedin, Mail, Twitter } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ProjectCard } from "@/components/project-card"
@@ -16,6 +16,7 @@ import { GrindSection } from "@/components/grind-section"
 import { KnowledgeBrain } from "@/components/knowledge-brain"
 import { Marquee } from "@/components/magicui/marquee"
 import { ECGProjectCard } from "@/components/ECGProjectCard"
+import { LearnNavbar } from "@/components/learn-navbar"
 
 export default function Portfolio() {
   return (
@@ -25,7 +26,7 @@ export default function Portfolio() {
       <FloatingNav />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 sm:pt-0">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-24">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
           <div className="absolute top-40 right-10 w-72 h-72 bg-phthalo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -500,6 +501,46 @@ export default function Portfolio() {
             </GlassmorphicCard>
 
             <ContactForm />
+          </div>
+        </div>
+      </section>
+
+      {/* Learn CTA Section */}
+      <section className="py-32 relative">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-phthalo-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+        </div>
+
+        <div className="container relative z-10">
+          <SectionHeading title="Learn With Me" subtitle="Quant Finance & Applied Math" />
+
+          <div className="max-w-3xl mx-auto mt-16">
+            <GlassmorphicCard>
+              <div className="text-center space-y-6">
+                <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-phthalo-500 to-phthalo-700 flex items-center justify-center">
+                  <GraduationCap className="w-8 h-8 text-white" />
+                </div>
+                
+                <h3 className="text-2xl font-bold">Want to Learn Quant Finance & Math?</h3>
+                
+                <p className="text-lg text-zinc-300">
+                  I'm building courses and mentorship programs on quantitative finance, algorithmic trading, and applied mathematics. Join the waitlist to get notified when they launch.
+                </p>
+
+                <div className="pt-4">
+                  <Link href="/learn">
+                    <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-3">
+                      <span className="relative z-10 flex items-center">
+                        Take the Quiz
+                        <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                      </span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-phthalo-700 to-phthalo-900 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </GlassmorphicCard>
           </div>
         </div>
       </section>
