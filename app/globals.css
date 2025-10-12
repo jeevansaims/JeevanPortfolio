@@ -238,3 +238,54 @@ body {
     opacity: 0;
   }
 }
+
+/* Admin login input fix */
+input[type="email"],
+input[type="password"] {
+  color: white !important;
+}
+
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+  color: #71717a !important;
+}
+
+/* Fix Select dropdown styling */
+[role="listbox"],
+[data-radix-select-content] {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+}
+
+[role="option"],
+[data-radix-select-item] {
+  color: #e4e4e7 !important;
+  background-color: transparent !important;
+}
+
+[role="option"]:hover,
+[data-radix-select-item]:hover {
+  background-color: #27272a !important;
+  color: white !important;
+}
+
+[data-radix-select-item][data-highlighted] {
+  background-color: #27272a !important;
+  color: white !important;
+}
+
+/* Fix Recharts tooltip styling */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
+
+.recharts-default-tooltip {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+  border-radius: 8px !important;
+}
+
+.recharts-tooltip-label,
+.recharts-tooltip-item {
+  color: #e4e4e7 !important;
+}
