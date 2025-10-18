@@ -8,9 +8,18 @@ interface AnalyticsChartsProps {
   paymentData: { name: string; value: number; color: string }[]
   goalData: { name: string; value: number }[]
   timeData: { name: string; value: number }[]
+  learningPreferenceData: { name: string; value: number }[]
+  topicsData: { name: string; value: number }[]
 }
 
-export function AnalyticsCharts({ personaData, paymentData, goalData, timeData }: AnalyticsChartsProps) {
+export function AnalyticsCharts({ 
+  personaData, 
+  paymentData, 
+  goalData, 
+  timeData,
+  learningPreferenceData,
+  topicsData 
+}: AnalyticsChartsProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Persona Distribution */}
@@ -83,6 +92,56 @@ export function AnalyticsCharts({ personaData, paymentData, goalData, timeData }
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={timeData}>
             <XAxis dataKey="name" tick={{ fill: '#a1a1aa', fontSize: 12 }} />
+            <YAxis tick={{ fill: '#a1a1aa' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: '#18181b', 
+                border: '1px solid #3f3f46',
+                borderRadius: '8px'
+              }}
+              cursor={{ fill: 'rgba(38, 128, 74, 0.1)' }}
+            />
+            <Bar dataKey="value" fill="#26804A" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Learning Preference */}
+      <ChartCard title="Learning Preference" delay={0.4}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={learningPreferenceData}>
+            <XAxis 
+              dataKey="name" 
+              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
+              angle={-45}
+              textAnchor="end"
+              height={80}
+            />
+            <YAxis tick={{ fill: '#a1a1aa' }} />
+            <Tooltip 
+              contentStyle={{ 
+                backgroundColor: '#18181b', 
+                border: '1px solid #3f3f46',
+                borderRadius: '8px'
+              }}
+              cursor={{ fill: 'rgba(38, 128, 74, 0.1)' }}
+            />
+            <Bar dataKey="value" fill="#26804A" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Topics of Interest */}
+      <ChartCard title="Topics of Interest" delay={0.5}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={topicsData}>
+            <XAxis 
+              dataKey="name" 
+              tick={{ fill: '#a1a1aa', fontSize: 11 }} 
+              angle={-45}
+              textAnchor="end"
+              height={80}
+            />
             <YAxis tick={{ fill: '#a1a1aa' }} />
             <Tooltip 
               contentStyle={{ 

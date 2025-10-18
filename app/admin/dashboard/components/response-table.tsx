@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react"
 import { motion } from "framer-motion"
-import { Search, Download, ChevronDown, ChevronUp } from "lucide-react"
+import { Search, Download, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
@@ -41,6 +41,8 @@ export function ResponseTable({ responses }: ResponseTableProps) {
   const [paymentFilter, setPaymentFilter] = useState("all")
   const [goalFilter, setGoalFilter] = useState("all")
   const [expandedRow, setExpandedRow] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const responsesPerPage = 20
 
   // Get unique values for filters
   const personas = useMemo(() => 
@@ -72,6 +74,17 @@ export function ResponseTable({ responses }: ResponseTableProps) {
       return matchesSearch && matchesPersona && matchesPayment && matchesGoal
     })
   }, [responses, searchTerm, personaFilter, paymentFilter, goalFilter])
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredResponses.length / responsesPerPage)
+  const startIndex = (currentPage - 1) * responsesPerPage
+  const endIndex = startIndex + responsesPerPage
+  const currentResponses = filteredResponses.slice(startIndex, endIndex)
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    setCurrentPage(1)
+  }, [searchTerm, personaFilter, paymentFilter, goalFilter])
 
   // Export functions
   const exportToCSV = (data: Response[], filename: string) => {
@@ -233,7 +246,7 @@ export function ResponseTable({ responses }: ResponseTableProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredResponses.map((response) => (
+              {currentResponses.map((response) => (
                 <React.Fragment key={response.id}>
                   <tr
                     className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors cursor-pointer"
@@ -308,6 +321,76 @@ export function ResponseTable({ responses }: ResponseTableProps) {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {filteredResponses.length > 0 && totalPages > 1 && (
+          <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+            <div className="text-sm text-zinc-400">
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredResponses.length)} of {filteredResponses.length} responses
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="sm"
+                className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Previous
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {/* Show page numbers */}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
+                  // Smart pagination: show first, last, current, and adjacent pages
+                  const showPage = 
+                    pageNum === 1 || 
+                    pageNum === totalPages || 
+                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                  
+                  const showEllipsis = 
+                    (pageNum === 2 && currentPage > 3) ||
+                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                  
+                  if (showEllipsis) {
+                    return <span key={pageNum} className="px-2 text-zinc-500">...</span>
+                  }
+                  
+                  if (!showPage) return null
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className={
+                        currentPage === pageNum
+                          ? "bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 min-w-[36px]"
+                          : "border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-700 min-w-[36px]"
+                      }
+                    >
+                      {pageNum}
+                    </Button>
+                  )
+                })}
+              </div>
+              
+              <Button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="sm"
+                className="border-zinc-700 bg-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </motion.div>
   )

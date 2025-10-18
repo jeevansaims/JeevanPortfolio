@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { StatsCards } from "./components/stats-cards"
 import { AnalyticsCharts } from "./components/analytics-charts"
 import { ResponseTable } from "./components/response-table"
+import { MessagesSection } from "./components/messages-section"
 import { toast } from "sonner"
 
 interface Response {
@@ -166,6 +167,48 @@ export default function AdminDashboard() {
     value
   }))
 
+  // Learning preference data for bar chart
+  const learningPreferenceCounts = responses.reduce((acc, r) => {
+    acc[r.learning_preference] = (acc[r.learning_preference] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const learningPreferenceData = Object.entries(learningPreferenceCounts).map(([name, value]) => ({
+    name: name.replace(/_/g, " "),
+    value
+  }))
+
+  // Topics data for bar chart
+  const topicsCounts = responses.reduce((acc, r) => {
+    // Check if topics_interest exists and is an array
+    if (r.topics_interest && Array.isArray(r.topics_interest)) {
+      r.topics_interest.forEach(topic => {
+        acc[topic] = (acc[topic] || 0) + 1
+      })
+    }
+    return acc
+  }, {} as Record<string, number>)
+
+  // Map topic keys to readable labels
+  const topicLabels: Record<string, string> = {
+    ml: "Machine Learning",
+    stats: "Statistics",
+    python: "Python",
+    math: "Mathematics",
+    optimization: "Optimization",
+    quant_finance: "Quant Finance",
+    linear_algebra: "Linear Algebra",
+    calculus: "Calculus",
+    probability: "Probability"
+  }
+
+  const topicsData = Object.entries(topicsCounts)
+    .map(([name, value]) => ({
+      name: topicLabels[name] || name.replace(/_/g, " "),
+      value
+    }))
+    .sort((a, b) => b.value - a.value) // Sort by popularity
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-900 to-black flex items-center justify-center">
@@ -227,7 +270,12 @@ export default function AdminDashboard() {
           paymentData={paymentData}
           goalData={goalData}
           timeData={timeData}
+          learningPreferenceData={learningPreferenceData}
+          topicsData={topicsData}
         />
+
+        {/* Messages Section */}
+        <MessagesSection responses={responses} />
 
         {/* Response Table */}
         <ResponseTable responses={responses} />
