@@ -81,7 +81,7 @@ export function GamificationCard() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center text-sm font-bold group-hover/skill:scale-110 transition-transform">87</div>
               </div>
-              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Stochastic</div>
+              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Mathematics</div>
             </div>
 
             <div className="bg-zinc-800/30 rounded-xl p-4 text-center border border-zinc-700/30 hover:border-blue-500/50 hover:bg-zinc-800/50 hover:shadow-lg hover:shadow-blue-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group/skill">
@@ -92,7 +92,7 @@ export function GamificationCard() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center text-sm font-bold group-hover/skill:scale-110 transition-transform">64</div>
               </div>
-              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Python</div>
+              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Finance</div>
             </div>
 
             <div className="bg-zinc-800/30 rounded-xl p-4 text-center border border-zinc-700/30 hover:border-purple-500/50 hover:bg-zinc-800/50 hover:shadow-lg hover:shadow-purple-500/10 hover:-translate-y-1 transition-all duration-300 cursor-pointer group/skill">
@@ -103,7 +103,7 @@ export function GamificationCard() {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center text-sm font-bold group-hover/skill:scale-110 transition-transform">92</div>
               </div>
-              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Portfolio</div>
+              <div className="text-xs text-zinc-400 group-hover/skill:text-zinc-300 transition-colors">Coding</div>
             </div>
           </div>
 

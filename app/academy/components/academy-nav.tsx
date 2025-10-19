@@ -44,15 +44,15 @@ export function AcademyNav() {
               Home
             </Link>
             <Link
-              href="/"
+              href="/academy/login"
               className="text-zinc-300 hover:text-white transition-colors"
             >
-              Portfolio
+              Log in
             </Link>
-            <Link href="/learn">
+            <Link href="/academy/register">
               <Button
                 size="sm"
-                className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0"
+                className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 hover:from-phthalo-700 hover:to-phthalo-900"
               >
                 Register
               </Button>
@@ -68,7 +68,7 @@ export function AcademyNav() {
           </button>
         </div>
 
-        {/* Mobile Menu - ONLY mobile styling improvements */}
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden py-4 space-y-3 border-t border-zinc-800 bg-zinc-900/95 backdrop-blur-md rounded-b-lg">
             <Link
@@ -78,18 +78,20 @@ export function AcademyNav() {
             >
               Home
             </Link>
+            
             <Link
-              href="/"
+              href="/academy/login"
               className="block px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all mx-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Portfolio
+              Log in
             </Link>
-            <div className="px-2 pt-2">
-              <Link href="/learn" onClick={() => setIsMobileMenuOpen(false)}>
+
+            <div className="px-2 pt-2 border-t border-zinc-800/50 mt-3">
+              <Link href="/academy/register" onClick={() => setIsMobileMenuOpen(false)}>
                 <Button
                   size="sm"
-                  className="w-full bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0"
+                  className="w-full bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 hover:from-phthalo-700 hover:to-phthalo-900"
                 >
                   Register
                 </Button>

@@ -97,7 +97,7 @@ export default function AcademyPage() {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 pt-8 justify-center">
-              <Link href="/learn">
+              <Link href="/academy/register">
                 <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-6">
                   <span className="relative z-10 flex items-center">
                     Register <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -195,8 +195,8 @@ export default function AcademyPage() {
               Enrollment is open! Dive into the Quant Math program and begin your path toward professional-grade quantitative skills.
             </p>
             <div className="pt-4">
-              <Link href="/learn">
-                <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-12 py-6">
+              <Link href="/academy/register">
+                <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-6">
                   <span className="relative z-10 flex items-center">
                     Register <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </span>
