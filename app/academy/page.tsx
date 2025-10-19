@@ -59,7 +59,7 @@ export default function AcademyPage() {
       <AcademyNav />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-0">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-20 left-10 w-72 h-72 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
           <div className="absolute top-40 right-10 w-72 h-72 bg-phthalo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -86,8 +86,8 @@ export default function AcademyPage() {
               </span>
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-xl sm:text-2xl md:text-3xl text-zinc-300 max-w-4xl mx-auto leading-relaxed">
+            {/* Subheadline - Made smaller on mobile */}
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-zinc-300 max-w-4xl mx-auto leading-relaxed">
               Learn the math, code, and mindset that top quant firms look for.
             </p>
 
@@ -95,8 +95,8 @@ export default function AcademyPage() {
               No fluff. No shortcuts. Just mastery.
             </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 pt-8 justify-center">
+            {/* CTA Buttons - Reduced spacing on mobile */}
+            <div className="flex flex-wrap gap-4 pt-4 sm:pt-8 justify-center">
               <Link href="/academy/register">
                 <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-6">
                   <span className="relative z-10 flex items-center">
@@ -286,7 +286,7 @@ export default function AcademyPage() {
             <Link href="/" className="text-zinc-400 hover:text-white transition-colors">
               Portfolio
             </Link>
-            <Link href="/learn" className="text-zinc-400 hover:text-white transition-colors">
+            <Link href="/academy/register" className="text-zinc-400 hover:text-white transition-colors">
               Register
             </Link>
           </div>
