@@ -263,17 +263,7 @@ export default function Portfolio() {
                   </div>
                 </div>
 
-                <div className="mt-8">
-                  <a
-                    href="/antonije_resume.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-zinc-800 hover:bg-zinc-700 text-white px-4 py-2 rounded-md"
-                  >
-                    View Resume
-                  </a>
 
-                </div>
               </GlassmorphicCard>
             </div>
           </div>
