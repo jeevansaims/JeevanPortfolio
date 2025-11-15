@@ -1,3 +1,5 @@
+// quiz-progress.tsx
+
 "use client"
 
 interface QuizProgressProps {

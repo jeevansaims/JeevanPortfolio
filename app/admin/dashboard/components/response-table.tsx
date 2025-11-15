@@ -394,4 +394,4 @@ export function ResponseTable({ responses }: ResponseTableProps) {
       </div>
     </motion.div>
   )
-}
+}  

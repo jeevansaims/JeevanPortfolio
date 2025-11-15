@@ -1,0 +1,176 @@
+# Introduction to Stochastic Calculus for Quants
+
+## Why Stochastic Calculus Matters
+
+If you want to work in quantitative finance, you need stochastic calculus. It's not optional. Every pricing model, every risk calculation, every trading strategy in derivatives markets builds on this foundation.
+
+But here's the good news: **the intuition behind stochastic calculus is more important than the technical proofs**. In this post, I'll give you the practical understanding you need to start using these tools.
+
+---
+
+## The Problem: Modeling Randomness
+
+Standard calculus works beautifully for deterministic systems. But financial markets aren't deterministic—they're **random**. Stock prices jump around, interest rates fluctuate, volatility changes.
+
+We need calculus that handles randomness. That's stochastic calculus.
+
+## Brownian Motion: The Building Block
+
+Everything in stochastic calculus starts with **Brownian motion** (also called a Wiener process), denoted $W_t$.
+
+### Key Properties
+
+1. **Continuous paths** - The process never jumps
+2. **Independent increments** - What happens in one time interval is independent of other intervals
+3. **Normal increments** - $W_t - W_s \sim N(0, t-s)$ for $t > s$
+4. **Starts at zero** - $W_0 = 0$
+
+Think of Brownian motion as the **pure essence of randomness** in continuous time.
+
+## Geometric Brownian Motion
+
+In finance, we typically model stock prices using **geometric Brownian motion** (GBM):
+
+$$
+dS_t = \mu S_t dt + \sigma S_t dW_t
+$$
+
+This says: *the change in stock price has a drift term ($\mu S_t dt$) and a random term ($\sigma S_t dW_t$)*.
+
+### Why This Model?
+
+1. **Prices stay positive** - Unlike arithmetic Brownian motion
+2. **Percentage returns are normal** - Log returns are normally distributed
+3. **Multiplicative growth** - Returns compound naturally
+
+The solution to this SDE is:
+
+$$
+S_t = S_0 \exp\left[\left(\mu - \frac{\sigma^2}{2}\right)t + \sigma W_t\right]
+$$
+
+## Itô's Lemma: The Chain Rule on Steroids
+
+If you remember one thing from stochastic calculus, make it **Itô's Lemma**. It's the chain rule for stochastic processes.
+
+For a function $f(t, S_t)$ where $S_t$ follows:
+
+$$
+dS_t = \mu(S_t, t)dt + \sigma(S_t, t)dW_t
+$$
+
+Itô's Lemma tells us:
+
+$$
+df = \left(\frac{\partial f}{\partial t} + \mu\frac{\partial f}{\partial S} + \frac{1}{2}\sigma^2\frac{\partial^2 f}{\partial S^2}\right)dt + \sigma\frac{\partial f}{\partial S}dW_t
+$$
+
+### The Key Difference
+
+Notice that extra term: $\frac{1}{2}\sigma^2\frac{\partial^2 f}{\partial S^2}$
+
+This appears because in stochastic calculus, $(dW_t)^2 = dt$. This is profoundly different from ordinary calculus where $(dx)^2 \approx 0$.
+
+## Practical Example: Deriving Black-Scholes
+
+Let's use Itô's Lemma to understand the Black-Scholes PDE.
+
+Suppose we have a European call option $V(S_t, t)$. If $S_t$ follows GBM:
+
+$$
+dS_t = \mu S_t dt + \sigma S_t dW_t
+$$
+
+Then by Itô's Lemma:
+
+$$
+dV = \left(\frac{\partial V}{\partial t} + \mu S\frac{\partial V}{\partial S} + \frac{1}{2}\sigma^2 S^2\frac{\partial^2 V}{\partial S^2}\right)dt + \sigma S\frac{\partial V}{\partial S}dW_t
+$$
+
+Now comes the magic: **we can hedge away the randomness**.
+
+If we form a portfolio $\Pi = V - \Delta S$ where $\Delta = \frac{\partial V}{\partial S}$, the random terms cancel out!
+
+Since this portfolio is risk-free, it must earn the risk-free rate:
+
+$$
+d\Pi = r\Pi dt
+$$
+
+After some algebra, this gives us the Black-Scholes PDE:
+
+$$
+\frac{\partial V}{\partial t} + \frac{1}{2}\sigma^2 S^2\frac{\partial^2 V}{\partial S^2} + rS\frac{\partial V}{\partial S} - rV = 0
+$$
+
+**This is Itô's Lemma in action.**
+
+## The Feynman-Kac Connection
+
+Here's another powerful result: **PDEs and expectations are connected**.
+
+The Feynman-Kac theorem tells us that solving a PDE is equivalent to computing an expectation under the right probability measure.
+
+For Black-Scholes, this means:
+
+$$
+V(S_t, t) = e^{-r(T-t)}\mathbb{E}^{\mathbb{Q}}[\text{Payoff}(S_T) | S_t]
+$$
+
+Where $\mathbb{Q}$ is the **risk-neutral measure**.
+
+This is huge: instead of solving PDEs, we can use Monte Carlo simulation!
+
+## Practical Tips for Learning
+
+1. **Focus on intuition first** - Don't get lost in measure theory
+2. **Practice with examples** - Work through GBM, Ornstein-Uhlenbeck, etc.
+3. **Connect to applications** - Always ask "how does this help me price or hedge?"
+4. **Master Itô's Lemma** - It's the workhorse of quant finance
+
+## Common Stochastic Processes in Finance
+
+### Ornstein-Uhlenbeck Process
+
+Mean-reverting process used for interest rates and volatility:
+
+$$
+dX_t = \theta(\mu - X_t)dt + \sigma dW_t
+$$
+
+### CIR Process
+
+Used for interest rate modeling (stays positive):
+
+$$
+dr_t = \theta(\mu - r_t)dt + \sigma\sqrt{r_t}dW_t
+$$
+
+### Heston Model
+
+Stochastic volatility model:
+
+$$
+dS_t = \mu S_t dt + \sqrt{v_t} S_t dW_t^S
+$$
+
+$$
+dv_t = \kappa(\theta - v_t)dt + \xi\sqrt{v_t}dW_t^v
+$$
+
+## Moving Forward
+
+Stochastic calculus is a journey, not a destination. Start with:
+
+1. **Brownian motion** - Understand it deeply
+2. **Itô's Lemma** - Practice until it's second nature
+3. **Simple SDEs** - Solve GBM, OU process by hand
+4. **Risk-neutral pricing** - Grasp the intuition
+
+In upcoming posts, we'll dive deeper into **Girsanov's theorem**, **martingale pricing**, and **numerical methods for SDEs**.
+
+The mathematics can seem abstract, but remember: **every formula represents a hedging strategy or a trading insight**.
+
+---
+
+*Questions about stochastic calculus? Drop a comment or DM me on Instagram [@mirkovicdev](https://instagram.com/mirkovicdev)*

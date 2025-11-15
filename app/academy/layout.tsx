@@ -1,19 +1,38 @@
 import type { Metadata } from 'next'
 import '../globals.css'
+import { createClient } from '@/lib/supabase/server'
+import { ConditionalSidebar } from './components/conditional-sidebar'
 
 export const metadata: Metadata = {
   title: 'Mirkovic Academy - Break into Quant',
   description: 'Learn the math, code, and mindset that top quant firms look for.',
 }
 
-export default function AcademyLayout({
+export default async function AcademyLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const supabase = await createClient()
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // Get user profile to check subscription status
+  const { data: profile } = user ? await supabase
+    .from('profiles')
+    .select('membership_tier')
+    .eq('id', user.id)
+    .single() : { data: null }
+
+  const hasPaid = profile?.membership_tier === 'pro'
+
   return (
-    <>
-      {children}
-    </>
+    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-900 to-black text-white">
+      <ConditionalSidebar userEmail={user?.email} hasPaid={hasPaid || false}>
+        {children}
+      </ConditionalSidebar>
+    </div>
   )
 }

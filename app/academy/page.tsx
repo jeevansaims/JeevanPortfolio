@@ -5,7 +5,8 @@ import { ProgramCard } from "./components/program-card"
 import { AcademyNav } from "./components/academy-nav"
 import { MathBackground } from "./components/math-background"
 import { LearningExperience } from "./components/learning-experience"
-import { ProgramRoadmap } from "./components/program-roadmap"
+import { RoadmapClean } from "./components/roadmap-clean"
+import { ProjectsShowcase } from "./components/projects-showcase"
 import { Github, Linkedin, Mail, Instagram } from "lucide-react"
 
 
@@ -14,7 +15,7 @@ import { Github, Linkedin, Mail, Instagram } from "lucide-react"
 const programs = [
   {
     iconName: "TrendingUp",
-    title: "Quant Math",
+    title: "Math for Quants",
     description:
       "Build the mathematical foundation every quant relies on. Master calculus, linear algebra, probability, and optimization through real finance applications.",
     level: "Beginner-Intermediate",
@@ -26,7 +27,9 @@ const programs = [
       "Statistics",
       "Optimization"
     ],
-    color: "from-phthalo-500 to-phthalo-700"
+    color: "from-phthalo-500 to-phthalo-700",
+    available: true,
+    slug: "math-for-quant"
   },
 
   {
@@ -36,7 +39,9 @@ const programs = [
     level: "Intermediate",
     duration: "10 weeks",
     topics: ["NumPy & Pandas", "Backtesting", "API Integration"],
-    color: "from-blue-500 to-blue-700"
+    color: "from-blue-500 to-blue-700",
+    available: false,
+    slug: null
   },
   {
     iconName: "Zap",
@@ -45,7 +50,9 @@ const programs = [
     level: "Advanced",
     duration: "14 weeks",
     topics: ["Feature Engineering", "Time Series ML", "Deep Learning"],
-    color: "from-purple-500 to-purple-700"
+    color: "from-purple-500 to-purple-700",
+    available: false,
+    slug: null
   }
 ]
 
@@ -97,14 +104,7 @@ export default function AcademyPage() {
 
             {/* CTA Buttons - Reduced spacing on mobile */}
             <div className="flex flex-wrap gap-4 pt-4 sm:pt-8 justify-center">
-              <Link href="/academy/register">
-                <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-6">
-                  <span className="relative z-10 flex items-center">
-                    Register <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-phthalo-700 to-phthalo-900 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                </Button>
-              </Link>
+              {/* Registration temporarily disabled */}
               <Link href="/">
                 <Button
                   variant="outline"
@@ -141,6 +141,9 @@ export default function AcademyPage() {
         </div>
       </section>
 
+      {/* Projects Showcase Section */}
+      <ProjectsShowcase />
+
       {/* Programs Section */}
       <section className="py-32 relative">
         <div className="container relative z-10 px-4 sm:px-6">
@@ -153,7 +156,7 @@ export default function AcademyPage() {
                 </span>
               </h2>
               <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-                Three comprehensive programs designed to take you from theory to production
+                Comprehensive programs designed to take you from theory to production
               </p>
             </div>
 
@@ -170,7 +173,7 @@ export default function AcademyPage() {
       {/* Interactive Learning Experience Section */}
       <LearningExperience />
 
-      {/* Program Roadmap Section - Replaces Quote/Philosophy */}
+      {/* Roadmap Section */}
       <section className="py-32 relative">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
@@ -178,7 +181,7 @@ export default function AcademyPage() {
         </div>
 
         <div className="container relative z-10 px-4 sm:px-6">
-          <ProgramRoadmap />
+          <RoadmapClean />
         </div>
       </section>
 
@@ -192,18 +195,9 @@ export default function AcademyPage() {
               </span>
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Enrollment is open! Dive into the Quant Math program and begin your path toward professional-grade quantitative skills.
+              We're currently in private beta. Enrollment will open soon for the Quant Math program and your path toward professional-grade quantitative skills.
             </p>
-            <div className="pt-4">
-              <Link href="/academy/register">
-                <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0 text-lg px-8 py-6">
-                  <span className="relative z-10 flex items-center">
-                    Register <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                  </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-phthalo-700 to-phthalo-900 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                </Button>
-              </Link>
-            </div>
+            {/* Registration temporarily disabled */}
           </div>
         </div>
       </section>
@@ -286,9 +280,7 @@ export default function AcademyPage() {
             <Link href="/" className="text-zinc-400 hover:text-white transition-colors">
               Portfolio
             </Link>
-            <Link href="/academy/register" className="text-zinc-400 hover:text-white transition-colors">
-              Register
-            </Link>
+            {/* Registration temporarily disabled */}
           </div>
         </div>
       </footer>

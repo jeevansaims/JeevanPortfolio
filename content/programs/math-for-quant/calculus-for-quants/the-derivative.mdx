@@ -1,0 +1,268 @@
+# The Derivative
+
+## 1. Why Derivatives Matter in Quant Finance
+
+In quant finance, the derivative of a function is not just a calculus exercise — it is the foundation of:
+
+- **Greeks**
+- **hedging**
+- **risk management**
+- **model calibration**
+- **sensitivity analysis**
+- **optimization**
+
+If limits tell us how a function behaves as we approach something, derivatives tell us **how fast it changes** at that point.
+
+In a trading desk, this is everything:
+
+- **Delta** tells you how your option price responds to tiny moves in the underlying.
+- **Gamma** tells you how Delta itself changes.
+- **Vega** tells you how sensitive you are to volatility.
+- **Rho** tells you how sensitive you are to interest rates.
+
+No quant can operate without thinking in derivatives.
+
+In this lesson, we build the intuition using both math and finance examples.
+
+---
+
+## 2. Intuition: The Derivative as Instantaneous Change
+
+The derivative measures how fast a function changes as its input changes.
+
+**Formal definition:**
+
+$$
+f'(x) = \lim_{h \to 0} \frac{f(x+h) - f(x)}{h}.
+$$
+
+**Interpretation:**
+
+- Look at how much the output changes.
+- Divide by how much the input changes.
+- Make that input change infinitely small.
+
+If $f'(x)$ is large:
+- tiny changes in input → big output effects
+- (this means big sensitivity / big risk)
+
+If $f'(x)$ is small:
+- tiny changes in input → tiny output effects
+- (this means stable / low sensitivity)
+
+### A geometric picture
+
+The derivative is the **slope of the tangent line** to the graph of $f(x)$ at $x$.
+
+- Positive slope → increasing function
+- Negative slope → decreasing function
+- Slope = 0 → flat point (potential minimum/maximum)
+
+This interpretation becomes extremely important for optimization in quant work.
+
+---
+
+## 3. Basic Rules of Differentiation
+
+Here are the essential rules every quant must know.
+
+### Power rule
+$$
+\frac{d}{dx}x^n = nx^{n-1}.
+$$
+
+### Constant rule
+$$
+\frac{d}{dx}c = 0.
+$$
+
+### Constant multiple rule
+$$
+\frac{d}{dx}(cf(x)) = cf'(x).
+$$
+
+### Sum rule
+$$
+\frac{d}{dx}(f(x) + g(x)) = f'(x) + g'(x).
+$$
+
+### Product rule
+$$
+(fg)' = f'g + fg'.
+$$
+
+### Quotient rule
+$$
+\left(\frac{f}{g}\right)' = \frac{f'g - fg'}{g^2}.
+$$
+
+### Chain rule (extremely important in quant work)
+$$
+\frac{d}{dx}f(g(x)) = f'(g(x)) \cdot g'(x).
+$$
+
+In financial modeling, almost everything is a chain-rule situation:
+
+- volatility inside $d_1$ inside $\Phi$ inside the option price
+- discount factors inside payoff functions
+- log transformations inside stochastic models
+
+---
+
+## 4. Quant Application 1: Derivative of $S^2$ and a Simple Sensitivity
+
+Consider the function
+
+$$
+f(S) = S^2.
+$$
+
+Using the limit definition:
+
+$$
+f'(S) = \lim_{h \to 0} \frac{(S+h)^2 - S^2}{h} = \lim_{h \to 0} \frac{2Sh + h^2}{h} = 2S + h \to 2S.
+$$
+
+This means: a 1-unit increase in $S$ changes $S^2$ by approximately $2S$ units.
+
+This exact logic is how **Delta** works conceptually:
+
+> "How much does my option price change if spot goes up a tiny bit?"
+
+We will revisit this when we discuss Greeks.
+
+---
+
+## 5. Quant Application 2: Differentiating the Black–Scholes Price (Delta)
+
+The Black–Scholes call price is:
+
+$$
+C(S_0) = S_0 \Phi(d_1) - K e^{-rT} \Phi(d_2).
+$$
+
+If we take its derivative with respect to spot $S_0$ (treating volatility, $r$, and $T$ as constants), we get the **Delta**:
+
+$$
+\Delta = \frac{\partial C}{\partial S_0} = \Phi(d_1).
+$$
+
+This is one of the most important formulas in all of finance.
+
+### Interpretation
+
+- If $\Delta = 0.6$, then a \$1 move in the stock changes the call price by about \$0.60.
+- If $\Delta = 1$, the option behaves like the underlying asset.
+- If $\Delta = 0$, the option behaves like a worthless lottery ticket.
+
+### Chain rule intuition
+
+This derivative comes from:
+
+- $S_0$ appears inside $d_1$
+- $d_1$ appears inside $\Phi$
+- $\Phi$ appears inside the pricing formula
+
+It is a perfect example of the chain rule in action.
+
+---
+
+## 6. Quant Application 3: The Derivative of a Payoff
+
+Take the call payoff:
+
+$$
+f(S_T) = \max(S_T - K, 0).
+$$
+
+For $S_T < K$:
+- payoff = 0
+- slope = 0
+
+For $S_T > K$:
+- payoff = $S_T - K$
+- slope = 1
+
+At the strike $S_T = K$:
+- the left derivative = 0
+- the right derivative = 1
+
+Since they differ, **the derivative does not exist** at the strike (there is a kink).
+
+### Why this matters:
+
+- Gamma becomes large near the strike for short maturities.
+- Hedging becomes unstable near kinks.
+- Numerical methods struggle at non-smooth points.
+
+---
+
+## 7. Higher-Order Derivatives (Gamma)
+
+If Delta is:
+
+$$
+\Delta = \frac{\partial C}{\partial S_0},
+$$
+
+then **Gamma** is:
+
+$$
+\Gamma = \frac{\partial^2 C}{\partial S_0^2}.
+$$
+
+**Interpretation:**
+
+- Delta = rate of change of price
+- Gamma = rate of change of Delta
+
+High Gamma means:
+- your Delta changes rapidly,
+- small market moves can drastically alter your risk,
+- hedging requires constant adjustments.
+
+In practical trading:
+- Deep ITM/OTM options → low Gamma
+- At-the-money options → high Gamma
+- Short-dated ATM options → extremely high Gamma
+
+Derivatives help you understand and measure this sensitivity precisely.
+
+---
+
+## 8. Worked Example: Derivative of a Discount Factor
+
+A simple but important object in finance is the discount factor:
+
+$$
+D(r) = e^{-rT}.
+$$
+
+Differentiate with respect to $r$:
+
+$$
+D'(r) = \frac{d}{dr}e^{-rT} = -T e^{-rT}.
+$$
+
+This tells you:
+
+- as interest rates increase, discount factors decrease,
+- and they decrease at a rate proportional to $T$.
+
+**Long-maturity cash flows are much more sensitive to interest rate changes than short-maturity ones.**
+
+This is another perfect example of sensitivity analysis via derivatives.
+
+---
+
+## 9. Summary
+
+- The derivative measures **instantaneous rate of change**.
+- It is the foundation of sensitivities (Greeks) in quant finance.
+- Key rules: power rule, product rule, chain rule.
+- **Delta** is $\Phi(d_1)$, the derivative of the Black–Scholes call price with respect to spot.
+- Payoff functions can be **non-differentiable** at kinks (e.g., strike).
+- **Gamma** tells you how fast Delta changes and is highest at the money.
+- Derivatives let you measure how models react to tiny input changes — essential for hedging and risk control.
+
+This intuition will be crucial when we move into integrals and optimization.

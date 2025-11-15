@@ -1,3 +1,5 @@
+// A different quiz page that you can use as inspiration
+
 "use client"
 
 import { useState } from "react"

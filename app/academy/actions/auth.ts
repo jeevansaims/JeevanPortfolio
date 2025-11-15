@@ -5,6 +5,10 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function register(formData: FormData) {
+  // Registration is temporarily disabled
+  return { error: 'Registration is currently closed. Please check back later.' }
+
+  /* DISABLED TEMPORARILY - Uncomment when ready to re-enable registration
   const supabase = await createClient()
 
   const data = {
@@ -45,6 +49,7 @@ export async function register(formData: FormData) {
   }
 
   return { success: true }
+  */
 }
 
 export async function login(formData: FormData) {
@@ -66,7 +71,7 @@ export async function login(formData: FormData) {
   if (error) {
     // Check if user doesn't exist
     if (error.message.includes('Invalid login credentials')) {
-      return { error: 'No account found with this email. Try registering instead.' }
+      return { error: 'Invalid login credentials. Please check your email and password.' }
     }
     return { error: error.message }
   }

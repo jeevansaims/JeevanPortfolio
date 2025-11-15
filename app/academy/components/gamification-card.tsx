@@ -23,8 +23,6 @@ export function GamificationCard() {
 
   return (
     <div className="group relative">
-      <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-phthalo-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
-      
       <div className="relative h-full p-8 rounded-3xl bg-gradient-to-br from-zinc-900/90 to-zinc-800/50 backdrop-blur-sm border border-zinc-700/50">
         <div className="space-y-6">
           {/* Header */}

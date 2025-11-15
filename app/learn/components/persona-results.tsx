@@ -1,3 +1,5 @@
+//inspiration component for quiz persona-results.tsx
+
 "use client"
 
 import { motion } from "framer-motion"

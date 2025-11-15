@@ -1,0 +1,344 @@
+# Limits & Continuity
+
+## 1. Why Limits Matter in Quant Finance
+
+Before we touch any formulas, think like a quant:
+
+- You build a pricing model or risk model.
+- You change a parameter slightly: volatility, interest rate, spot, correlation.
+- Question: **Does your output move in a controlled way, or does it jump, oscillate, or blow up?**
+
+If tiny changes in inputs can cause chaotic jumps in outputs, your model is:
+
+- hard to hedge,
+- hard to calibrate,
+- and dangerous to trust with real money.
+
+**Limits** are the mathematical tool that let us talk precisely about this idea of *stability as we approach a point*.  
+**Continuity** is the property that ensures *no jumps* in that behavior.
+
+This lesson is about building the intuition that:
+
+> Limits → stability  
+> Continuity → no jumps  
+> Greeks & sensitivities → limits in disguise
+
+---
+
+## 2. Intuition: What Does “Approach” Mean?
+
+Forget ε–δ for a moment. Think in pictures.
+
+Consider a function $f(x)$. As $x$ gets closer and closer to some value $a$, we watch what $f(x)$ does.
+
+- If the values of $f(x)$ get closer and closer to some number $L$, we say
+  $$
+  \lim_{x \to a} f(x) = L.
+  $$
+- If they jump around, diverge, or depend on the direction we approach from, the limit fails to exist.
+
+You can think of it numerically: pick a sequence of inputs approaching $a$:
+
+$$
+x_1, x_2, x_3, \dots \quad \text{with} \quad x_n \to a
+$$
+
+and track:
+
+$$
+f(x_1), f(x_2), f(x_3), \dots
+$$
+
+If those outputs settle toward a single value $L$, that's the limit.
+
+### Left and right approaches
+
+Sometimes approaching from the left and right matters:
+
+- $x \to a^-$: values of $x$ slightly **less than** $a$
+- $x \to a^+$: values of $x$ slightly **greater than** $a$
+
+If
+
+$$
+\lim_{x \to a^-} f(x) = \lim_{x \to a^+} f(x) = L,
+$$
+
+then the two-sided limit exists and equals $L$.
+If the two sides disagree, the limit does **not** exist.
+
+In finance, this shows up at **kinks** and **jumps** (for example, at strike $K$ in option payoff functions).
+
+---
+
+## 3. The Formal ε–δ Definition
+
+Now the rigorous version.
+
+We say
+
+$$
+\lim_{x \to a} f(x) = L
+$$
+
+if and only if:
+
+$$
+\forall \varepsilon > 0,\ \exists \delta > 0 \ \text{such that}\ 0 < |x - a| < \delta \implies |f(x) - L| < \varepsilon.
+$$
+
+Interpretation:
+
+- $\varepsilon$ (epsilon) is how close you want the **output** $f(x)$ to be to $L$.
+- $\delta$ (delta) is how close you must force the **input** $x$ to be to $a$ to guarantee that.
+
+Informally:
+
+> For any output accuracy you demand, there exists some input accuracy that guarantees it.
+
+This is exactly the language of **model stability**:
+
+- If you can always find such a $\delta$, then near $a$, small input changes → controlled output changes.
+- If not, your model behaves erratically near $a$.
+
+---
+
+## 4. Quant Application 1: Stability of an Option Pricing Model
+
+Consider the Black–Scholes price of a European call as a function of volatility $\sigma$:
+
+$$
+C(\sigma) = S_0 \Phi(d_1) - K e^{-rT} \Phi(d_2),
+$$
+
+where
+
+$$
+d_1 = \frac{\ln(S_0 / K) + (r + \sigma^2/2)T}{\sigma \sqrt{T}},
+\quad
+d_2 = d_1 - \sigma \sqrt{T}.
+$$
+
+Here, think of:
+
+- input: $\sigma$ (volatility),
+- output: $C(\sigma)$ (option price).
+
+We are interested in:
+
+$$
+\lim_{\sigma \to 0} C(\sigma).
+$$
+
+Intuition:
+
+- As $\sigma \to 0$, uncertainty disappears.
+- The stock either stays almost deterministically near $S_0$, or—under risk-neutral dynamics—follows a nearly deterministic path.
+- The option price should converge to its **discounted intrinsic value**:
+  - roughly $S_0 - K e^{-rT}$ if clearly in-the-money,
+  - or $0$ if clearly out-of-the-money.
+
+We don’t need a full derivation here; the key is the mindset:
+
+- We are using a **limit** to ask:  
+  *What does my pricing model say in the extreme regime where volatility is nearly zero?*
+
+If this convergence is smooth and well-behaved, the model is **stable** near low volatility.
+If instead tiny changes in $\sigma$ caused huge jumps in $C(\sigma)$, hedging with respect to volatility would be chaotic.
+
+---
+
+## 5. Limits and Greeks: Sensitivities as Limits
+
+Greeks are essentially **limits of finite differences**.
+
+For example, the Delta of a call with respect to $S_0$:
+
+$$
+\Delta = \frac{\partial C}{\partial S_0} \approx \frac{C(S_0 + h) - C(S_0)}{h}
+$$
+
+for small $h$.
+Formally:
+
+$$
+\Delta = \lim_{h \to 0} \frac{C(S_0 + h) - C(S_0)}{h}.
+$$
+
+This is exactly a **limit definition** of a derivative.
+
+If this limit exists and behaves nicely:
+
+- Delta is well-defined and stable.
+- Small changes in spot price lead to predictable changes in option price.
+- Hedging by adjusting positions in the underlying actually makes sense.
+
+If this limit does **not** exist or oscillates wildly:
+
+- Delta is ill-defined.
+- Numerical estimations of Delta can be extremely noisy.
+- Risk management becomes unreliable.
+
+The same idea applies to Gamma, Vega, Rho, etc.:
+
+- All are limits of how the price responds as some parameter changes.
+- Good models have well-behaved limits (smooth sensitivities).
+
+---
+
+## 6. Discontinuities in Finance
+
+Not all financial functions are continuous. Some have **built-in jumps or kinks**, and that matters.
+
+Examples:
+
+1. **Vanilla call payoff**
+   $$
+   f(S_T) = \max(S_T - K, 0)
+   $$
+   - Continuous in $S_T$ (no jump),
+   - but has a **kink** at $S_T = K$: left and right derivatives differ.
+
+2. **Digital (binary) option payoff**
+   $$
+   f(S_T) =
+   \begin{cases}
+   1, & S_T \ge K, \\
+   0, & S_T < K.
+   \end{cases}
+   $$
+   - Not continuous at $S_T = K$: there is an actual jump.
+   - This causes very sharp sensitivities near the strike.
+
+3. **Credit events / default**  
+   - The value of a bond or CDS can jump when a credit event happens.
+   - Mathematically: a discontinuity in the price process.
+
+4. **Dividends and price gaps**  
+   - Ex-dividend date: price drops discretely by roughly the dividend amount.
+   - Market crashes: prices gap down, not a smooth path.
+
+Why this matters:
+
+- Discontinuities and kinks create **limit issues** (left/right limits, infinite or undefined derivatives).
+- Numerical schemes (finite differences, PDE solvers, Monte Carlo Greeks) must respect these features.
+- As a quant, you must be aware when your payoff or model is continuous vs discontinuous.
+
+---
+
+## 7. Continuity: "No Jumps" in the Output
+
+Formally, a function $f$ is **continuous** at a point $a$ if:
+
+1. $f(a)$ is defined,
+2. $\lim_{x \to a} f(x)$ exists,
+3. and
+   $$
+   \lim_{x \to a} f(x) = f(a).
+   $$
+
+Intuition for models:
+
+- Continuity at $a$ means **no surprise jumps** in the output when you are around $a$.
+- If your pricing function is continuous in $S_0, \sigma, r, T$, then small perturbations in these inputs will not cause sudden output jumps.
+
+For most **closed-form pricing formulas** (e.g. Black–Scholes under typical assumptions):
+
+- The mapping from parameters to price is continuous.
+- This is part of what makes them comfortable to use: they behave smoothly when you tweak inputs.
+
+But as you saw above, payoffs and some real-world phenomena can introduce kinks or jumps.  
+In those cases, the underlying pricing model must carefully handle **limits from the left and right** and potentially **discontinuous behavior**.
+
+---
+
+## 8. Worked Example: Limit as Volatility → 0
+
+Return to the question:
+
+> What happens to the Black–Scholes call price $C(\sigma)$ as $\sigma \to 0$?
+
+High-level reasoning:
+
+- With $\sigma \approx 0$, the randomness in the underlying is almost gone.
+- Under the risk-neutral measure, $S_T$ behaves almost like a deterministic quantity (driven mostly by drift).
+- The option will almost surely either:
+  - end in-the-money with a payoff close to $S_0 e^{rT} - K$,
+  - or out-of-the-money with payoff close to $0$,
+  - depending on the relationship between current spot and strike.
+
+In a simple intuition:
+
+- If the option is clearly in-the-money already and nothing "random" can change that, the price converges to roughly its discounted intrinsic value $S_0 - K e^{-rT}$.
+- If it's clearly out-of-the-money, the price converges toward $0$.
+
+The point isn’t the exact closed-form limit here. The point is:
+
+- You are using a **limit** to probe an **extreme regime** of the model.
+- You are checking that the model’s behavior **matches your financial intuition** in that regime.
+
+Whenever you take a limit of your pricing or risk function as some parameter (vol, maturity, correlation, etc.) goes to an extreme value, you’re doing this kind of sanity check.
+
+---
+
+### Mini Example: What Delta Represents
+
+Delta measures how sensitive the option price is to small changes in the underlying price:
+
+$$
+\Delta = \frac{\partial C}{\partial S_0}.
+$$
+
+Intuition:
+
+- If a call is **deep in-the-money**, its payoff behaves almost like $S_T - K$, so the price moves almost one-to-one with the spot price. In that regime, $\Delta \approx 1$.
+- If a call is **deep out-of-the-money**, its payoff is almost always $0$, so small changes in $S_0$ barely affect the price. In that regime, $\Delta \approx 0$.
+
+As volatility $\sigma \to 0$ in the in-the-money case, uncertainty disappears and the option behaves almost like a deterministic forward contract. In that limit, the call price moves almost one-to-one with $S_0$, so
+
+$$
+\lim_{\sigma \to 0} \Delta_{\text{call}} = 1 \quad \text{if } S_0 > K.
+$$
+
+This is exactly the kind of limit intuition we use when we talk about model sensitivities and hedging.
+
+### Call Payoff: Continuous but Not Smooth
+
+For a vanilla call option, the payoff is
+
+$$
+f(S_T) = \max(S_T - K, 0).
+$$
+
+This function is **continuous** at the strike $S_T = K$:
+
+- As $S_T \to K^-$, the payoff approaches $0$.
+- As $S_T \to K^+$, the payoff also approaches $0$.
+
+So the left and right limits agree and equal the value at the point:
+
+$$
+\lim_{S_T \to K^-} f(S_T)
+=
+\lim_{S_T \to K^+} f(S_T)
+= 0 = f(K).
+$$
+
+There is no jump, so the payoff is continuous.  
+However, the **slope** changes abruptly: it is $0$ for $S_T < K$ and $1$ for $S_T > K$. That kink means the derivative does **not** exist at $S_T = K$, which is important when thinking about Greeks and numerical methods.
+
+
+## 9. Summary
+
+- Limits capture how a function behaves **as inputs approach** a value, not just at the value.
+- The formal ε–δ definition encodes **stability**: for every desired output precision, you can enforce a suitable input precision.
+- In quant finance, limits are everywhere:
+  - in **stability of pricing models**,
+  - in **sensitivities (Greeks)**,
+  - and in **extreme-parameter sanity checks**.
+- Continuity means **no jumps**: the limit as you approach a point equals the function’s value there.
+- Many financial objects are continuous (pricing formulas), but some key ones have **kinks** or **jumps** (payoffs, defaults, digital options), which create special behavior of limits and derivatives.
+- Thinking in terms of limits and continuity trains you to ask:
+  > “If I nudge this parameter, does the model respond smoothly, or does it misbehave?”
+
+This mindset is exactly what you need before we move on to derivatives, integrals, and optimization in the next lessons.

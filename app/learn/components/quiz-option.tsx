@@ -1,3 +1,5 @@
+// Quiz option component for the quiz page inspiration quiz-option.tsx
+
 "use client"
 
 import { motion } from "framer-motion"

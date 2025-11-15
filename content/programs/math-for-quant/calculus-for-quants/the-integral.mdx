@@ -1,0 +1,281 @@
+# The Integral
+
+## 1. Why Integrals Matter in Quant Finance
+
+In quant finance, integrals show up everywhere:
+
+- **Expected return**
+- **Option pricing**
+- **Present value of cash flows**
+- **Probability distributions**
+- **Continuous compounding**
+- **Risk measures**
+- **Monte Carlo estimation**
+- **Variance and volatility**
+
+If derivatives measure instantaneous change, integrals measure:
+
+> **total accumulated effect over an interval.**
+
+For quants, integrals allow you to:
+
+- compute continuous cash flows,
+- integrate probability densities to get prices,
+- measure area under payoff curves,
+- calculate expectations,
+- approximate prices numerically when closed forms don't exist.
+
+**Integrals are where calculus meets probability — and probability is where quant finance begins.**
+
+---
+
+## 2. Intuition: The Integral as Accumulation
+
+The integral of a function over an interval measures **accumulated quantity**.
+
+If $f(x)$ represents:
+
+- a rate,
+- a density,
+- or a value at each point,
+
+then
+
+$$
+\int_a^b f(x) \, dx
+$$
+
+is the **total amount accumulated** from $x=a$ to $x=b$.
+
+### Examples:
+
+- area under a curve
+- total return over time
+- total risk exposure
+- total probability
+- expected payoff
+
+### Area metaphor
+
+Imagine approximating the area under a curve by stacking thin rectangles:
+
+- thinner rectangles → better approximation
+- taking the limit gives the exact area
+
+This is the **Riemann integral**.
+
+---
+
+## 3. The Riemann Integral: Sums Becoming Continuous
+
+Start with a sum:
+
+$$
+\sum_{i=1}^n f(x_i) \Delta x.
+$$
+
+As $\Delta x \to 0$ and $n \to \infty$, this becomes the integral:
+
+$$
+\int_a^b f(x) \, dx = \lim_{n \to \infty} \sum_{i=1}^n f(x_i) \Delta x.
+$$
+
+This connection between sums and integrals is the foundation of:
+
+- Monte Carlo
+- numerical integration
+- quadrature
+- probability theory
+
+Almost all real-world pricing problems ultimately rely on numerically approximating integrals like these.
+
+---
+
+## 4. Basic Rules of Integration
+
+### Power rule (reverse of differentiation)
+$$
+\int x^n \, dx = \frac{x^{n+1}}{n+1} + C \quad (n \neq -1)
+$$
+
+### Exponential rule
+$$
+\int e^{ax} \, dx = \frac{1}{a}e^{ax} + C.
+$$
+
+### Constant multiple rule
+$$
+\int c \, f(x) \, dx = c \int f(x) \, dx.
+$$
+
+### Sum rule
+$$
+\int (f(x) + g(x)) \, dx = \int f(x) \, dx + \int g(x) \, dx.
+$$
+
+### Definite integral and the Fundamental Theorem of Calculus
+
+If $F'(x) = f(x)$, then
+
+$$
+\int_a^b f(x) \, dx = F(b) - F(a).
+$$
+
+This is how integrals are actually computed in practice.
+
+---
+
+## 5. Quant Application 1: Expected Value of a Return Distribution
+
+Suppose a stock's return $R$ has a probability density function $p(r)$.
+The **expected return** is:
+
+$$
+E[R] = \int_{-\infty}^\infty r \, p(r) \, dr.
+$$
+
+This is foundational:
+
+- every risk measure,
+- every pricing model,
+- every Monte Carlo simulation,
+- every Bayesian model
+
+relies on integrals of this form.
+
+### Example (simple)
+
+Let
+
+$$
+p(r) = 2r, \quad 0 \le r \le 1
+$$
+
+(a triangular distribution).
+
+Compute expected return:
+
+$$
+E[R] = \int_0^1 r(2r) \, dr = 2 \int_0^1 r^2 \, dr.
+$$
+
+By power rule:
+
+$$
+2 \cdot \frac{1}{3} = \frac{2}{3}.
+$$
+
+---
+
+## 6. Quant Application 2: Present Value of a Continuous Cash Flow
+
+If $c(t)$ is a cash flow rate at time $t$, then the present value is:
+
+$$
+PV = \int_0^T c(t) \, e^{-rt} \, dt.
+$$
+
+### Example: Constant flow $c(t) = C$.
+
+$$
+PV = \int_0^T C e^{-rt} \, dt.
+$$
+
+Use exponential rule:
+
+$$
+PV = C \left[-\frac{1}{r}e^{-rt}\right]_0^T = C\left(\frac{1 - e^{-rT}}{r}\right).
+$$
+
+This formula is used in:
+
+- bond pricing
+- swaps
+- forwards
+- insurance
+- pensions
+
+---
+
+## 7. Quant Application 3: Option Pricing as an Integral
+
+Under the risk-neutral measure, a European call price can be written as:
+
+$$
+C = e^{-rT} \int_{-\infty}^\infty \max(S_T - K, 0) \, f_{S_T}(s) \, ds,
+$$
+
+where $f_{S_T}$ is the probability density of the terminal stock price.
+
+This formula:
+
+- shows that option pricing is fundamentally an integral,
+- explains why probability theory is essential for quants,
+- and highlights the connection between payoffs and distributions.
+
+**Black–Scholes works because you can compute this integral in closed form.**
+
+Most exotic options do NOT have closed-form integrals, so quants approximate them numerically.
+
+---
+
+## 8. Quant Application 4: Variance and Volatility
+
+Variance is defined as:
+
+$$
+\text{Var}(X) = \int_{-\infty}^\infty (x - \mu)^2 p(x) \, dx.
+$$
+
+Volatility is the square root.
+
+This integral shows:
+
+- volatility is an average squared deviation,
+- weighted by probability density,
+- accumulated over all possible outcomes.
+
+This is why volatility is:
+
+- an integral-based statistic,
+- deeply tied to probability distributions,
+- essential for risk management and pricing models.
+
+---
+
+## 9. Worked Example: Integrating a Return Curve
+
+Suppose instantaneous return is modeled as:
+
+$$
+r(t) = 0.05t.
+$$
+
+We want total return from $t=0$ to $t=2$:
+
+$$
+\int_0^2 0.05t \, dt = 0.05 \left[\frac{t^2}{2}\right]_0^2.
+$$
+
+Compute:
+
+$$
+0.05 \cdot \frac{4}{2} = 0.05 \cdot 2 = 0.1.
+$$
+
+Total return over this period = **10%**.
+
+---
+
+## 10. Summary
+
+- Integrals measure **accumulated quantity**.
+- Riemann integrals come from **limits of sums**.
+- Fundamental rules: power rule, exponential rule, linearity.
+- **Expected return** is an integral over the probability distribution.
+- **Continuous cash flows** are valued using discount-factor integrals.
+- **Option pricing** is an integral of payoff × density.
+- **Variance and volatility** come from integrals of squared deviations.
+- Integrals connect calculus to probability — the core of quant finance.
+
+This prepares you for optimization and numerical methods later in the course.

@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { LogOut, RefreshCw } from "lucide-react"
+import { LogOut, RefreshCw, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { StatsCards } from "./components/stats-cards"
 import { AnalyticsCharts } from "./components/analytics-charts"
 import { ResponseTable } from "./components/response-table"
@@ -236,11 +237,20 @@ export default function AdminDashboard() {
             <p className="text-zinc-400">Quiz responses and analytics</p>
           </div>
           <div className="flex gap-3">
+            <Link href="/admin/problems">
+              <Button
+                variant="outline"
+                className="border-phthalo-700 bg-phthalo-900/20 text-phthalo-400 hover:text-phthalo-300 hover:border-phthalo-600 hover:bg-phthalo-900/40"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Problem
+              </Button>
+            </Link>
             <Button
               onClick={handleRefresh}
               disabled={isRefreshing}
               variant="outline"
-              className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:text-white hover:border-zinc-600 hover:bg-zinc-800"
+              className="border-zinc-700 bg-zinc-900 text-zinc-300 hover:text-phthalo-400 hover:border-zinc-600 hover:bg-zinc-800"
             >
               <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
