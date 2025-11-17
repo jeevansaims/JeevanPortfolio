@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, CheckCircle2, Clock, BookCheck } from 'lucide-react'
 import { loadMDXContent } from '@/lib/mdx/loader'
-import { LessonContent } from '@/components/quantframe/lesson-content'
+import { LessonContent } from '@/components/academy/lesson-content'
 import { CompleteLessonButton } from './complete-lesson-button'
 
 export default async function LessonPage({

@@ -9,7 +9,7 @@ import {
   getJournalPostBySlug,
   getJournalPostContent,
 } from '@/app/quantframe/actions/journal';
-import { JournalContent } from '@/components/quantframe/journal-content';
+import { JournalContent } from '@/components/academy/journal-content';
 
 // Make this page dynamic (auth-required)
 export const dynamic = 'force-dynamic';
