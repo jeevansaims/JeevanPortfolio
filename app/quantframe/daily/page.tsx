@@ -4,11 +4,11 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle2, Calendar } from 'lucide-react'
 import { CountdownTimer } from './components/countdown-timer'
 import { MathCard } from './components/math-card'
 import { CodingCard } from './components/coding-card'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface MathProblem {
   id: string
@@ -247,7 +247,7 @@ export default function DailyChallengePage() {
 
   return (
     <div className="min-h-screen py-16 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-3">
@@ -263,56 +263,71 @@ export default function DailyChallengePage() {
             </div>
           </div>
 
-          {/* Desktop: Side by Side */}
-          <div className="hidden lg:grid lg:grid-cols-2 gap-6">
-            <MathCard 
-              problem={mathProblem} 
-              completed={mathCompleted}
-              onComplete={handleMathComplete}
-            />
-            <CodingCard 
-              problem={codingProblem}
-              completed={codingCompleted}
-              onComplete={handleCodingComplete}
-            />
+          {/* Challenge Toggle */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex rounded-lg bg-zinc-800/50 p-1 backdrop-blur-sm border border-zinc-700/50">
+              <button
+                onClick={() => setCurrentTab('math')}
+                className={`
+                  px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2
+                  ${currentTab === 'math'
+                    ? 'bg-phthalo-600 text-white shadow-lg shadow-phthalo-600/20'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-700/50'
+                  }
+                `}
+              >
+                Mathematics
+                {mathCompleted && <CheckCircle2 className="w-4 h-4 text-green-400" />}
+              </button>
+              <button
+                onClick={() => setCurrentTab('coding')}
+                className={`
+                  px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center gap-2
+                  ${currentTab === 'coding'
+                    ? 'bg-phthalo-600 text-white shadow-lg shadow-phthalo-600/20'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-700/50'
+                  }
+                `}
+              >
+                Coding
+                {codingCompleted && <CheckCircle2 className="w-4 h-4 text-green-400" />}
+              </button>
+            </div>
           </div>
 
-          {/* Mobile: Tabs */}
-          <div className="lg:hidden">
-            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as 'math' | 'coding')} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-zinc-800/50 mb-6">
-                <TabsTrigger 
-                  value="math" 
-                  className="data-[state=active]:bg-phthalo-600 data-[state=active]:text-white"
+          {/* Challenge Card with Smooth Transition */}
+          <div className="relative">
+            <AnimatePresence mode="wait">
+              {currentTab === 'math' ? (
+                <motion.div
+                  key="math"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >
-                  Mathematics
-                  {mathCompleted && <CheckCircle2 className="w-4 h-4 ml-2 text-green-400" />}
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="coding"
-                  className="data-[state=active]:bg-phthalo-600 data-[state=active]:text-white"
+                  <MathCard
+                    problem={mathProblem}
+                    completed={mathCompleted}
+                    onComplete={handleMathComplete}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="coding"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >
-                  Coding
-                  {codingCompleted && <CheckCircle2 className="w-4 h-4 ml-2 text-green-400" />}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="math">
-                <MathCard 
-                  problem={mathProblem} 
-                  completed={mathCompleted}
-                  onComplete={handleMathComplete}
-                />
-              </TabsContent>
-
-              <TabsContent value="coding">
-                <CodingCard 
-                  problem={codingProblem}
-                  completed={codingCompleted}
-                  onComplete={handleCodingComplete}
-                />
-              </TabsContent>
-            </Tabs>
+                  <CodingCard
+                    problem={codingProblem}
+                    completed={codingCompleted}
+                    onComplete={handleCodingComplete}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
