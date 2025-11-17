@@ -3,8 +3,8 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
-import { ROADMAP_SYSTEM_PROMPT } from '@/app/academy/lib/roadmap-prompt'
-import { RoadmapQuizResponse } from '@/app/academy/quiz/types/roadmap-quiz'
+import { ROADMAP_SYSTEM_PROMPT } from '@/app/quantframe/lib/roadmap-prompt'
+import { RoadmapQuizResponse } from '@/app/quantframe/quiz/types/roadmap-quiz'
 
 
 // Use service role key for server-side operations

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/academy/dashboard'
+  const next = searchParams.get('next') ?? '/quantframe/dashboard'
 
   if (code) {
     const supabase = await createClient()
@@ -17,5 +17,5 @@ export async function GET(request: Request) {
   }
 
   // If there's an error or no code, redirect to error page
-  return NextResponse.redirect(`${origin}/academy/login?error=verification_failed`)
+  return NextResponse.redirect(`${origin}/quantframe/login?error=verification_failed`)
 }

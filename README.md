@@ -2,12 +2,12 @@
 ```
 portfolio
 ├─ app
-│  ├─ academy
+│  ├─ quantframe
 │  │  ├─ actions
 │  │  │  └─ auth.ts
 │  │  ├─ components
-│  │  │  ├─ academy-hero.tsx
-│  │  │  ├─ academy-nav.tsx
+│  │  │  ├─ quantframe-hero.tsx
+│  │  │  ├─ quantframe-nav.tsx
 │  │  │  ├─ auth-form.tsx
 │  │  │  ├─ conditional-sidebar.tsx
 │  │  │  ├─ gamification-card.tsx

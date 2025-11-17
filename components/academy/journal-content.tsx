@@ -1,4 +1,4 @@
-// components/academy/journal-content.tsx
+// components/quantframe/journal-content.tsx
 'use client'
 
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'

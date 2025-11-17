@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { ArrowLeft, Plus, Loader2, Wand2 } from "lucide-react"
+import { ArrowLeft, Plus, Loader2, Wand2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,8 +12,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import Link from "next/link"
+import { createClient } from '@/lib/supabase/client'
+import { LatexPreview } from './components/latex-preview'
 
 type ProblemType = 'math' | 'coding' | null
+
+interface Category {
+  id: string
+  name: string
+  description: string
+  type: 'math' | 'coding'
+}
 
 export default function AddProblemPage() {
   const router = useRouter()
@@ -22,6 +31,10 @@ export default function AddProblemPage() {
   const [isFormattingProblem, setIsFormattingProblem] = useState(false)
   const [isFormattingHint, setIsFormattingHint] = useState(false)
   const [isFormattingSolution, setIsFormattingSolution] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loadingCategories, setLoadingCategories] = useState(true)
+  const [checkingDuplicate, setCheckingDuplicate] = useState(false)
+  const [duplicateFound, setDuplicateFound] = useState(false)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -43,6 +56,76 @@ export default function AddProblemPage() {
     test_cases: '',
     problem_number: ''
   })
+
+  // Load categories on mount
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('problem_categories')
+          .select('*')
+          .order('name', { ascending: true })
+
+        if (error) throw error
+
+        setCategories(data || [])
+      } catch (error) {
+        console.error('Error loading categories:', error)
+        toast.error('Failed to load categories')
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+
+    loadCategories()
+  }, [])
+
+  // Reset category when problem type changes
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, category: '' }))
+  }, [problemType])
+
+  // Check for duplicate title (debounced)
+  useEffect(() => {
+    // Only check for math problems (coding doesn't have title field)
+    if (problemType !== 'math' || !formData.title.trim()) {
+      setDuplicateFound(false)
+      return
+    }
+
+    const checkDuplicate = async () => {
+      setCheckingDuplicate(true)
+      try {
+        const supabase = createClient()
+
+        // Normalize the title: lowercase and remove all spaces
+        const normalizedTitle = formData.title.toLowerCase().replace(/\s+/g, '')
+
+        // Get all math problems
+        const { data: problems, error } = await supabase
+          .from('math_problems')
+          .select('title')
+
+        if (error) throw error
+
+        // Check if any existing title matches (case-insensitive, space-insensitive)
+        const isDuplicate = problems?.some(p =>
+          p.title?.toLowerCase().replace(/\s+/g, '') === normalizedTitle
+        ) || false
+
+        setDuplicateFound(isDuplicate)
+      } catch (error) {
+        console.error('Error checking for duplicate:', error)
+      } finally {
+        setCheckingDuplicate(false)
+      }
+    }
+
+    // Debounce the check by 500ms
+    const timeoutId = setTimeout(checkDuplicate, 500)
+    return () => clearTimeout(timeoutId)
+  }, [formData.title, problemType])
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -92,6 +175,12 @@ export default function AddProblemPage() {
       return
     }
 
+    // Check for duplicate title
+    if (problemType === 'math' && duplicateFound) {
+      toast.error('A problem with this title already exists. Please choose a different title.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -128,6 +217,7 @@ export default function AddProblemPage() {
         problem_number: ''
       })
       setProblemType(null)
+      setDuplicateFound(false)
 
     } catch (error) {
       console.error('Error creating problem:', error)
@@ -152,7 +242,7 @@ export default function AddProblemPage() {
           <h1 className="text-4xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
             Add New Problem
           </h1>
-          <p className="text-zinc-400">Create math or coding problems for the academy</p>
+          <p className="text-zinc-400">Create math or coding problems for the quantframe</p>
         </div>
 
         {/* Problem Type Selection */}
@@ -228,16 +318,34 @@ export default function AddProblemPage() {
                     <Label htmlFor="title" className="text-white mb-2 block">
                       Title (Optional)
                     </Label>
-                    <Input
-                      id="title"
-                      value={formData.title}
-                      onChange={(e) => handleInputChange('title', e.target.value)}
-                      placeholder="e.g., Polynomial Limit, Derivative at a Point"
-                      className="bg-zinc-800 border-zinc-700 text-white"
-                    />
-                    <p className="text-xs text-zinc-500 mt-1">
-                      A short, descriptive title for the problem
-                    </p>
+                    <div className="relative">
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                        placeholder="e.g., Polynomial Limit, Derivative at a Point"
+                        className={`bg-zinc-800 border-zinc-700 text-white ${
+                          duplicateFound ? 'border-red-500 focus:ring-red-500' : ''
+                        }`}
+                      />
+                      {checkingDuplicate && formData.title.trim() && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <Loader2 className="w-4 h-4 text-zinc-400 animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    {duplicateFound ? (
+                      <div className="flex items-center gap-2 mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-md">
+                        <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <p className="text-xs text-red-400">
+                          A problem with this title already exists. Please choose a different title.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-500 mt-1">
+                        A short, descriptive title for the problem
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -279,6 +387,7 @@ export default function AddProblemPage() {
                   <p className="text-xs text-zinc-500 mt-1">
                     Supports LaTeX: Use $x^2$ for inline and $$\int_0^1 x \, dx$$ for block equations
                   </p>
+                  <LatexPreview text={formData.problem} />
                 </div>
 
                 {/* Hint */}
@@ -316,6 +425,7 @@ export default function AddProblemPage() {
                     placeholder="Enter a helpful hint"
                     className="min-h-[100px] bg-zinc-800 border-zinc-700 text-white"
                   />
+                  <LatexPreview text={formData.hint} />
                 </div>
 
                 {/* Solution */}
@@ -353,6 +463,7 @@ export default function AddProblemPage() {
                     placeholder="Enter the complete solution with steps"
                     className="min-h-[150px] bg-zinc-800 border-zinc-700 text-white"
                   />
+                  <LatexPreview text={formData.solution} />
                 </div>
 
                 {/* Math-specific: Answer */}
@@ -430,14 +541,34 @@ export default function AddProblemPage() {
                   <Label htmlFor="category" className="text-white mb-2 block">
                     Category *
                   </Label>
-                  <Input
-                    id="category"
-                    required
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    placeholder="e.g., calculus, linear-algebra, python-basics"
-                    className="bg-zinc-800 border-zinc-700 text-white"
-                  />
+                  {loadingCategories ? (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-md text-zinc-400">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Loading categories...
+                    </div>
+                  ) : (
+                    <select
+                      id="category"
+                      required
+                      value={formData.category}
+                      onChange={(e) => handleInputChange('category', e.target.value)}
+                      className="w-full px-4 py-2 rounded-md bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:ring-2 focus:ring-phthalo-500"
+                    >
+                      <option value="">Select a category...</option>
+                      {categories
+                        .filter(cat => cat.type === problemType)
+                        .map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                    </select>
+                  )}
+                  {formData.category && categories.find(c => c.id === formData.category) && (
+                    <p className="text-xs text-zinc-500 mt-1">
+                      {categories.find(c => c.id === formData.category)?.description}
+                    </p>
+                  )}
                 </div>
 
                 {/* Difficulty */}
@@ -498,13 +629,18 @@ export default function AddProblemPage() {
                 <div className="flex gap-4 pt-4">
                   <Button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900"
+                    disabled={isSubmitting || duplicateFound}
+                    className="flex-1 bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                         Creating...
+                      </>
+                    ) : duplicateFound ? (
+                      <>
+                        <AlertCircle className="w-4 h-4 mr-2" />
+                        Duplicate Title
                       </>
                     ) : (
                       <>
@@ -526,12 +662,14 @@ export default function AddProblemPage() {
                         category: '',
                         difficulty: 'beginner',
                         xp: '10',
+                        title: '',
                         answer: '',
                         lesson_id: '',
                         starter_code: '',
                         test_cases: '',
                         problem_number: ''
                       })
+                      setDuplicateFound(false)
                     }}
                     className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
                   >

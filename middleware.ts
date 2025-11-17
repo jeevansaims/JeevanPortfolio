@@ -32,12 +32,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protect /academy/dashboard routes
-  if (request.nextUrl.pathname.startsWith('/academy/dashboard')) {
+  // Protect /quantframe/dashboard routes
+  if (request.nextUrl.pathname.startsWith('/quantframe/dashboard')) {
     // No user session - redirect to login
     if (!user) {
       const url = request.nextUrl.clone()
-      url.pathname = '/academy/login'
+      url.pathname = '/quantframe/login'
       url.searchParams.set('next', request.nextUrl.pathname)
       return NextResponse.redirect(url)
     }
@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
     // User not verified - redirect to verify-email page
     if (!user.email_confirmed_at) {
       const url = request.nextUrl.clone()
-      url.pathname = '/academy/verify-email'
+      url.pathname = '/quantframe/verify-email'
       return NextResponse.redirect(url)
     }
   }
@@ -53,11 +53,11 @@ export async function middleware(request: NextRequest) {
   // If logged in user tries to access login/register, redirect to dashboard
   if (user && user.email_confirmed_at) {
     if (
-      request.nextUrl.pathname === '/academy/login' ||
-      request.nextUrl.pathname === '/academy/register'
+      request.nextUrl.pathname === '/quantframe/login' ||
+      request.nextUrl.pathname === '/quantframe/register'
     ) {
       const url = request.nextUrl.clone()
-      url.pathname = '/academy/dashboard'
+      url.pathname = '/quantframe/dashboard'
       return NextResponse.redirect(url)
     }
   }
@@ -66,5 +66,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/academy/dashboard/:path*', '/academy/login', '/academy/register'],
+  matcher: ['/quantframe/dashboard/:path*', '/quantframe/login', '/quantframe/register'],
 }

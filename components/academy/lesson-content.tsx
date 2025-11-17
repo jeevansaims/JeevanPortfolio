@@ -1,4 +1,4 @@
-// components/academy/lesson-content.tsx
+// components/quantframe/lesson-content.tsx
 'use client'
 
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
