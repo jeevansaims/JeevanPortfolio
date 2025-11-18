@@ -3,8 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { LockedRoadmap } from './components/locked-roadmap'
-import { RoadmapGenerator } from '../components/roadmap-generator'
-import { PersonalizedRoadmap } from '../components/personalized-roadmap'
+import { PersonalizedRoadmapV2 } from '../components/personalized-roadmap-v2'
 import { PageHeader } from '../components/page-header'
 
 
@@ -33,9 +32,9 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .single()
 
-  // If no quiz response, redirect to quiz
+  // If no quiz response, redirect to new quiz
   if (!quizResponse) {
-    redirect('/quantframe/quiz')
+    redirect('/quantframe/quiz-new')
   }
 
   // Check if user has paid (membership_tier === 'pro')
@@ -55,14 +54,13 @@ export default async function DashboardPage() {
   // User is paid - fetch their generated roadmap
   const { data: roadmapData } = await supabase
     .from('generated_roadmaps')
-    .select('roadmap_json')
+    .select('roadmap_data, node_ids, roadmap_json_legacy')
     .eq('user_id', user.id)
     .single()
 
-  // If no roadmap yet (just paid, need to generate)
-  // This component will trigger the API call and show loading screen
-  if (!roadmapData) {
-    return <RoadmapGenerator userId={user.id} />
+  // If no roadmap yet OR old format, redirect back to quiz to generate new one
+  if (!roadmapData || !roadmapData.roadmap_data) {
+    redirect('/quantframe/quiz-new')
   }
 
   // Display the actual personalized roadmap! 🎉
@@ -75,7 +73,7 @@ export default async function DashboardPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-16">
         <div className="max-w-6xl mx-auto">
-          <PersonalizedRoadmap roadmap={roadmapData.roadmap_json} />
+          <PersonalizedRoadmapV2 roadmap={roadmapData.roadmap_data} userId={user.id} />
         </div>
       </div>
     </div>
