@@ -105,7 +105,7 @@ export default function Portfolio() {
                   <span className="sr-only">LinkedIn</span>
                 </Button>
               </Link>
-              <Link href="mailto:antonije@mirkovic.no">
+              <Link href="mailto:contact@mirkovic.dev">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -176,7 +176,7 @@ export default function Portfolio() {
                     <span className="sr-only">LinkedIn</span>
                   </Button>
                 </Link>
-                <Link href="mailto:antonije@mirkovic.no">
+                <Link href="mailto:contact@mirkovic.dev">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -333,7 +333,7 @@ export default function Portfolio() {
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">Email</div>
-                    <div className="font-medium">antonije@mirkovic.no</div>
+                    <div className="font-medium">contact@mirkovic.dev</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -445,7 +445,7 @@ export default function Portfolio() {
                 <span className="sr-only">LinkedIn</span>
               </Button>
             </Link>
-            <Link href="mailto:antonije@mirkovic.no">
+            <Link href="mailto:contact@mirkovic.dev">
               <Button
                 variant="ghost"
                 size="icon"

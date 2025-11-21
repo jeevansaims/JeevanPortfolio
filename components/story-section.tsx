@@ -432,10 +432,10 @@ export function StorySection() {
             <GlassmorphicCard>
               <div className="p-8 text-center">
                 <div className="flex items-center justify-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-phthalo-500 to-phthalo-700 flex items-center justify-center shadow-lg shadow-phthalo-500/30">
+                  <div className="hidden md:flex w-16 h-16 rounded-xl bg-gradient-to-br from-phthalo-500 to-phthalo-700 items-center justify-center shadow-lg shadow-phthalo-500/30">
                     <Activity className="w-8 h-8 text-white" />
                   </div>
-                  <h4 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
+                  <h4 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600 text-center">
                     10M+ Views & 70K Followers
                   </h4>
                 </div>
