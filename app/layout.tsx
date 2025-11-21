@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: 'Mirkovic',
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <Analytics />
           <Toaster 
             position="top-right"
             richColors
