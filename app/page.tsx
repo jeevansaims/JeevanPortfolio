@@ -17,6 +17,7 @@ import { KnowledgeBrain } from "@/components/knowledge-brain"
 import { Marquee } from "@/components/magicui/marquee"
 import { ECGProjectCard } from "@/components/ECGProjectCard"
 import { LearnNavbar } from "@/components/learn-navbar"
+import { StorySection } from "@/components/story-section"
 
 export default function Portfolio() {
   return (
@@ -200,135 +201,9 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* About Section */}
-      <section id="about" className="py-32 relative">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-          <div className="absolute bottom-1/3 left-1/3 w-64 h-64 bg-phthalo-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        </div>
-
-        <div className="container relative z-10">
-          <SectionHeading title="About Me" subtitle="My background and journey" />
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mt-16">
-            <div className="relative">
-              <div className="absolute -inset-4 rounded-xl bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 blur-xl opacity-70"></div>
-              <div className="relative aspect-square rounded-xl overflow-hidden border border-zinc-800">
-                <img
-                  src="/image.jpg"
-                  alt="Shine Kyaw Kyaw Aung"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 w-full p-6">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
-                    <span className="text-sm font-medium">Available for work</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <GlassmorphicCard>
-                <p className="text-lg text-zinc-300">
-                  I'm a third-year M.Sc. student in physics and mathematics, specializing in industrial mathematics. My work lives at the intersection of theory and engineering: I build full-stack systems powered by deep math, from real-time arrhythmia detectors to quant backtesters and forward deployed engineers.
-                </p>
-                <p className="text-lg text-zinc-300 mt-4">
-                  In 2024, I was diagnosed with heart failure. Instead of stepping back, I doubled down - studying, training, and coding through irregular heartbeats that I could literally see in my own ECG data. That experience shifted my focus. I don't just want to build “projects.” I want to engineer systems that matter, tools that monitor, predict, and automate things critical to real life.
-                </p>
-                <p className="text-lg text-zinc-300 mt-4">
-                  Today, I work mostly in Python, C++ and Next.js. My current focus spans real-time ECG analysis, cardinality-constrained portfolio optimization, and high-frequency crypto strategies. Whether in health or finance, my goal is the same: to take complex problems and engineer solutions that actually work.
-                </p>
-
-
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                  <div className="space-y-1">
-                    <div className="text-sm text-zinc-500">Name</div>
-                    <div className="font-medium">Antonije Mirkovic</div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="text-sm text-zinc-500">Email</div>
-                    <div className="font-medium break-all">antonije@mirkovic.no</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm text-zinc-500">Location</div>
-                    <div className="font-medium">Trondheim, Norway</div>
-                  </div>
-                  <div className="space-y-1">
-                    <div className="text-sm text-zinc-500">Availability</div>
-                    <div className="font-medium text-green-500">Open to opportunities</div>
-                  </div>
-                </div>
-
-
-              </GlassmorphicCard>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Skills Section */}
-      <section id="skills" className="py-32 relative">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/3 left-1/4 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        </div>
-
-        <div className="container relative z-10">
-          <SectionHeading title="My Skills" subtitle="Technologies I work with" />
-
-          {/* Desktop: Two horizontal rows */}
-          <div className="hidden md:block mt-16">
-            <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
-              <Marquee pauseOnHover className="[--duration:20s]">
-                <SkillBadge name="JavaScript" level={100} />
-                <SkillBadge name="TypeScript" level={100} />
-                <SkillBadge name="React" level={100} />
-                <SkillBadge name="Next.js" level={100} />
-                <SkillBadge name="Python" level={100} />
-                <SkillBadge name="HTML/CSS" level={100} />
-              </Marquee>
-              <Marquee reverse pauseOnHover className="[--duration:20s]">
-                <SkillBadge name="Tailwind CSS" level={100} />
-                <SkillBadge name="LaTeX" level={100} />
-                <SkillBadge name="C++" level={95} />
-                <SkillBadge name="PostgreSQL" level={75} />
-                <SkillBadge name="Julia" level={60} />
-                <SkillBadge name="Git" level={60} />
-                <SkillBadge name="R" level={80} />
-              </Marquee>
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-zinc-900"></div>
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-zinc-900"></div>
-            </div>
-          </div>
-
-          {/* Mobile: Two vertical columns */}
-          <div className="md:hidden mt-16">
-            <div className="relative flex h-[500px] w-full flex-row items-center justify-center overflow-hidden">
-              <Marquee pauseOnHover vertical className="[--duration:20s]">
-                <SkillBadge name="JavaScript" level={100} />
-                <SkillBadge name="TypeScript" level={100} />
-                <SkillBadge name="React" level={100} />
-                <SkillBadge name="Next.js" level={100} />
-                <SkillBadge name="Python" level={100} />
-                <SkillBadge name="HTML/CSS" level={100} />
-              </Marquee>
-              <Marquee reverse pauseOnHover vertical className="[--duration:20s]">
-                <SkillBadge name="Tailwind CSS" level={100} />
-                <SkillBadge name="LaTeX" level={100} />
-                <SkillBadge name="C++" level={95} />
-                <SkillBadge name="PostgreSQL" level={75} />
-                <SkillBadge name="Julia" level={60} />
-                <SkillBadge name="Git" level={60} />
-              </Marquee>
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-zinc-900"></div>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-zinc-900"></div>
-            </div>
-          </div>
-        </div>
+      {/* About Section - Full Story */}
+      <section id="about" className="relative">
+        <StorySection />
       </section>
 
       {/* Projects Section */}
