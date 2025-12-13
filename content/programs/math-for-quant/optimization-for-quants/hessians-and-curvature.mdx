@@ -1,0 +1,355 @@
+# Hessians and Curvature
+
+## 1. Why Second-Order Information Matters
+
+### Limitations of Gradient-Only Methods
+
+Gradient descent uses only first-order information: the slope at the current point. This has fundamental limitations:
+
+**No curvature awareness:** The gradient tells you which direction is downhill, but not how steep the terrain is or how it curves. A gentle slope and a cliff edge both show "downhill," but they require very different step sizes.
+
+**Step size guessing:** Without curvature information, choosing the right step size is trial and error. Too large and you overshoot; too small and you crawl.
+
+**Slow in narrow valleys:** When the function curves sharply in one direction but gently in another, gradient descent zigzags inefficiently. It doesn't know to take larger steps in the flat direction.
+
+### Curvature as Information About the Landscape
+
+**Curvature** tells you how the slope changes as you move. It's the second derivative information.
+
+**High positive curvature:** The function curves upward sharply. You're in a steep bowl. Small steps are safe; the minimum is nearby.
+
+**Low positive curvature:** The function curves upward gently. You're on a nearly flat plain. Larger steps are safe.
+
+**Negative curvature:** The function curves downward. You're on a hilltop or saddle. This is not a minimum.
+
+**Mixed curvature:** Different directions have different curvatures. The landscape is a valley, ridge, or saddle.
+
+### Why Quants Care About Speed, Stability, and Reliability
+
+In production environments, optimization happens constantly:
+
+**Speed:** Portfolio rebalancing must complete before markets move. Model calibration runs on every new data point. Faster algorithms mean more responsive systems.
+
+**Stability:** Small changes in input shouldn't cause wild swings in output. Understanding curvature helps identify when problems are ill-conditioned and solutions are unreliable.
+
+**Reliability:** You need to know you've found the true optimum, not just a point where the gradient happened to be small. Second-order conditions provide this verification.
+
+---
+
+## 2. The Hessian Matrix
+
+### Definition and Notation
+
+The **Hessian matrix** $H$ collects all second partial derivatives of a function $f: \mathbb{R}^n \to \mathbb{R}$:
+
+$$
+H_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}
+$$
+
+For a function of $n$ variables, the Hessian is an $n \times n$ matrix:
+
+$$
+H = \begin{pmatrix} \frac{\partial^2 f}{\partial x_1^2} & \frac{\partial^2 f}{\partial x_1 \partial x_2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\ \frac{\partial^2 f}{\partial x_2 \partial x_1} & \frac{\partial^2 f}{\partial x_2^2} & \cdots & \frac{\partial^2 f}{\partial x_2 \partial x_n} \\ \vdots & \vdots & \ddots & \vdots \\ \frac{\partial^2 f}{\partial x_n \partial x_1} & \frac{\partial^2 f}{\partial x_n \partial x_2} & \cdots & \frac{\partial^2 f}{\partial x_n^2} \end{pmatrix}
+$$
+
+### Hessian as Second Derivative of the Objective
+
+Just as the gradient generalizes the first derivative to multiple dimensions, the Hessian generalizes the second derivative.
+
+**One dimension:** $f''(x)$ tells you the curvature at point $x$.
+
+**Multiple dimensions:** $H(x)$ tells you the curvature in every direction at point $x$.
+
+**Second-order Taylor expansion:**
+
+$$
+f(x + \Delta x) \approx f(x) + \nabla f(x)^T \Delta x + \frac{1}{2} \Delta x^T H(x) \Delta x
+$$
+
+The Hessian term $\frac{1}{2} \Delta x^T H \Delta x$ is the curvature correction to the linear approximation.
+
+### Symmetry and Smoothness
+
+For smooth functions (continuous second derivatives), the Hessian is symmetric:
+
+$$
+\frac{\partial^2 f}{\partial x_i \partial x_j} = \frac{\partial^2 f}{\partial x_j \partial x_i}
+$$
+
+**Why symmetry matters:**
+
+- Symmetric matrices have real eigenvalues
+- They can be diagonalized by orthogonal matrices
+- This makes analysis and computation easier
+
+### Relationship to Curvature in Multiple Dimensions
+
+**Curvature in direction $d$:** The second directional derivative is:
+
+$$
+d^T H d
+$$
+
+This tells you how fast the function curves when you move in direction $d$.
+
+**Positive:** Function curves upward (bowl-like) in that direction
+
+**Negative:** Function curves downward (hilltop-like) in that direction
+
+**Zero:** Function is flat (no curvature) in that direction
+
+---
+
+## 3. Curvature and Local Geometry
+
+### Positive, Negative, and Zero Curvature
+
+**Positive curvature (everywhere):** The function curves upward in all directions. Like the inside of a bowl. Any critical point is a local minimum.
+
+**Negative curvature (everywhere):** The function curves downward in all directions. Like the top of a hill. Any critical point is a local maximum.
+
+**Zero curvature:** The function is flat in that direction. Like a valley floor or ridge line. The second derivative test is inconclusive.
+
+**Mixed curvature:** Positive in some directions, negative in others. This creates saddle points.
+
+### Bowl, Ridge, and Saddle Shapes
+
+**Bowl (positive definite Hessian):**
+
+All eigenvalues positive. The function curves upward in every direction. Example: $f(x,y) = x^2 + y^2$. There's a unique minimum at the bottom.
+
+**Ridge (positive semi-definite Hessian):**
+
+All eigenvalues non-negative, at least one zero. The function curves upward in some directions, flat in others. Example: $f(x,y) = x^2$. Minimum is a line (the y-axis).
+
+**Saddle (indefinite Hessian):**
+
+Some eigenvalues positive, some negative. Curves up in some directions, down in others. Example: $f(x,y) = x^2 - y^2$. Neither minimum nor maximum.
+
+**Hilltop (negative definite Hessian):**
+
+All eigenvalues negative. Curves downward everywhere. Example: $f(x,y) = -x^2 - y^2$. There's a unique maximum at the top.
+
+### What Curvature Tells You About the Optimization Landscape
+
+**High curvature:** The function changes rapidly. You're near important features (minima, maxima, saddles). Small steps are appropriate.
+
+**Low curvature:** The function is nearly flat. You might be far from any critical point, or in a plateau region. Larger steps are safe.
+
+**Different curvatures in different directions:** The landscape is elongated. Gradient descent will zigzag. This is the ill-conditioning problem.
+
+---
+
+## 4. Hessian and Optimality Conditions
+
+### First-Order vs Second-Order Conditions
+
+**First-order necessary condition:** At a local minimum $x^*$:
+
+$$
+\nabla f(x^*) = 0
+$$
+
+The gradient is zero. But this only says you're at a critical point. It could be a minimum, maximum, or saddle.
+
+**Second-order necessary condition:** At a local minimum $x^*$:
+
+$$
+H(x^*) \succeq 0 \quad \text{(positive semi-definite)}
+$$
+
+The Hessian has no negative eigenvalues. This rules out hilltops and some saddles.
+
+**Second-order sufficient condition:** If $\nabla f(x^*) = 0$ and:
+
+$$
+H(x^*) \succ 0 \quad \text{(positive definite)}
+$$
+
+Then $x^*$ is a strict local minimum. All eigenvalues positive guarantees you're at the bottom of a bowl.
+
+### How the Hessian Classifies Critical Points
+
+At a critical point where $\nabla f(x^*) = 0$:
+
+**Positive definite Hessian:** All eigenvalues $> 0$. Local minimum.
+
+**Negative definite Hessian:** All eigenvalues $< 0$. Local maximum.
+
+**Indefinite Hessian:** Some eigenvalues positive, some negative. Saddle point.
+
+**Semi-definite Hessian:** Some eigenvalues zero. Test is inconclusive; need higher-order analysis.
+
+### Local Minima, Maxima, and Saddle Points
+
+**Local minimum:** You can't improve by small movements in any direction. The function curves upward (or is flat) everywhere around you.
+
+**Local maximum:** You can't worsen by small movements. The function curves downward everywhere.
+
+**Saddle point:** You can improve by moving in some directions, worsen in others. It's a minimum along some axes, maximum along others.
+
+**Why saddles matter:** Gradient descent can get stuck near saddle points where the gradient is small but you're not at a minimum. In high dimensions, saddles are common and problematic.
+
+---
+
+## 5. Hessian Eigenvalues and Conditioning
+
+### Eigenvalues as Curvature Along Principal Directions
+
+The Hessian's eigenvalues reveal the curvature along special directions:
+
+**Eigenvalue decomposition:** $H = Q \Lambda Q^T$ where $Q$ contains eigenvectors and $\Lambda$ is diagonal with eigenvalues.
+
+**Eigenvalue $\lambda_i$:** The curvature when moving along eigenvector $q_i$.
+
+**Large eigenvalue:** Sharp curvature, the function changes rapidly in that direction.
+
+**Small eigenvalue:** Gentle curvature, the function is nearly flat in that direction.
+
+**Principal directions:** The eigenvectors are the "natural" axes of the quadratic approximation. The function is a simple paraboloid when viewed along these axes.
+
+### Well-Conditioned vs Ill-Conditioned Problems
+
+The **condition number** measures how different the curvatures are:
+
+$$
+\kappa = \frac{\lambda_{max}}{\lambda_{min}}
+$$
+
+**Well-conditioned ($\kappa$ close to 1):**
+
+- Similar curvature in all directions
+- Approximately spherical level sets
+- Gradient descent works efficiently
+- Solution is stable to perturbations
+
+**Ill-conditioned ($\kappa$ much larger than 1):**
+
+- Very different curvatures in different directions
+- Elongated elliptical level sets
+- Gradient descent zigzags
+- Solution is sensitive to small changes
+
+### Why Narrow Valleys Slow Down Gradient Descent
+
+**The problem:** In a narrow valley, the function drops steeply across the valley but gently along it.
+
+**What gradient descent does:** The gradient points mostly across the valley (steep direction). Each step overshoots the valley floor and lands on the opposite wall. The algorithm bounces back and forth, making slow progress along the valley.
+
+**Condition number effect:** If $\kappa = 100$, the valley is 100 times narrower than it is long. Gradient descent might need 100 times more iterations than on a well-conditioned problem.
+
+**In finance:** Portfolio optimization with highly correlated assets creates narrow valleys. The condition number of the covariance matrix determines optimization difficulty.
+
+---
+
+## 6. Newton's Method (Conceptual)
+
+### Using Gradient and Hessian Together
+
+**Newton's method** uses both first and second-order information:
+
+$$
+x_{k+1} = x_k - H(x_k)^{-1} \nabla f(x_k)
+$$
+
+**Interpretation:** Fit a quadratic approximation at the current point, then jump directly to the minimum of that quadratic.
+
+**Comparison to gradient descent:**
+
+- Gradient descent: $x_{k+1} = x_k - \alpha \nabla f(x_k)$
+- Newton: $x_{k+1} = x_k - H^{-1} \nabla f(x_k)$
+
+Newton replaces the scalar step size $\alpha$ with the inverse Hessian $H^{-1}$.
+
+### Why Newton Steps Are Curvature-Aware
+
+**In steep directions:** The Hessian has large eigenvalues. $H^{-1}$ has small eigenvalues. Newton takes small steps.
+
+**In flat directions:** The Hessian has small eigenvalues. $H^{-1}$ has large eigenvalues. Newton takes large steps.
+
+**Result:** Newton automatically adapts step size to the local curvature. It doesn't zigzag in narrow valleys because it knows to take small steps across the valley and large steps along it.
+
+### When Newton Works Well and When It Struggles
+
+**Newton works well when:**
+
+- The function is smooth with well-behaved second derivatives
+- You're close to the minimum (the quadratic approximation is accurate)
+- The Hessian is easy to compute and invert
+- The problem is not too large (Hessian is $n \times n$)
+
+**Newton struggles when:**
+
+- The Hessian is expensive to compute (many variables)
+- The Hessian is singular or nearly singular
+- You're far from the minimum (quadratic approximation is poor)
+- The function is non-convex (Newton might step toward saddles or maxima)
+
+**Convergence:** Near a minimum with positive definite Hessian, Newton converges quadratically. The number of correct digits roughly doubles each iteration. This is much faster than gradient descent's linear convergence.
+
+**Cost:** Computing the Hessian costs $O(n^2)$ and inverting it costs $O(n^3)$. For large $n$, this becomes prohibitive.
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**The Hessian matrix** contains all second partial derivatives and encodes curvature information.
+
+**Positive definite Hessian** at a critical point guarantees a local minimum.
+
+**Eigenvalues of the Hessian** give curvature along principal directions.
+
+**Condition number** $\kappa = \lambda_{max}/\lambda_{min}$ measures problem difficulty.
+
+**Newton's method** uses the Hessian to take curvature-aware steps, converging much faster than gradient descent near the optimum.
+
+### Key Formulas
+
+**Hessian matrix:**
+
+$$
+H_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}
+$$
+
+**Second-order Taylor expansion:**
+
+$$
+f(x + \Delta x) \approx f(x) + \nabla f(x)^T \Delta x + \frac{1}{2} \Delta x^T H \Delta x
+$$
+
+**Newton's method update:**
+
+$$
+x_{k+1} = x_k - H(x_k)^{-1} \nabla f(x_k)
+$$
+
+**Condition number:**
+
+$$
+\kappa = \frac{\lambda_{max}}{\lambda_{min}}
+$$
+
+### Key Insights for Quants
+
+1. **Curvature determines optimization difficulty** more than the gradient
+2. **Ill-conditioned problems** (high $\kappa$) arise from correlated assets
+3. **The Hessian classifies critical points** as minima, maxima, or saddles
+4. **Newton's method is fast but expensive**, practical for small-to-medium problems
+5. **Portfolio variance Hessian is $2\Sigma$**, directly tied to the covariance matrix
+
+---
+
+## 8. What's Next?
+
+We now understand unconstrained optimization: gradients, curvature, and convergence. But real financial problems have constraints: budgets, position limits, and risk bounds.
+
+**Next lesson: Optimality Conditions and Convergence Intuition**
+
+You'll learn:
+
+- First-order conditions for optimality
+- How constraints affect the optimality conditions
+- Convergence rates and what affects them
+- Practical intuition for optimization performance

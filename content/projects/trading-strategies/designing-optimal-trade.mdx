@@ -1,0 +1,639 @@
+# Designing an Optimal Trade
+
+In this project, you'll design a single trade by choosing optimal parameters using **single-variable calculus**. At every step, you control one variable, analyze a function, and justify the decision mathematically.
+
+Every trade is a balance between **reward**, **cost**, and **risk**. We'll optimize one decision at a time, building intuition for how calculus drives real trading decisions.
+
+---
+
+## Section 0: Framing the Problem
+
+Before diving into math, let's establish the core idea: **every trading parameter is a choice**, and every choice has tradeoffs.
+
+When you decide how many shares to buy, how much leverage to use, or where to place a stop-loss, you're implicitly solving an optimization problem. The goal of this project is to make that optimization explicit.
+
+<TextResponse
+  id="recall-0-1"
+  question="In one sentence, what does it mean to 'optimize' a trade parameter?"
+  keywords="Maximizing:maximize,max,highest,best|Minimizing:minimize,min,lowest,reduce|Balancing:tradeoff,trade-off,balance,versus,vs|Calculus:derivative,critical,zero,slope"
+  minKeywords={2}
+  referenceAnswer="To optimize a trade parameter means to find the value that maximizes expected profit (or return) while accounting for costs and risks, typically by finding where the derivative equals zero and verifying it's a maximum."
+  placeholder="What does optimization mean in trading?"
+  maxLength={300}
+  label="Recall"
+/>
+
+---
+
+## Section 1: Modeling Profit as a Function of Trade Size
+
+### 1.1 Define the Profit Function
+
+When you buy shares, your profit depends on:
+- **Expected return per share** ($\alpha$): How much you expect to make per unit
+- **Market impact** ($\beta x^2$): Large orders move the market against you
+- **Transaction costs** ($c \cdot x$): Fixed cost per share (commissions, spread)
+
+The profit function is:
+
+$$P(x) = \alpha x - \beta x^2 - cx$$
+
+where $x$ is the number of shares (trade size).
+We add the expected return, subtract the market impact and subtract the transaction costs. We subtract because these are expenses that reduce profit.
+
+<TextResponse
+  id="recall-1-1"
+  question="Why does the market impact term need to be nonlinear (quadratic) rather than linear?"
+  keywords="Impact grows:larger,bigger,more,size,scale|Accelerates:accelerat,faster,disproportionate,exponential|Liquidity:liquidity,depth,order book,market|Price effect:move,price,adverse,slippage"
+  minKeywords={2}
+  referenceAnswer="Market impact is nonlinear because large orders consume available liquidity at each price level. As you buy more, you must reach deeper into the order book where prices are worse. The impact accelerates, doubling your order more than doubles your price impact."
+  placeholder="Think about what happens to market prices as order size increases..."
+  maxLength={400}
+  label="Recall"
+/>
+
+### 1.2 Shape Analysis Before Calculus
+
+Before computing derivatives, let's build intuition about the profit function's shape.
+
+<Quiz
+  id="quiz-1-2"
+  question="As trade size $x$ increases from 0, what happens to profit $P(x)$?"
+  options={[
+    "Profit grows forever without bound",
+    "Profit grows initially, reaches a peak, then decreases",
+    "Profit decreases immediately from x=0",
+    "Profit stays constant regardless of trade size"
+  ]}
+  correct={1}
+  explanation="The profit function is a downward-opening parabola (negative coefficient on x²). It starts at 0, increases as the linear term dominates, reaches a maximum at the vertex, then decreases as the quadratic market impact term dominates. This is why there's an optimal trade size, too small leaves money on the table, too large gets crushed by market impact."
+/>
+
+### 1.3 Finding the Optimal Trade Size
+
+To find the optimal trade size, we take the derivative and set it to zero:
+
+$$P'(x) = \alpha - 2\beta x - c = 0$$
+
+Solving for $x$:
+
+$$x^* = \frac{\alpha - c}{2\beta}$$
+
+<NumericInput
+  id="numeric-1-3"
+  question="Using α = 0.05, β = 0.0001, and c = 0.01, what is the optimal trade size x*?"
+  correctAnswer={200}
+  tolerance={1}
+  units="shares"
+  explanation="x* = (α - c) / (2β) = (0.05 - 0.01) / (2 × 0.0001) = 0.04 / 0.0002 = 200 shares. At this size, the marginal benefit of adding one more share exactly equals the marginal cost from increased market impact."
+  hint="Plug the values into the formula: x* = (α - c) / (2β)"
+/>
+
+### 1.4 Verifying Optimality
+
+We found a critical point, but is it a maximum? The second derivative tells us:
+
+$$P''(x) = -2\beta$$
+
+Since $\beta > 0$, we have $P''(x) < 0$, confirming the function is **concave** (opens downward) and our critical point is indeed a **maximum**.
+
+<TextResponse
+  id="recall-1-4"
+  question="What does concavity (negative second derivative) mean for decision-making under costs?"
+  keywords="Diminishing returns:diminishing,decreasing,less|Maximum exists:maximum,peak,optimal,best|Marginal analysis:marginal,additional,extra,incremental|Costs dominate:cost,outweigh,exceed,dominate"
+  minKeywords={2}
+  referenceAnswer="Negative concavity means diminishing marginal returns, each additional unit contributes less than the previous one. Eventually, the marginal cost exceeds the marginal benefit, guaranteeing an interior maximum exists. This is why 'more is not always better' in trading."
+  placeholder="Think about what happens to each additional share you buy..."
+  maxLength={400}
+  label="Recall"
+/>
+
+### 1.5 Sensitivity Analysis
+
+How does the optimal trade size change when parameters change?
+
+<Quiz
+  id="quiz-1-5a"
+  question="If transaction costs $c$ increase, what happens to the optimal trade size $x^*$?"
+  options={[
+    "x* increases (trade more)",
+    "x* decreases (trade less)",
+    "x* stays the same",
+    "Cannot determine without specific values"
+  ]}
+  correct={1}
+  explanation="From x* = (α - c) / (2β), increasing c decreases the numerator, so x* decreases. Higher costs make trading less attractive, so you should trade smaller sizes. This is intuitive, when trading is expensive, do less of it."
+/>
+
+<Quiz
+  id="quiz-1-5b"
+  question="If market impact coefficient $β$ increases (market is less liquid), what happens to optimal trade size?"
+  options={[
+    "x* increases significantly",
+    "x* decreases",
+    "x* stays the same",
+    "x* becomes negative"
+  ]}
+  correct={1}
+  explanation="From x* = (α - c) / (2β), increasing β increases the denominator, so x* decreases. In illiquid markets with high impact, optimal strategy is to trade smaller. This is why large institutional traders split orders over time."
+/>
+
+### 1.6 Implementation: Profit Function
+
+Now let's implement what we've learned. Write a Python function that computes the profit and finds the optimal trade size.
+
+<CodeExercise
+  id="code-1-6"
+  starterCode={`def profit_analysis(alpha, beta, c):
+    """
+    Analyze the profit function P(x) = αx - βx² - cx
+
+    Args:
+        alpha: expected return per share
+        beta: market impact coefficient
+        c: transaction cost per share
+
+    Returns:
+        tuple: (optimal_x, max_profit)
+        - optimal_x: the trade size that maximizes profit
+        - max_profit: the maximum profit at optimal_x
+
+    Example:
+        >>> profit_analysis(0.05, 0.0001, 0.01)
+        (200.0, 4.0)
+    """
+    import numpy as np
+    # TODO: Calculate optimal trade size using x* = (α - c) / (2β)
+    # TODO: Calculate maximum profit P(x*)
+    pass`}
+  solution={`def profit_analysis(alpha, beta, c):
+    """
+    Analyze the profit function P(x) = αx - βx² - cx
+    """
+    import numpy as np
+
+    # Optimal trade size from first-order condition
+    optimal_x = (alpha - c) / (2 * beta)
+
+    # Maximum profit at optimal x
+    max_profit = alpha * optimal_x - beta * optimal_x**2 - c * optimal_x
+
+    return (optimal_x, max_profit)`}
+  hint="First calculate x* = (α - c) / (2β), then substitute back into P(x) = αx - βx² - cx"
+  tests={[
+    {
+      "input": [0.05, 0.0001, 0.01],
+      "expected": [200.0, 4.0],
+      "tolerance": 0.01,
+      "description": "Standard case: α=0.05, β=0.0001, c=0.01"
+    },
+    {
+      "input": [0.10, 0.0002, 0.02],
+      "expected": [200.0, 8.0],
+      "tolerance": 0.01,
+      "description": "Higher return: α=0.10, β=0.0002, c=0.02"
+    },
+    {
+      "input": [0.08, 0.0001, 0.02],
+      "expected": [300.0, 9.0],
+      "tolerance": 0.01,
+      "description": "Different parameters: α=0.08, β=0.0001, c=0.02"
+    }
+  ]}
+/>
+
+<ProfitVisualization
+  requiredBlockId="code-1-6"
+  alpha={0.05}
+  beta={0.0001}
+  c={0.01}
+/>
+
+<Checkpoint
+  id="checkpoint-1"
+  title="Checkpoint 1: Profit Optimization"
+  requiredBlockIds={["recall-0-1", "recall-1-1", "quiz-1-2", "numeric-1-3", "recall-1-4", "quiz-1-5a", "quiz-1-5b", "code-1-6"]}
+  minRequired={6}
+  lockedMessage="Complete at least 6 of the 8 tasks above to unlock Section 2."
+>
+
+**Review Questions:**
+
+Before moving on, make sure you understand:
+- Why profit is modeled as a quadratic function
+- How to find critical points using derivatives
+- What the second derivative test tells us
+- How optimal size responds to parameter changes
+
+</Checkpoint>
+
+---
+
+<GatedSection checkpointId="checkpoint-1" lockedTitle="Section 2: Optimal Leverage">
+
+## Section 2: Optimal Leverage and Risk Penalty
+
+### 2.1 Introducing Leverage
+
+**Leverage** lets you control more capital than you actually have. If you have \$10,000 and use 3x leverage, you control \$30,000 worth of assets, but you only put up \$10,000 of your own money.
+
+The catch: leverage amplifies both gains AND losses. A 10% gain becomes 30%, but a 10% loss also becomes 30%.
+
+**The Liquidation Problem**
+
+Here's the critical insight: you can't lose money you borrowed, you can only lose *your* money. The broker won't let the position go negative on their funds.
+
+With 10x leverage on \$10,000, you control \$100,000. Your \$10,000 is your **margin**, the buffer protecting the borrowed \$90,000. If the position drops 10%, you lose \$10,000... which is *all* your money. You get **liquidated**, the broker force-closes your position before it can lose their money.
+
+- **2x leverage** → \$20,000 position → liquidated at -50% move
+- **5x leverage** → \$50,000 position → liquidated at -20% move
+- **10x leverage** → \$100,000 position → liquidated at -10% move
+- **20x leverage** → \$200,000 position → liquidated at -5% move
+
+The formula: **Liquidation % = 100% / Leverage**
+
+At 20x leverage, a mere 5% dip wipes you out. Bitcoin moves 5% on a slow Tuesday.
+
+<TextResponse
+  id="recall-2-1"
+  question="Why can leverage never be 'free' (costless)?"
+  keywords="Amplified risk:risk,loss,downside,wipe|Borrowing costs:interest,borrow,cost,margin|Volatility:volatility,variance,uncertainty|Risk of ruin:bankrupt,ruin,liquidat,margin call"
+  minKeywords={2}
+  referenceAnswer="Leverage amplifies both gains and losses, increasing portfolio volatility. You must pay interest to borrow, and extreme losses can lead to margin calls or bankruptcy. The expected return may increase, but so does the probability of severe drawdowns or total loss."
+  placeholder="What are the hidden costs of using leverage?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 2.2 Risk-Penalized Return Function
+
+A rational investor doesn't just maximize expected return, they penalize for risk. The **risk-adjusted return** with leverage $\ell$ is:
+
+$$R(\ell) = \ell \mu - \frac{1}{2}\ell^2 \sigma^2$$
+
+where:
+- $\mu$ = expected return (e.g., 8% annually)
+- $\sigma$ = volatility (e.g., 20% annually)
+- $\ell$ = leverage multiplier
+
+The term $\frac{1}{2}\ell^2 \sigma^2$ is the **risk penalty**, it grows quadratically with leverage.
+
+<Quiz
+  id="quiz-2-2"
+  question="If you double your leverage, what happens to the risk penalty term?"
+  options={[
+    "Risk penalty doubles",
+    "Risk penalty quadruples (4x)",
+    "Risk penalty stays the same",
+    "Risk penalty increases by 50%"
+  ]}
+  correct={1}
+  explanation="The risk penalty is (1/2)ℓ²σ². If leverage doubles from ℓ to 2ℓ, the penalty becomes (1/2)(2ℓ)²σ² = (1/2)(4ℓ²)σ² = 4 × original penalty. Risk grows much faster than return, this is why excessive leverage is dangerous."
+/>
+
+### 2.3 Finding Optimal Leverage
+
+Taking the derivative and setting to zero:
+
+$$R'(\ell) = \mu - \ell \sigma^2 = 0$$
+
+$$\ell^* = \frac{\mu}{\sigma^2}$$
+
+This is the famous **Kelly Criterion** (in its simplest form)!
+
+<NumericInput
+  id="numeric-2-3"
+  question="With μ = 0.08 and σ = 0.20, what is the optimal leverage ℓ*?"
+  correctAnswer={2}
+  tolerance={0.1}
+  units="x"
+  explanation="ℓ* = μ / σ² = 0.08 / (0.20)² = 0.08 / 0.04 = 2. Optimal leverage is 2x, you should borrow to double your position. But note: this assumes you can tolerate the volatility!"
+  hint="Calculate σ² first, then divide μ by it."
+/>
+
+### 2.4 Volatility Sensitivity
+
+<Quiz
+  id="quiz-2-4"
+  question="If volatility increases from 20% to 30% but expected return stays at 8%, how does optimal leverage change?"
+  options={[
+    "Increases from 2x to 3x",
+    "Decreases from 2x to about 0.89x (less than 1)",
+    "Stays at 2x",
+    "Decreases to exactly 1x (no leverage)"
+  ]}
+  correct={1}
+  explanation="New optimal: ℓ* = 0.08 / (0.30)² = 0.08 / 0.09 ≈ 0.89. You should actually de-lever below 1x! Higher volatility dramatically reduces optimal leverage because the risk penalty grows with σ². This explains why traders reduce positions during high-volatility periods."
+/>
+
+### 2.5 Implementation: Kelly Criterion
+
+Now implement the Kelly Criterion to find optimal leverage and compute risk-adjusted returns.
+
+<CodeExercise
+  id="code-2-5"
+  starterCode={`def kelly_analysis(mu, sigma):
+    """
+    Analyze optimal leverage using the Kelly Criterion.
+
+    The risk-adjusted return is: R(ℓ) = ℓμ - (1/2)ℓ²σ²
+    Optimal leverage is: ℓ* = μ / σ²
+
+    Args:
+        mu: expected return (e.g., 0.08 for 8%)
+        sigma: volatility (e.g., 0.20 for 20%)
+
+    Returns:
+        tuple: (optimal_leverage, max_risk_adjusted_return)
+
+    Example:
+        >>> kelly_analysis(0.08, 0.20)
+        (2.0, 0.08)
+    """
+    import numpy as np
+    # TODO: Calculate optimal leverage ℓ* = μ / σ²
+    # TODO: Calculate max risk-adjusted return at optimal leverage
+    pass`}
+  solution={`def kelly_analysis(mu, sigma):
+    """
+    Analyze optimal leverage using the Kelly Criterion.
+    """
+    import numpy as np
+
+    # Optimal leverage from Kelly Criterion
+    optimal_leverage = mu / (sigma ** 2)
+
+    # Risk-adjusted return at optimal leverage
+    # R(ℓ*) = ℓ*μ - (1/2)(ℓ*)²σ²
+    max_return = optimal_leverage * mu - 0.5 * (optimal_leverage ** 2) * (sigma ** 2)
+
+    return (optimal_leverage, max_return)`}
+  hint="First find ℓ* = μ/σ², then plug it into R(ℓ) = ℓμ - (1/2)ℓ²σ²"
+  tests={[
+    {
+      "input": [0.08, 0.20],
+      "expected": [2.0, 0.08],
+      "tolerance": 0.001,
+      "description": "Standard case: μ=8%, σ=20%"
+    },
+    {
+      "input": [0.10, 0.25],
+      "expected": [1.6, 0.08],
+      "tolerance": 0.001,
+      "description": "Higher volatility: μ=10%, σ=25%"
+    },
+    {
+      "input": [0.05, 0.10],
+      "expected": [5.0, 0.125],
+      "tolerance": 0.001,
+      "description": "Low volatility strategy: μ=5%, σ=10%"
+    }
+  ]}
+/>
+
+<KellyVisualization
+  requiredBlockId="code-2-5"
+  mu={0.08}
+  sigma={0.20}
+/>
+
+<Checkpoint
+  id="checkpoint-2"
+  title="Checkpoint 2: Leverage Optimization"
+  requiredBlockIds={["recall-2-1", "quiz-2-2", "numeric-2-3", "quiz-2-4", "code-2-5"]}
+  minRequired={4}
+  lockedMessage="Complete at least 4 of the 5 tasks above to unlock Section 3."
+>
+
+**Key Insight:**
+
+Optimal leverage = Expected Return / Variance
+
+This simple formula explains why:
+- High-return, low-volatility strategies warrant more leverage
+- Low-return, high-volatility strategies may warrant de-leveraging
+
+</Checkpoint>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-2" lockedTitle="Section 3: Stop-Loss Placement">
+
+## Section 3: Stop-Loss Placement as an Optimization Problem
+
+### 3.1 Why Stops Are a Tradeoff
+
+A **stop-loss** automatically exits your position if the price drops to a certain level. But there's a fundamental tension:
+
+- **Tight stops** (close to entry): Limit losses but trigger frequently on normal volatility
+- **Loose stops** (far from entry): Rarely trigger but allow large losses when they do
+
+<TextResponse
+  id="recall-3-1"
+  question="Why is stop-loss placement never obvious?"
+  keywords="Tradeoff:tradeoff,trade-off,balance,tension|Tight stops:tight,close,frequent,trigger|Loose stops:loose,wide,large loss|Volatility:volatility,noise,random"
+  minKeywords={2}
+  referenceAnswer="Stop placement involves a fundamental tradeoff: tight stops protect against large losses but get triggered by random market noise, locking in small losses frequently. Loose stops avoid false triggers but expose you to significant losses. The optimal stop depends on the asset's volatility and your win rate."
+  placeholder="What makes this decision difficult?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 3.2 Expected Value Model
+
+We can model expected profit using **expected value**: multiply each outcome by its probability and sum them up. With a stop-loss, there are two outcomes: you either win (hit your profit target) or lose (get stopped out).
+
+$$E(s) = p(s) \cdot G - (1 - p(s)) \cdot s$$
+
+where:
+- $p(s)$ = probability of winning (reaching profit target before stop)
+- $G$ = gain if you win (fixed target)
+- $s$ = loss if stopped out
+
+The first term is your expected gain (probability of winning × gain), and the second term is your expected loss (probability of losing × loss amount).
+
+*Why does this formula work? The full derivation involves probability theory and random walks, which we'll cover in the **Probability and Expected Value** module. For now, accept that this is a valid model for stop-loss optimization.*
+
+Key insight: $p(s)$ increases with $s$ (looser stops are less likely to trigger).
+
+<Quiz
+  id="quiz-3-2a"
+  question="What happens to expected value E(s) as stop distance s approaches 0?"
+  options={[
+    "E(s) approaches the gain G",
+    "E(s) approaches 0",
+    "E(s) approaches negative infinity",
+    "E(s) approaches some positive value less than G"
+  ]}
+  correct={1}
+  explanation="As s→0, p(s)→0 (you almost always get stopped out). So E(s) → 0·G - 1·0 = 0. With an infinitely tight stop, you lock in zero profit because you exit immediately on any movement."
+/>
+
+<Quiz
+  id="quiz-3-2b"
+  question="What happens to expected value E(s) as stop distance s approaches infinity?"
+  options={[
+    "E(s) approaches G (the full gain)",
+    "E(s) approaches 0",
+    "E(s) approaches negative infinity",
+    "E(s) approaches some value between 0 and G"
+  ]}
+  correct={3}
+  explanation="As s→∞, p(s)→1 (you almost always win). But E(s) = 1·G - 0·s = G. However, in realistic models where there's always some chance of loss, expected value converges to something less than G due to the rare but large losses."
+/>
+
+<Checkpoint
+  id="checkpoint-3"
+  title="Checkpoint 3: Stop-Loss Optimization"
+  requiredBlockIds={["recall-3-1", "quiz-3-2a", "quiz-3-2b"]}
+  minRequired={2}
+  lockedMessage="Complete at least 2 of the 3 tasks above to unlock Section 4."
+>
+
+**Key Insight:**
+
+The optimal stop exists because:
+- Too tight → high probability of being stopped out
+- Too loose → rare but devastating losses
+
+Calculus finds the sweet spot where marginal benefit of a looser stop equals marginal cost.
+
+</Checkpoint>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-3" lockedTitle="Section 4: Execution Speed">
+
+## Section 4: Execution Speed vs Slippage
+
+### 4.1 Time as a Decision Variable
+
+When you want to buy 10,000 shares, you don't have to buy them all at once. **Execution speed** is how quickly you complete your entire order—you could execute in seconds (aggressive) or spread it over hours (passive).
+
+Why does this matter? Because of **slippage**—the difference between the price you *expected* and the price you *actually got*. When you buy aggressively, you consume all available shares at the best price, then the next-best price, then worse prices. Your average fill price ends up higher than where the market started. That's slippage.
+
+When executing a trade, you face a tradeoff:
+
+- **Fast execution**: Get your order filled quickly, but pay more slippage (your buying pressure moves the price against you)
+- **Slow execution**: Minimize slippage by letting the market replenish between your orders, but risk the price drifting away while you wait (opportunity cost)
+
+<TextResponse
+  id="recall-4-1"
+  question="Why is execution speed never neutral (why can't you just execute instantly for free)?"
+  keywords="Market impact:impact,slippage,move,price|Liquidity:liquidity,depth,volume|Opportunity cost:opportunity,drift,move away|Tradeoff:tradeoff,balance,versus"
+  minKeywords={2}
+  referenceAnswer="Fast execution consumes available liquidity, causing slippage. Slow execution reduces impact but exposes you to price drift (the market may move against you while waiting). There's no free lunch, you either pay in slippage or in opportunity cost."
+  placeholder="What costs are associated with execution speed?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 4.2 Cost Function in Time
+
+Let's model the total cost of executing over time $t$:
+
+$$C(t) = \frac{k}{t} + \lambda t$$
+
+**Why this formula?**
+
+- **Slippage cost** $= k/t$: If you execute faster (smaller $t$), you hit the market harder, causing more slippage. The constant $k$ captures how "impactful" your total order is. Spreading it over more time reduces the cost—hence $k$ divided by $t$.
+
+- **Opportunity cost** $= \lambda t$: The longer you wait, the more the market can drift away from your target price. If the stock trends up while you're slowly buying, you miss the lower prices. This cost grows linearly with time—hence $\lambda$ times $t$.
+
+The parameter $\lambda$ represents how much the market typically moves per unit time (related to volatility and drift).
+
+<Quiz
+  id="quiz-4-2"
+  question="What is the shape of the cost function C(t) = k/t + λt?"
+  options={[
+    "Always increasing (monotonic)",
+    "Always decreasing (monotonic)",
+    "U-shaped (decreases then increases)",
+    "Inverted U-shaped (increases then decreases)"
+  ]}
+  correct={2}
+  explanation="The function is U-shaped. As t→0, slippage k/t dominates and goes to infinity. As t→∞, opportunity cost λt dominates and goes to infinity. There must be a minimum somewhere in between, that's our optimal execution time."
+/>
+
+### 4.3 Optimal Execution Time
+
+Taking the derivative:
+
+$$C'(t) = -\frac{k}{t^2} + \lambda = 0$$
+
+Solving:
+
+$$t^* = \sqrt{\frac{k}{\lambda}}$$
+
+<Quiz
+  id="quiz-4-3"
+  question="With k = 1000 and λ = 2, what is the optimal execution time t*?"
+  options={[
+    "≈ 10 minutes",
+    "≈ 22.4 minutes",
+    "≈ 31.6 minutes",
+    "≈ 500 minutes"
+  ]}
+  correct={1}
+  explanation="t* = √(k/λ) = √(1000/2) = √500 ≈ 22.36 minutes. This balances slippage and opportunity cost. Executing faster would cost more in slippage; slower would cost more in price drift."
+/>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-3" lockedTitle="Section 5: Synthesis">
+
+## Section 5: Synthesis and Reflection
+
+### 5.1 Connecting the Pieces
+
+In this project, you optimized four trading decisions:
+
+- **Trade Size** ($x$): $x^* = (\alpha - c) / 2\beta$
+- **Leverage** ($\ell$): $\ell^* = \mu / \sigma^2$
+- **Stop-Loss** ($s$): Found numerically
+- **Execution Time** ($t$): $t^* = \sqrt{k/\lambda}$
+
+Notice the pattern: **every optimal has an interior solution** because:
+1. Benefits show diminishing returns
+2. Costs accelerate (often quadratically)
+3. The balance point is where marginal benefit = marginal cost
+
+### 5.2 What's Missing?
+
+We optimized each decision **independently**. In reality:
+- Trade size affects market impact, which affects optimal execution time
+- Leverage affects risk, which affects optimal stop placement
+- These decisions interact!
+
+This is where **multivariate calculus** comes in, optimizing multiple variables simultaneously using gradients and Hessians.
+
+<TextResponse
+  id="synthesis-5"
+  question="Explain to a junior trader how calculus helps design a better trade. Limit: 6 sentences."
+  referenceAnswer="Calculus helps us find the exact parameter values that maximize profit or minimize cost. By modeling trading decisions as functions (profit vs size, return vs leverage, etc.), we can take derivatives to find where the rate of change equals zero, the optimal point. The second derivative confirms whether we found a maximum or minimum. Sensitivity analysis (how optimal changes with parameters) comes directly from the formulas. Most importantly, calculus reveals WHY optimal values exist: benefits diminish while costs accelerate, guaranteeing an interior sweet spot. Without calculus, we'd be guessing; with it, we have precise, justifiable decisions."
+  selfCheck="Mentioned finding optimal points via derivatives|Explained why optima exist (diminishing returns, accelerating costs)|Referenced practical trading applications|Discussed sensitivity analysis or parameter dependence|Connected math to decision-making|Kept explanation accessible to a junior trader"
+  placeholder="Write your explanation here (max 6 sentences)..."
+  maxLength={800}
+  isSynthesis={true}
+/>
+
+</GatedSection>
+
+---
+
+## Project Complete!
+
+Congratulations! You've applied single-variable calculus to real trading problems:
+
+- **Profit Optimization**: Found optimal trade size balancing return and market impact
+- **Leverage Selection**: Derived the Kelly-like criterion for risk-adjusted returns
+- **Stop-Loss Placement**: Modeled the win-rate vs loss-size tradeoff
+- **Execution Timing**: Balanced slippage against opportunity cost
+
+**Next Steps**: In multivariate calculus, you'll learn to optimize all these parameters simultaneously, accounting for their interactions.

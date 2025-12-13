@@ -1,0 +1,633 @@
+# Hessians & Curvature
+
+## 1. Why Curvature Matters
+
+In Lesson 3, we learned that the gradient $\nabla f$ tells us the **direction of steepest ascent** and gives all first-order sensitivities.
+
+But the gradient only tells us about **slope**, not **shape**.
+
+Consider two functions with the same gradient at a point:
+- A **bowl** (minimum) where the function curves upward in all directions
+- A **saddle** where the function curves up in some directions and down in others
+
+**The gradient cannot distinguish between these.** We need second derivatives.
+
+### From Single Variable to Multiple Variables
+
+In single-variable calculus:
+- $f'(x) > 0$ means the function is increasing
+- $f''(x) > 0$ means the function is **concave up** (curving upward, like a bowl)
+- $f''(x) < 0$ means the function is **concave down** (curving downward)
+
+In multiple dimensions, the second derivative becomes a **matrix**, the Hessian, that captures curvature in all directions simultaneously.
+
+### Why Quants Care About Curvature
+
+**Optimization:** Finding minima (minimize risk) or maxima (maximize returns) requires knowing whether a critical point is actually optimal. The Hessian tells you.
+
+**Convexity:** Convex optimization problems are "easy", gradient descent always finds the global optimum. The Hessian certifies convexity.
+
+**Stability:** Large curvature (large eigenvalues) means the function changes rapidly, models become sensitive to small input changes. This matters for risk management.
+
+**Risk Modeling:** Portfolio variance is a quadratic form. The covariance matrix $\Sigma$ is literally the Hessian of variance with respect to weights.
+
+---
+
+## 2. The Hessian Matrix
+
+### Definition
+
+For a function $f: \mathbb{R}^n \to \mathbb{R}$, the **Hessian** is the matrix of all second partial derivatives:
+
+$$
+H = \begin{pmatrix}
+\frac{\partial^2 f}{\partial x_1^2} & \frac{\partial^2 f}{\partial x_1 \partial x_2} & \cdots & \frac{\partial^2 f}{\partial x_1 \partial x_n} \\
+\frac{\partial^2 f}{\partial x_2 \partial x_1} & \frac{\partial^2 f}{\partial x_2^2} & \cdots & \frac{\partial^2 f}{\partial x_2 \partial x_n} \\
+\vdots & \vdots & \ddots & \vdots \\
+\frac{\partial^2 f}{\partial x_n \partial x_1} & \frac{\partial^2 f}{\partial x_n \partial x_2} & \cdots & \frac{\partial^2 f}{\partial x_n^2}
+\end{pmatrix}
+$$
+
+For two variables, this simplifies to:
+
+$$
+H = \begin{pmatrix}
+f_{xx} & f_{xy} \\
+f_{yx} & f_{yy}
+\end{pmatrix}
+$$
+
+### Symmetry
+
+For smooth functions (continuous second derivatives), **Clairaut's theorem** guarantees:
+
+$$
+f_{xy} = f_{yx}
+$$
+
+So the Hessian is always **symmetric**: $H = H^T$.
+
+This symmetry is crucial, it means the Hessian has real eigenvalues and orthogonal eigenvectors, which we'll use to understand curvature.
+
+### Connection to the Gradient
+
+The Hessian is the **Jacobian of the gradient**:
+
+$$
+H = J(\nabla f)
+$$
+
+Just as the gradient packages all first derivatives into a vector, the Hessian packages all second derivatives into a matrix.
+
+---
+
+## 3. Computing the Hessian: Examples
+
+### Example 1: Polynomial Function
+
+$$
+f(x, y) = x^2 + 3xy + 2y^2
+$$
+
+**Step 1: First derivatives (gradient)**
+
+$$
+f_x = 2x + 3y, \quad f_y = 3x + 4y
+$$
+
+**Step 2: Second derivatives**
+
+$$
+f_{xx} = \frac{\partial}{\partial x}(2x + 3y) = 2
+$$
+
+$$
+f_{yy} = \frac{\partial}{\partial y}(3x + 4y) = 4
+$$
+
+$$
+f_{xy} = \frac{\partial}{\partial y}(2x + 3y) = 3
+$$
+
+**Hessian:**
+
+$$
+H = \begin{pmatrix} 2 & 3 \\ 3 & 4 \end{pmatrix}
+$$
+
+Notice: The Hessian is **constant** for this quadratic function, it doesn't depend on $(x, y)$.
+
+### Example 2: Nonlinear Function
+
+$$
+f(x, y) = e^{x+y} + x^2 y
+$$
+
+**First derivatives:**
+
+$$
+f_x = e^{x+y} + 2xy, \quad f_y = e^{x+y} + x^2
+$$
+
+**Second derivatives:**
+
+$$
+f_{xx} = e^{x+y} + 2y
+$$
+
+$$
+f_{yy} = e^{x+y}
+$$
+
+$$
+f_{xy} = e^{x+y} + 2x
+$$
+
+**Hessian:**
+
+$$
+H(x,y) = \begin{pmatrix} e^{x+y} + 2y & e^{x+y} + 2x \\ e^{x+y} + 2x & e^{x+y} \end{pmatrix}
+$$
+
+Now the Hessian **depends on the point**, curvature varies across the surface.
+
+### Example 3: Quadratic Form (Finance Preview)
+
+For the quadratic form $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}$ where $A$ is symmetric:
+
+$$
+\nabla f = 2A\mathbf{x}
+$$
+
+$$
+H = 2A
+$$
+
+**The Hessian of a quadratic form is just twice the matrix $A$.**
+
+This is why the covariance matrix appears directly in portfolio optimization, portfolio variance is a quadratic form.
+
+---
+
+## 4. What the Hessian Tells Us: Curvature
+
+The Hessian encodes **curvature in all directions**.
+
+### Curvature in a Specific Direction
+
+For a unit vector $\mathbf{u}$, the curvature of $f$ in direction $\mathbf{u}$ is:
+
+$$
+\text{curvature} = \mathbf{u}^T H \mathbf{u}
+$$
+
+This is a **quadratic form**. The Hessian acts like a "curvature operator."
+
+**Interpretation:**
+- $\mathbf{u}^T H \mathbf{u} > 0$: function curves upward in direction $\mathbf{u}$
+- $\mathbf{u}^T H \mathbf{u} < 0$: function curves downward in direction $\mathbf{u}$
+- $\mathbf{u}^T H \mathbf{u} = 0$: function is flat (linear) in direction $\mathbf{u}$
+
+### Eigenvalues as Principal Curvatures
+
+The **eigenvalues** of $H$ give the curvature along special directions, the **principal directions** (eigenvectors).
+
+If $H\mathbf{v} = \lambda \mathbf{v}$, then:
+
+$$
+\mathbf{v}^T H \mathbf{v} = \lambda \|\mathbf{v}\|^2 = \lambda
+$$
+
+**The eigenvalues are the extreme curvatures:**
+- **Largest eigenvalue** = maximum curvature (steepest curve)
+- **Smallest eigenvalue** = minimum curvature (flattest direction)
+
+### Visualizing Curvature
+
+**Bowl (all positive eigenvalues):**
+The surface curves upward in every direction. Moving any way from the bottom takes you higher.
+
+**Inverted bowl (all negative eigenvalues):**
+The surface curves downward in every direction. Moving any way from the top takes you lower.
+
+**Saddle (mixed signs):**
+The surface curves up in some directions, down in others, like a horse saddle or a Pringles chip.
+
+---
+
+## 5. Definiteness and Critical Point Classification
+
+### Definiteness Tests
+
+A symmetric matrix $H$ is:
+
+**Positive definite** if $\mathbf{x}^T H \mathbf{x} > 0$ for all $\mathbf{x} \neq \mathbf{0}$
+  - Equivalent: all eigenvalues are positive
+  - Means: curves upward in every direction
+
+**Negative definite** if $\mathbf{x}^T H \mathbf{x} < 0$ for all $\mathbf{x} \neq \mathbf{0}$
+  - Equivalent: all eigenvalues are negative
+  - Means: curves downward in every direction
+
+**Positive semidefinite** if $\mathbf{x}^T H \mathbf{x} \geq 0$ for all $\mathbf{x}$
+  - Equivalent: all eigenvalues are non-negative
+  - Notation: $H \succeq 0$
+
+**Indefinite** if $\mathbf{x}^T H \mathbf{x}$ can be positive or negative
+  - Equivalent: eigenvalues have mixed signs
+  - Means: saddle point
+
+### Quick Test for 2×2 Hessians
+
+For $H = \begin{pmatrix} a & b \\ b & c \end{pmatrix}$:
+
+**Compute:** $\det(H) = ac - b^2$
+
+- If $a > 0$ and $\det(H) > 0$ → **Positive definite** (minimum)
+- If $a < 0$ and $\det(H) > 0$ → **Negative definite** (maximum)
+- If $\det(H) < 0$ → **Indefinite** (saddle)
+- If $\det(H) = 0$ → **Degenerate** (test inconclusive)
+
+### The Second Derivative Test
+
+To classify a **critical point** (where $\nabla f = \mathbf{0}$):
+
+1. Find critical points by solving $\nabla f = \mathbf{0}$
+2. Compute the Hessian $H$ at each critical point
+3. Check definiteness:
+   - $H$ positive definite → **local minimum**
+   - $H$ negative definite → **local maximum**
+   - $H$ indefinite → **saddle point**
+
+**Why this works:** At a critical point, the gradient is zero, so the function's local behavior is dominated by the second-order (quadratic) terms, exactly what the Hessian captures.
+
+---
+
+## 6. Worked Example: Finding and Classifying Critical Points
+
+$$
+f(x, y) = x^3 - 3x + y^2
+$$
+
+**Step 1: Compute the gradient**
+
+$$
+\nabla f = \begin{pmatrix} 3x^2 - 3 \\ 2y \end{pmatrix}
+$$
+
+**Step 2: Find critical points**
+
+Set $\nabla f = \mathbf{0}$:
+
+$$
+3x^2 - 3 = 0 \implies x = \pm 1
+$$
+
+$$
+2y = 0 \implies y = 0
+$$
+
+Critical points: $(1, 0)$ and $(-1, 0)$
+
+**Step 3: Compute the Hessian**
+
+$$
+f_{xx} = 6x, \quad f_{yy} = 2, \quad f_{xy} = 0
+$$
+
+$$
+H(x,y) = \begin{pmatrix} 6x & 0 \\ 0 & 2 \end{pmatrix}
+$$
+
+**Step 4: Evaluate at each critical point**
+
+**At $(1, 0)$:**
+
+$$
+H(1,0) = \begin{pmatrix} 6 & 0 \\ 0 & 2 \end{pmatrix}
+$$
+
+- $a = 6 > 0$
+- $\det(H) = 12 - 0 = 12 > 0$
+
+$\implies$ **Positive definite** → $(1, 0)$ is a **local minimum**
+
+**At $(-1, 0)$:**
+
+$$
+H(-1,0) = \begin{pmatrix} -6 & 0 \\ 0 & 2 \end{pmatrix}
+$$
+
+- $\det(H) = -12 < 0$
+
+$\implies$ **Indefinite** → $(-1, 0)$ is a **saddle point**
+
+---
+
+## 7. Second-Order Taylor Expansion
+
+The Hessian appears naturally in the Taylor expansion of a multivariable function.
+
+### Formula
+
+Near point $\mathbf{x}_0$, the function $f$ is approximately:
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{x}_0) + \nabla f(\mathbf{x}_0)^T (\mathbf{x} - \mathbf{x}_0) + \frac{1}{2} (\mathbf{x} - \mathbf{x}_0)^T H(\mathbf{x}_0) (\mathbf{x} - \mathbf{x}_0)
+$$
+
+**Term by term:**
+- $f(\mathbf{x}_0)$: constant (function value)
+- $\nabla f^T (\mathbf{x} - \mathbf{x}_0)$: linear term (gradient)
+- $\frac{1}{2}(\mathbf{x} - \mathbf{x}_0)^T H (\mathbf{x} - \mathbf{x}_0)$: quadratic term (curvature)
+
+### At a Critical Point
+
+When $\nabla f(\mathbf{x}_0) = \mathbf{0}$, the linear term vanishes:
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{x}_0) + \frac{1}{2} (\mathbf{x} - \mathbf{x}_0)^T H (\mathbf{x} - \mathbf{x}_0)
+$$
+
+**The local behavior is entirely determined by the Hessian.**
+
+This is why definiteness of $H$ classifies the critical point, it determines whether the quadratic approximation curves up, down, or both.
+
+### Why This Matters: Newton's Method
+
+Newton's method for optimization uses this quadratic approximation:
+
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - H^{-1} \nabla f
+$$
+
+The Hessian lets you take larger, smarter steps than gradient descent by accounting for curvature.
+
+---
+
+## 8. Convexity Through the Hessian
+
+### Definition
+
+A function $f$ is **convex** if its Hessian is **positive semidefinite everywhere**:
+
+$$
+H(x) \succeq 0 \quad \text{for all } x
+$$
+
+**Strong convexity:** $H \succeq mI$ for some $m > 0$ (all eigenvalues at least $m$).
+
+### Why Convexity Matters
+
+**No local traps:** Convex functions have no local minima that aren't global. Any critical point is the global minimum.
+
+**Gradient descent works:** For convex functions, gradient descent is guaranteed to find the global optimum.
+
+**Uniqueness:** Strictly convex functions (positive definite Hessian) have at most one minimum.
+
+### Example: Quadratic Functions
+
+For $f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x} + \mathbf{b}^T \mathbf{x} + c$:
+
+$$
+H = 2A
+$$
+
+The function is convex if and only if $A \succeq 0$.
+
+**Portfolio variance** $\sigma^2 = \mathbf{w}^T \Sigma \mathbf{w}$ has Hessian $H = 2\Sigma$.
+
+Since covariance matrices are positive semidefinite, **portfolio variance is always convex** in the weights. This is why mean-variance optimization is well-behaved.
+
+---
+
+## 9. Quant Application: Portfolio Optimization
+
+### The Mean-Variance Objective
+
+The classic Markowitz objective:
+
+$$
+f(\mathbf{w}) = \mathbf{w}^T \mathbf{r} - \frac{\lambda}{2} \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+where:
+- $\mathbf{w}$ = portfolio weights
+- $\mathbf{r}$ = expected returns vector
+- $\Sigma$ = covariance matrix
+- $\lambda$ = risk aversion parameter
+
+**Gradient:**
+
+$$
+\nabla f = \mathbf{r} - \lambda \Sigma \mathbf{w}
+$$
+
+**Hessian:**
+
+$$
+H = -\lambda \Sigma
+$$
+
+### Analysis
+
+Since $\Sigma$ is positive semidefinite and $\lambda > 0$:
+- $H = -\lambda \Sigma$ is **negative semidefinite**
+- The objective $f$ is **concave** (curves downward)
+- Any critical point is a **global maximum**
+
+**Implication:** Mean-variance optimization has no local maxima traps. Solving $\nabla f = 0$ gives the globally optimal portfolio:
+
+$$
+\mathbf{w}^* = \frac{1}{\lambda} \Sigma^{-1} \mathbf{r}
+$$
+
+### The Covariance Matrix IS a Hessian
+
+Consider portfolio variance as a function of weights:
+
+$$
+\sigma^2(\mathbf{w}) = \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+The Hessian is:
+
+$$
+H = 2\Sigma
+$$
+
+**The covariance matrix captures the curvature of risk with respect to portfolio weights.** This is why $\Sigma$ appears everywhere in portfolio theory, it's encoding second-order risk information.
+
+---
+
+## 10. Quant Application: Utility and Risk Aversion
+
+### Single-Asset Utility
+
+For a utility function $U(W)$ over wealth:
+
+$$
+U''(W) = \text{rate of change of marginal utility}
+$$
+
+**Risk aversion** is measured by:
+
+$$
+A(W) = -\frac{U''(W)}{U'(W)}
+$$
+
+The second derivative (curvature) of utility determines how much risk you're willing to bear.
+
+### Multi-Asset Utility
+
+For utility over multiple asset holdings $U(w_1, w_2, \ldots, w_n)$:
+
+The Hessian captures how marginal utility of one asset changes as you adjust another:
+
+$$
+H_{ij} = \frac{\partial^2 U}{\partial w_i \partial w_j}
+$$
+
+**Interpretation:**
+- Diagonal entries: diminishing returns in each asset
+- Off-diagonal entries: interaction effects (complementarity or substitutability)
+
+A negative definite Hessian means the investor is risk-averse across all portfolio adjustments.
+
+---
+
+## 11. Quant Application: Option Greeks and Gamma
+
+### Gamma as Curvature
+
+**Gamma** is the second derivative of option price with respect to stock price:
+
+$$
+\Gamma = \frac{\partial^2 C}{\partial S^2}
+$$
+
+This is the $(1,1)$ entry of the option pricing Hessian.
+
+### Why Gamma Matters
+
+**Positive Gamma** ($\Gamma > 0$):
+- Option price is **convex** in stock price
+- Long options have positive gamma
+- You benefit from large moves in either direction
+
+**Delta Hedging:**
+- Delta ($\Delta = \frac{\partial C}{\partial S}$) changes as $S$ moves
+- Gamma tells you how fast: $\Delta(S + \delta) \approx \Delta(S) + \Gamma \cdot \delta$
+- High gamma = need to rebalance hedge more frequently
+
+### The Full Option Hessian
+
+For an option with price $C(S, \sigma, r, T)$, the Hessian includes:
+
+$$
+H = \begin{pmatrix}
+\frac{\partial^2 C}{\partial S^2} & \frac{\partial^2 C}{\partial S \partial \sigma} & \cdots \\
+\frac{\partial^2 C}{\partial \sigma \partial S} & \frac{\partial^2 C}{\partial \sigma^2} & \cdots \\
+\vdots & \vdots & \ddots
+\end{pmatrix}
+$$
+
+The diagonal entries are:
+- $\Gamma = \frac{\partial^2 C}{\partial S^2}$ (gamma)
+- $\frac{\partial^2 C}{\partial \sigma^2}$ (volga/vomma)
+- And so on...
+
+The off-diagonal entries (cross-gammas) measure how Greeks interact, critical for managing complex option portfolios.
+
+---
+
+## 12. Sensitivity and Stability in Models
+
+### Hessian as Sensitivity of Gradients
+
+The Hessian measures how the gradient (first-order sensitivities) changes:
+
+$$
+H = \frac{\partial (\nabla f)}{\partial \mathbf{x}}
+$$
+
+Large Hessian entries mean your sensitivities are themselves sensitive, small input changes cause large sensitivity changes.
+
+### Model Stability
+
+**Large eigenvalues of $H$** indicate:
+- High curvature in some directions
+- Optimization algorithms may overshoot
+- Models are sensitive to parameter perturbations
+
+**Well-conditioned Hessians** (eigenvalues similar in magnitude) lead to:
+- Stable optimization
+- Robust models
+- Predictable behavior
+
+### Condition Number
+
+The **condition number** of $H$ is:
+
+$$
+\kappa(H) = \frac{\lambda_{\max}}{\lambda_{\min}}
+$$
+
+High condition number = ill-conditioned = potential numerical instability.
+
+This matters for:
+- Fitting covariance matrices to data
+- Calibrating option pricing models
+- Training ML models for trading signals
+
+---
+
+## 13. Summary
+
+Let's consolidate what we've learned:
+
+**The Hessian matrix** $H$ contains all second partial derivatives:
+
+$$
+H_{ij} = \frac{\partial^2 f}{\partial x_i \partial x_j}
+$$
+
+**Key properties:**
+- Symmetric (for smooth functions)
+- Encodes curvature in all directions
+- Eigenvalues give principal curvatures
+
+**Definiteness classification:**
+- Positive definite → local minimum
+- Negative definite → local maximum
+- Indefinite → saddle point
+
+**Convexity:** $H \succeq 0$ everywhere implies convexity, no local minima traps.
+
+**Taylor expansion:** The Hessian gives the quadratic approximation of $f$ near any point.
+
+**Quant finance applications:**
+- **Portfolio optimization:** Covariance matrix is the Hessian of variance
+- **Risk aversion:** Second derivative of utility measures risk tolerance
+- **Option Greeks:** Gamma is the Hessian entry for stock price sensitivity
+- **Model stability:** Hessian condition number indicates numerical reliability
+
+**Key insight:** The Hessian tells you the **shape** of the objective landscape. In optimization, this determines whether you've found a true optimum. In risk management, it quantifies second-order exposures.
+
+---
+
+## 14. Next Steps
+
+We've now mastered the tools of multivariable calculus:
+- **Partial derivatives** isolate individual sensitivities
+- **Gradients** point toward steepest ascent
+- **Hessians** reveal curvature and classify critical points
+
+The final piece is **Taylor expansion**, which uses these tools to approximate functions locally. This is the foundation of:
+- Newton's method for optimization
+- Delta-gamma hedging in options
+- Local approximations in risk models
+
+**Next lesson: Taylor Expansion in Multiple Dimensions**
+
+You'll learn how to build polynomial approximations of complex functions and why this matters for numerical methods in finance.

@@ -14,6 +14,9 @@ interface QuizQuestion {
   solution: string
   answer: string
   order_index: number
+  question_type: 'free_text' | 'multiple_choice'
+  options?: string[]
+  correct_option_index?: number
 }
 
 export default async function LessonQuizPage({
@@ -77,7 +80,10 @@ export default async function LessonQuizPage({
         problem,
         hint,
         solution,
-        answer
+        answer,
+        question_type,
+        options,
+        correct_option_index
       )
     `)
     .eq('lesson_id', lesson.id)
@@ -103,7 +109,10 @@ export default async function LessonQuizPage({
     hint: q.math_problems.hint,
     solution: q.math_problems.solution,
     answer: q.math_problems.answer,
-    order_index: q.order_index
+    order_index: q.order_index,
+    question_type: q.math_problems.question_type || 'free_text',
+    options: q.math_problems.options,
+    correct_option_index: q.math_problems.correct_option_index
   }))
 
   // Check if user has already passed this quiz

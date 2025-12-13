@@ -1,8 +1,8 @@
 // app/quantframe/problems/coding/layout.tsx
 'use client'
 
-import { useEffect } from 'react'
 import Script from 'next/script'
+import { ProblemLayoutWrapper } from '../components/problem-layout-wrapper'
 
 export default function CodingProblemsLayout({
   children,
@@ -21,7 +21,9 @@ export default function CodingProblemsLayout({
           console.error('Failed to load Pyodide:', e)
         }}
       />
-      {children}
+      <ProblemLayoutWrapper problemType="coding">
+        {children}
+      </ProblemLayoutWrapper>
     </>
   )
 }

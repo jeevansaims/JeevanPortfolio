@@ -1,0 +1,524 @@
+# Eigenvalues & Eigenvectors
+
+## 1. Why Eigenvalues and Eigenvectors Matter
+
+### Special Directions Where Transformation Only Stretches
+
+Most vectors change direction when a matrix acts on them. But **eigenvectors** are special, they only get stretched or compressed, never rotated:
+
+$$
+A\mathbf{v} = \lambda \mathbf{v}
+$$
+
+The vector $\mathbf{v}$ points in the same direction after transformation; it's just scaled by factor $\lambda$.
+
+### How They Reveal Matrix Structure
+
+Eigenvalues and eigenvectors expose the **essential behavior** of a matrix:
+
+- **Eigenvectors:** The "natural directions" or "principal axes" of the transformation
+- **Eigenvalues:** How much the matrix stretches along each direction
+
+Together, they decompose a complex transformation into simple scaling along independent directions.
+
+### Why This Is Central in Quant Finance
+
+**Covariance matrices:** Eigenvectors are the principal risk directions; eigenvalues are the variance along each direction.
+
+**Factor models:** Dominant eigenvectors represent the main market factors.
+
+**PCA:** Dimension reduction works by keeping only the largest eigenvalues.
+
+**Stability analysis:** Eigenvalues determine if a system grows, shrinks, or oscillates.
+
+---
+
+## 2. Definition and Core Idea
+
+### The Equation $A\mathbf{v} = \lambda \mathbf{v}$
+
+For a square matrix $A$ (size $n \times n$):
+
+- $\mathbf{v} \neq \mathbf{0}$ is an **eigenvector** of $A$
+- $\lambda$ is the corresponding **eigenvalue**
+- They satisfy: $A\mathbf{v} = \lambda \mathbf{v}$
+
+**In words:** Applying $A$ to $\mathbf{v}$ just multiplies $\mathbf{v}$ by a scalar $\lambda$.
+
+### Interpretations
+
+**Scaling direction:** $\mathbf{v}$ is a direction where $A$ acts like simple multiplication.
+
+**Invariant direction:** The span of $\mathbf{v}$ (the line through $\mathbf{v}$) is preserved by $A$.
+
+**Fixed point of direction:** While the length may change, the direction is fixed.
+
+### Difference Between Eigenvalue and Eigenvector
+
+- **Eigenvector $\mathbf{v}$:** A direction in space (a vector)
+- **Eigenvalue $\lambda$:** A number measuring the scaling factor
+
+Each eigenvalue can have many eigenvectors (any scalar multiple of an eigenvector is also an eigenvector). But each eigenvector has exactly one eigenvalue.
+
+### Only Nonzero Vectors Can Be Eigenvectors
+
+The zero vector satisfies $A\mathbf{0} = \lambda \mathbf{0}$ for any $\lambda$, so we require $\mathbf{v} \neq \mathbf{0}$ to make the concept meaningful.
+
+### Geometric Examples
+
+**Stretch matrix:**
+
+$$
+A = \begin{pmatrix} 2 & 0 \\ 0 & 3 \end{pmatrix}
+$$
+
+Eigenvectors: $\mathbf{e}_1 = \begin{pmatrix} 1 \\ 0 \end{pmatrix}$ with $\lambda_1 = 2$, and $\mathbf{e}_2 = \begin{pmatrix} 0 \\ 1 \end{pmatrix}$ with $\lambda_2 = 3$.
+
+The matrix stretches by 2 horizontally and 3 vertically, the coordinate axes are the eigenvector directions.
+
+---
+
+## 3. Finding Eigenvalues and Eigenvectors
+
+### The Characteristic Equation
+
+Rewrite the eigenvalue equation:
+
+$$
+A\mathbf{v} = \lambda \mathbf{v} \implies (A - \lambda I)\mathbf{v} = \mathbf{0}
+$$
+
+For a non-trivial solution ($\mathbf{v} \neq \mathbf{0}$), the matrix $(A - \lambda I)$ must be singular:
+
+$$
+\det(A - \lambda I) = 0
+$$
+
+This is the **characteristic equation**. Its solutions are the eigenvalues.
+
+### The Characteristic Polynomial
+
+For an $n \times n$ matrix, expanding $\det(A - \lambda I)$ gives a polynomial of degree $n$:
+
+$$
+p(\lambda) = (-1)^n \lambda^n + \cdots + \det(A)
+$$
+
+The eigenvalues are the roots of this polynomial.
+
+### Finding Eigenvectors from $(A - \lambda I)\mathbf{v} = \mathbf{0}$
+
+Once you have an eigenvalue $\lambda$:
+
+1. Compute $(A - \lambda I)$
+2. Solve the homogeneous system $(A - \lambda I)\mathbf{v} = \mathbf{0}$
+3. The non-trivial solutions form the **eigenspace** for that eigenvalue
+
+### Example: $2 \times 2$ Matrix
+
+Find eigenvalues and eigenvectors of:
+
+$$
+A = \begin{pmatrix} 4 & 1 \\ 2 & 3 \end{pmatrix}
+$$
+
+**Step 1: Characteristic equation**
+
+$$
+\det(A - \lambda I) = \det\begin{pmatrix} 4-\lambda & 1 \\ 2 & 3-\lambda \end{pmatrix} = 0
+$$
+
+$$
+(4-\lambda)(3-\lambda) - 2 = 0
+$$
+
+$$
+\lambda^2 - 7\lambda + 10 = 0
+$$
+
+$$
+(\lambda - 5)(\lambda - 2) = 0
+$$
+
+**Eigenvalues:** $\lambda_1 = 5$, $\lambda_2 = 2$
+
+**Step 2: Find eigenvectors**
+
+For $\lambda_1 = 5$:
+
+$$
+(A - 5I)\mathbf{v} = \begin{pmatrix} -1 & 1 \\ 2 & -2 \end{pmatrix} \mathbf{v} = \mathbf{0}
+$$
+
+Row 1: $-v_1 + v_2 = 0 \implies v_2 = v_1$
+
+**Eigenvector:** $\mathbf{v}_1 = \begin{pmatrix} 1 \\ 1 \end{pmatrix}$
+
+For $\lambda_2 = 2$:
+
+$$
+(A - 2I)\mathbf{v} = \begin{pmatrix} 2 & 1 \\ 2 & 1 \end{pmatrix} \mathbf{v} = \mathbf{0}
+$$
+
+Row 1: $2v_1 + v_2 = 0 \implies v_2 = -2v_1$
+
+**Eigenvector:** $\mathbf{v}_2 = \begin{pmatrix} 1 \\ -2 \end{pmatrix}$
+
+### Repeated Eigenvalues and Multiplicity
+
+An eigenvalue can repeat (appear multiple times as a root).
+
+**Algebraic multiplicity:** How many times $\lambda$ appears as a root.
+
+**Geometric multiplicity:** Dimension of the eigenspace (number of independent eigenvectors for $\lambda$).
+
+If geometric multiplicity < algebraic multiplicity, the matrix is **defective** and cannot be fully diagonalized.
+
+---
+
+## 4. Diagonalization
+
+### When a Matrix Can Be Diagonalized
+
+A matrix $A$ is **diagonalizable** if it has $n$ linearly independent eigenvectors.
+
+This happens when:
+- All eigenvalues are distinct, OR
+- For repeated eigenvalues, geometric multiplicity equals algebraic multiplicity
+
+### The Decomposition $A = PDP^{-1}$
+
+If $A$ is diagonalizable:
+
+$$
+A = PDP^{-1}
+$$
+
+where:
+- $P$ = matrix with eigenvectors as columns
+- $D$ = diagonal matrix with eigenvalues on the diagonal
+
+$$
+P = \begin{pmatrix} | & | & & | \\ \mathbf{v}_1 & \mathbf{v}_2 & \cdots & \mathbf{v}_n \\ | & | & & | \end{pmatrix}, \quad D = \begin{pmatrix} \lambda_1 & 0 & \cdots & 0 \\ 0 & \lambda_2 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & \lambda_n \end{pmatrix}
+$$
+
+### Why Diagonal Matrices Are Easier
+
+Diagonal matrices are trivial to:
+
+- **Multiply:** Just multiply corresponding diagonal entries
+- **Raise to powers:** $D^k$ has $\lambda_i^k$ on the diagonal
+- **Invert:** $D^{-1}$ has $1/\lambda_i$ on the diagonal (if all $\lambda_i \neq 0$)
+- **Understand:** Each dimension acts independently
+
+### Powers of Matrices
+
+If $A = PDP^{-1}$:
+
+$$
+A^k = PD^kP^{-1}
+$$
+
+**Financial application:** For a transition matrix $T$ in credit risk:
+
+$$
+T^{10} = PD^{10}P^{-1}
+$$
+
+gives the 10-period transition probabilities efficiently.
+
+### Connection to Independent Eigenvectors
+
+Diagonalization expresses the transformation as independent scaling along eigenvector directions. Each eigenvector acts like its own coordinate axis where $A$ just multiplies by the eigenvalue.
+
+---
+
+## 5. Symmetric Matrices
+
+### Real Eigenvalues Guaranteed
+
+**Theorem:** Every symmetric matrix has all **real** eigenvalues.
+
+This is crucial for covariance matrices, we want real numbers for variance, not complex!
+
+### Orthogonal Eigenvectors
+
+**Theorem:** Eigenvectors of a symmetric matrix corresponding to different eigenvalues are **orthogonal**.
+
+Even for repeated eigenvalues, we can always choose orthogonal eigenvectors.
+
+### The Spectral Theorem
+
+Every symmetric matrix can be written as:
+
+$$
+A = Q\Lambda Q^T
+$$
+
+where:
+- $Q$ is **orthogonal** ($Q^T Q = I$, columns are orthonormal eigenvectors)
+- $\Lambda$ is diagonal (eigenvalues on diagonal)
+
+This is the **spectral decomposition** or **eigendecomposition**.
+
+### Why Symmetric Matrices Are Nice
+
+1. **Always diagonalizable** (never defective)
+2. **Real eigenvalues** (meaningful for variance)
+3. **Orthogonal eigenvectors** (uncorrelated principal directions)
+4. **Simple inverse:** $A^{-1} = Q\Lambda^{-1}Q^T$
+
+### Connection to Covariance Matrices
+
+Covariance matrices are:
+- **Symmetric:** $\Sigma = \Sigma^T$
+- **Positive semi-definite:** All eigenvalues $\geq 0$
+
+This guarantees variance is always non-negative along any direction.
+
+---
+
+## 6. Stability and Dynamics
+
+### Eigenvalues Indicate Contraction or Expansion
+
+Consider iterating $\mathbf{x}_{k+1} = A\mathbf{x}_k$:
+
+- $|\lambda| < 1$: Component along eigenvector **shrinks** (contracts)
+- $|\lambda| > 1$: Component along eigenvector **grows** (expands)
+- $|\lambda| = 1$: Component **stays constant** in magnitude
+
+### Positive vs. Negative Eigenvalues
+
+- $\lambda > 0$: Eigenvector direction preserved
+- $\lambda < 0$: Eigenvector direction flipped each iteration
+- $\lambda = 0$: That direction is "killed" (sent to zero)
+
+### The Spectral Radius
+
+The **spectral radius** is the largest absolute value of any eigenvalue:
+
+$$
+\rho(A) = \max_i |\lambda_i|
+$$
+
+**Stability criterion:** The system $\mathbf{x}_{k+1} = A\mathbf{x}_k$ converges to zero if and only if $\rho(A) < 1$.
+
+### Power Iteration
+
+**Power iteration** finds the dominant eigenvector by repeatedly multiplying by $A$:
+
+$$
+\mathbf{x}_{k+1} = \frac{A\mathbf{x}_k}{\|A\mathbf{x}_k\|}
+$$
+
+This converges to the eigenvector with largest $|\lambda|$ because that component dominates after many multiplications.
+
+**Financial use:** Finding the principal risk direction of a covariance matrix.
+
+---
+
+## 7. Quant Applications
+
+### Covariance Matrices and Variance Explained
+
+For covariance matrix $\Sigma$:
+
+$$
+\Sigma = Q\Lambda Q^T
+$$
+
+- **Eigenvectors (columns of $Q$):** Principal risk directions (uncorrelated portfolios)
+- **Eigenvalues (diagonal of $\Lambda$):** Variance along each direction
+
+**Total variance:** $\text{tr}(\Sigma) = \sum_i \lambda_i$
+
+**Variance explained by first $k$ components:** $\frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^n \lambda_i}$
+
+### Factor Structure as Dominant Eigen-Directions
+
+In many markets, the first few eigenvectors of the return covariance matrix correspond to interpretable factors:
+
+- **First eigenvector:** Often represents the market (all assets move together)
+- **Second eigenvector:** Often captures sector or style effects
+- **Smaller eigenvectors:** Idiosyncratic movements
+
+### Stress Testing Through Leading Eigenvalues
+
+To stress test a portfolio:
+
+1. Find the eigenvectors of $\Sigma$
+2. Apply shocks along the dominant eigenvector directions
+3. These represent the worst-case correlated moves
+
+The largest eigenvalue direction is where portfolio variance is maximized.
+
+### Sensitivity to Principal Risk Directions
+
+For portfolio $\mathbf{w}$, the exposure to principal direction $\mathbf{q}_i$ is:
+
+$$
+\text{exposure}_i = \mathbf{w}^T \mathbf{q}_i
+$$
+
+Portfolios with large exposure to high-eigenvalue directions have more systematic risk.
+
+### Risk Decomposition
+
+Portfolio variance:
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w} = \mathbf{w}^T Q\Lambda Q^T \mathbf{w} = \sum_i \lambda_i (\mathbf{w}^T \mathbf{q}_i)^2
+$$
+
+This decomposes total risk into contributions from each principal direction.
+
+---
+
+## 8. Properties of Eigenvalues
+
+### Trace Equals Sum of Eigenvalues
+
+$$
+\text{tr}(A) = \sum_{i=1}^n \lambda_i
+$$
+
+The trace (sum of diagonal entries) equals the sum of all eigenvalues.
+
+### Determinant Equals Product of Eigenvalues
+
+$$
+\det(A) = \prod_{i=1}^n \lambda_i
+$$
+
+**Corollary:** $A$ is invertible if and only if all eigenvalues are non-zero.
+
+### Positive Definite Matrices
+
+A symmetric matrix $A$ is **positive definite** if and only if all eigenvalues are strictly positive:
+
+$$
+\lambda_i > 0 \quad \text{for all } i
+$$
+
+**For covariance matrices:** Positive semi-definite means $\lambda_i \geq 0$ (variance is non-negative).
+
+### Eigenvalues of Matrix Operations
+
+- $A^{-1}$ has eigenvalues $1/\lambda_i$ (same eigenvectors)
+- $A^k$ has eigenvalues $\lambda_i^k$ (same eigenvectors)
+- $A + cI$ has eigenvalues $\lambda_i + c$ (same eigenvectors)
+
+---
+
+## 9. Worked Examples
+
+### Example 1: Characteristic Polynomial
+
+Find eigenvalues of $A = \begin{pmatrix} 3 & 1 \\ 0 & 2 \end{pmatrix}$.
+
+**Characteristic equation:**
+
+$$
+\det\begin{pmatrix} 3-\lambda & 1 \\ 0 & 2-\lambda \end{pmatrix} = (3-\lambda)(2-\lambda) = 0
+$$
+
+**Eigenvalues:** $\lambda_1 = 3$, $\lambda_2 = 2$
+
+**Check:** $\text{tr}(A) = 5 = 3 + 2$ ✓, $\det(A) = 6 = 3 \times 2$ ✓
+
+### Example 2: Symmetric Matrix
+
+Find eigenvalues of $\Sigma = \begin{pmatrix} 2 & 1 \\ 1 & 2 \end{pmatrix}$.
+
+**Characteristic equation:**
+
+$$
+(2-\lambda)^2 - 1 = 0 \implies \lambda^2 - 4\lambda + 3 = 0
+$$
+
+$$
+(\lambda - 3)(\lambda - 1) = 0
+$$
+
+**Eigenvalues:** $\lambda_1 = 3$, $\lambda_2 = 1$
+
+Both positive → matrix is positive definite.
+
+**Eigenvectors:**
+
+For $\lambda = 3$: $\mathbf{v}_1 = \begin{pmatrix} 1 \\ 1 \end{pmatrix}$
+
+For $\lambda = 1$: $\mathbf{v}_2 = \begin{pmatrix} 1 \\ -1 \end{pmatrix}$
+
+Note: $\mathbf{v}_1 \cdot \mathbf{v}_2 = 0$ (orthogonal, as expected for symmetric matrix)
+
+### Example 3: Stability Analysis
+
+For transition matrix $T = \begin{pmatrix} 0.9 & 0.2 \\ 0.1 & 0.8 \end{pmatrix}$:
+
+**Eigenvalues:** $\lambda_1 = 1$, $\lambda_2 = 0.7$
+
+Since $|\lambda_2| < 1$, the system converges to a steady state determined by the $\lambda_1 = 1$ eigenvector.
+
+---
+
+## 10. Summary
+
+### Key Concepts
+
+**Eigenvalue equation:**
+
+$$
+A\mathbf{v} = \lambda \mathbf{v}
+$$
+
+**Characteristic equation:**
+
+$$
+\det(A - \lambda I) = 0
+$$
+
+**Diagonalization:**
+
+$$
+A = PDP^{-1}
+$$
+
+**Spectral theorem (symmetric matrices):**
+
+$$
+A = Q\Lambda Q^T
+$$
+
+### Key Results
+
+- Trace = sum of eigenvalues
+- Determinant = product of eigenvalues
+- Symmetric matrices have real eigenvalues and orthogonal eigenvectors
+- Positive definite ⟺ all eigenvalues positive
+- Powers: $A^k = PD^kP^{-1}$
+
+### Financial Implications
+
+- **Covariance matrix eigenvectors:** Principal risk directions
+- **Eigenvalues:** Variance along each principal direction
+- **Dominant eigenvector:** Direction of maximum portfolio variance
+- **Factor models:** Leading eigenvectors capture systematic risk
+- **Stability:** Eigenvalues determine convergence of iterative systems
+
+---
+
+## 11. What's Next?
+
+We've learned to find the principal directions of any matrix. The most important matrix in finance is the **covariance matrix**, it encodes how assets move together.
+
+**Next lesson: Covariance Matrices**
+
+You'll learn:
+
+- Construction and interpretation of covariance matrices
+- Portfolio variance formula using covariance
+- Correlation vs. covariance
+- Eigenstructure of return covariance
+- Why covariance matrices drive portfolio optimization

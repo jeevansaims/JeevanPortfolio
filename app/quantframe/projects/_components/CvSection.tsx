@@ -6,24 +6,17 @@ import { useState } from 'react';
 
 interface CvSectionProps {
   cvBullets?: string[];
-  linkedinSummary?: string;
 }
 
-export function CvSection({ cvBullets, linkedinSummary }: CvSectionProps) {
+export function CvSection({ cvBullets }: CvSectionProps) {
   const [copiedBullet, setCopiedBullet] = useState<number | null>(null);
-  const [copiedLinkedIn, setCopiedLinkedIn] = useState(false);
 
-  if (!cvBullets && !linkedinSummary) return null;
+  if (!cvBullets || cvBullets.length === 0) return null;
 
-  const copyToClipboard = async (text: string, index?: number) => {
+  const copyToClipboard = async (text: string, index: number) => {
     await navigator.clipboard.writeText(text);
-    if (index !== undefined) {
-      setCopiedBullet(index);
-      setTimeout(() => setCopiedBullet(null), 2000);
-    } else {
-      setCopiedLinkedIn(true);
-      setTimeout(() => setCopiedLinkedIn(false), 2000);
-    }
+    setCopiedBullet(index);
+    setTimeout(() => setCopiedBullet(null), 2000);
   };
 
   return (
@@ -34,70 +27,39 @@ export function CvSection({ cvBullets, linkedinSummary }: CvSectionProps) {
       </div>
 
       {/* CV Bullets */}
-      {cvBullets && cvBullets.length > 0 && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Resume/CV Bullets
-          </h3>
-          <p className="text-sm text-zinc-400 mb-4">
-            Copy these to your resume to showcase this project:
-          </p>
-          <div className="space-y-3">
-            {cvBullets.map((bullet, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg group hover:border-phthalo-500/30 transition-colors"
-              >
-                <span className="text-phthalo-400 font-mono text-sm mt-1">
-                  •
-                </span>
-                <p className="flex-1 text-zinc-300 leading-relaxed">{bullet}</p>
-                <Button
-                  onClick={() => copyToClipboard(bullet, index)}
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  {copiedBullet === index ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-zinc-400" />
-                  )}
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* LinkedIn Summary */}
-      {linkedinSummary && (
-        <div>
-          <h3 className="text-lg font-semibold text-white mb-4">
-            LinkedIn Summary
-          </h3>
-          <p className="text-sm text-zinc-400 mb-4">
-            Add this to your LinkedIn profile or project section:
-          </p>
-          <div className="relative p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg group hover:border-phthalo-500/30 transition-colors">
-            <p className="text-zinc-300 leading-relaxed pr-12">
-              {linkedinSummary}
-            </p>
-            <Button
-              onClick={() => copyToClipboard(linkedinSummary)}
-              variant="ghost"
-              size="sm"
-              className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity"
+      <div>
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Resume/CV Bullets
+        </h3>
+        <p className="text-sm text-zinc-400 mb-4">
+          Copy these to your resume to showcase this project:
+        </p>
+        <div className="space-y-3">
+          {cvBullets.map((bullet, index) => (
+            <div
+              key={index}
+              className="flex items-start gap-3 p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg group hover:border-phthalo-500/30 transition-colors"
             >
-              {copiedLinkedIn ? (
-                <CheckCircle2 className="w-4 h-4 text-green-400" />
-              ) : (
-                <Copy className="w-4 h-4 text-zinc-400" />
-              )}
-            </Button>
-          </div>
+              <span className="text-phthalo-400 font-mono text-sm mt-1">
+                •
+              </span>
+              <p className="flex-1 text-zinc-300 leading-relaxed">{bullet}</p>
+              <Button
+                onClick={() => copyToClipboard(bullet, index)}
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                {copiedBullet === index ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                ) : (
+                  <Copy className="w-4 h-4 text-zinc-400" />
+                )}
+              </Button>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }

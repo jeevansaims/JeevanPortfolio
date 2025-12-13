@@ -1,0 +1,362 @@
+# PCA (Quant Version)
+
+## 1. The Purpose of PCA
+
+### Reduce High-Dimensional Data into Fewer Components
+
+Financial data is high-dimensional: hundreds of stocks, dozens of bonds, multiple factors. **Principal Component Analysis (PCA)** finds a smaller set of variables that capture most of the information.
+
+Instead of tracking 500 correlated stock returns, PCA might reveal that 3-5 uncorrelated factors explain 80% of the variation.
+
+### Identify Dominant Sources of Variation
+
+PCA answers: *What are the main drivers of movement in this data?*
+
+It finds directions in the data where variance is highest, then ranks them by importance.
+
+### Why PCA Matters for Quants
+
+Markets have hidden structure:
+
+- Stocks don't move independently; they're driven by common factors
+- Interest rates across maturities move together in predictable patterns
+- Correlations create redundancy that PCA removes
+
+PCA extracts this structure mathematically, revealing the underlying factors that drive asset returns.
+
+---
+
+## 2. PCA and the Covariance Matrix
+
+### Covariance Matrix as the Foundation
+
+PCA is simply the **eigendecomposition of the covariance matrix**:
+
+$$
+\Sigma = Q \Lambda Q^T
+$$
+
+Everything you learned about eigenvalues and eigenvectors applies directly.
+
+### Eigenvalues as Explained Variance
+
+Each eigenvalue $\lambda_i$ represents the **variance captured** by the corresponding principal component.
+
+**Total variance:** $\text{tr}(\Sigma) = \sum_{i=1}^n \lambda_i$
+
+**Variance explained by component $i$:**
+
+$$
+\frac{\lambda_i}{\sum_{j=1}^n \lambda_j}
+$$
+
+### Eigenvectors as Principal Directions
+
+Each eigenvector $\mathbf{q}_i$ is a **principal direction**, a portfolio of assets that captures variance in a specific way.
+
+- $\mathbf{q}_1$ = direction of maximum variance
+- $\mathbf{q}_2$ = direction of maximum remaining variance (orthogonal to $\mathbf{q}_1$)
+- And so on...
+
+### Sorting Eigenvalues to Find Dominant Components
+
+By convention, eigenvalues are sorted in descending order:
+
+$$
+\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0
+$$
+
+The first few eigenvalues are typically much larger than the rest, meaning a few components capture most of the variance.
+
+---
+
+## 3. Constructing Principal Components
+
+### Step by Step
+
+**1. Compute the covariance matrix:**
+
+Given demeaned return data $X$ (size $T \times n$):
+
+$$
+\Sigma = \frac{1}{T-1} X^T X
+$$
+
+**2. Find eigenvalues and eigenvectors:**
+
+Solve $\Sigma \mathbf{q}_i = \lambda_i \mathbf{q}_i$
+
+**3. Sort by eigenvalue:**
+
+Order so $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n$
+
+**4. Form principal component time series:**
+
+$$
+PC_i(t) = \mathbf{q}_i^T \mathbf{r}_t
+$$
+
+The $i$-th principal component at time $t$ is the dot product of the $i$-th eigenvector with that day's returns.
+
+### First Principal Component: Maximum Variance Direction
+
+$\mathbf{q}_1$ maximizes $\mathbf{q}^T \Sigma \mathbf{q}$ subject to $\|\mathbf{q}\| = 1$.
+
+In equity markets, this is often close to an equal-weighted portfolio: the "market factor" where all stocks move together.
+
+### Subsequent Components: Orthogonal and Decreasing Variance
+
+Each subsequent component:
+
+- Is orthogonal to all previous components
+- Captures the maximum remaining variance
+- Has smaller eigenvalue than the previous
+
+This creates an **ordered decomposition** of total variance.
+
+### Computing Component Time Series
+
+If you have return matrix $X$ and eigenvector matrix $Q$:
+
+$$
+Y = X Q
+$$
+
+Column $i$ of $Y$ is the time series of the $i$-th principal component.
+
+---
+
+## 4. Interpreting Principal Components
+
+### Eigenvalues as Strength of Each Factor
+
+Larger eigenvalue = more important factor.
+
+A typical pattern in equity markets:
+
+- $\lambda_1$ captures 40-60% of variance (market factor)
+- $\lambda_2$ through $\lambda_5$ capture another 20-30%
+- Remaining components each capture small percentages
+
+### Scree Plot Intuition
+
+Imagine plotting eigenvalues in descending order. You typically see:
+
+- A steep drop at first (important factors)
+- Then a flat "elbow" (noise)
+
+The elbow suggests where to cut off: keep components before the elbow, discard the rest.
+
+### High Variance vs. Low Variance Components
+
+**High variance (large $\lambda$):** Systematic factors affecting many assets, market-wide movements, persistent patterns.
+
+**Low variance (small $\lambda$):** Idiosyncratic noise, estimation error, random fluctuations.
+
+### Noise Components and Dimensionality Reduction
+
+Small eigenvalues often reflect estimation noise rather than real structure. Discarding them:
+
+- Reduces overfitting
+- Stabilizes covariance estimates
+- Simplifies models
+
+---
+
+## 5. PCA in Finance: Core Use Cases
+
+### Extracting Statistical Factors from Stock Returns
+
+Run PCA on a universe of stock returns. The principal components are **statistical factors**, data-driven sources of systematic risk.
+
+Unlike economic factors (value, momentum, size), statistical factors emerge purely from the correlation structure.
+
+### Market Factor Often Emerges Automatically
+
+The first principal component of equity returns is typically highly correlated with the market index. It represents "all stocks moving together."
+
+This isn't imposed; it emerges from the data because market-wide movements dominate individual stock correlations.
+
+### Sector or Style Patterns Through Eigenvectors
+
+Subsequent eigenvectors often reveal:
+
+- Long tech / short financials (sector rotation)
+- Long small cap / short large cap (size factor)
+- Long high-beta / short low-beta (risk-on/risk-off)
+
+The exact interpretation depends on the eigenvector loadings.
+
+### Identifying Crowded Trades
+
+When many investors hold similar positions, correlations increase among those assets. PCA can detect this:
+
+- Unusually high eigenvalue concentration
+- Eigenvector loadings concentrated in specific sectors
+- Sudden changes in factor structure
+
+---
+
+## 6. Portfolio Construction with PCA
+
+### Risk Decomposition Along Principal Components
+
+Portfolio variance decomposes as:
+
+$$
+\sigma_p^2 = \sum_{i=1}^n \lambda_i (\mathbf{q}_i^T \mathbf{w})^2
+$$
+
+Each term shows how much risk comes from exposure to each principal direction.
+
+### Building Portfolios Neutral to Certain Components
+
+To hedge out the market factor, construct a portfolio orthogonal to $\mathbf{q}_1$:
+
+$$
+\mathbf{q}_1^T \mathbf{w} = 0
+$$
+
+This removes exposure to the dominant source of systematic risk.
+
+### Removing Noise by Truncating Low Eigenvalue Directions
+
+Instead of using the full covariance matrix, use the **low-rank approximation**:
+
+$$
+\tilde{\Sigma} = \sum_{i=1}^k \lambda_i \mathbf{q}_i \mathbf{q}_i^T
+$$
+
+This keeps the $k$ largest eigenvalues and sets the rest to zero. Benefits:
+
+- Reduces estimation noise
+- Makes covariance matrix more stable
+- Improves out-of-sample performance
+
+### Stabilizing Ill-Conditioned Covariance Matrices
+
+When $n$ is large relative to $T$, small eigenvalues are dominated by estimation error. Truncating them (or shrinking toward zero) produces more reliable optimization results.
+
+---
+
+## 7. PCA for Trading and Research
+
+### Regime Detection from Shifts in Leading Components
+
+Changes in the eigenvalue structure signal regime shifts:
+
+- First eigenvalue spiking = correlations increasing (risk-off)
+- Eigenvector loadings rotating = sector leadership changing
+- New factor emerging = structural market change
+
+Monitoring PCA over rolling windows provides early warning signals.
+
+### Mean Reversion Strategies Using Residual Components
+
+After removing the first few principal components, residuals represent idiosyncratic movements. These tend to mean-revert:
+
+$$
+\epsilon_t = r_t - \sum_{i=1}^k PC_i(t) \cdot \mathbf{q}_i
+$$
+
+Trading strategies can exploit mean reversion in these residuals.
+
+### Reducing Feature Dimensionality for ML Models
+
+Machine learning models struggle with high-dimensional, correlated inputs. PCA preprocessing:
+
+- Reduces dimensionality
+- Removes multicollinearity
+- Creates orthogonal features
+
+Use principal components as inputs instead of raw returns.
+
+### Identifying Pair Trading Candidates
+
+Assets with similar loadings on principal components (but some idiosyncratic spread) are natural pairs trading candidates. The spread between them should mean-revert as the common factor exposure cancels out.
+
+---
+
+## 8. Limitations and Caveats
+
+### PCA Depends on the Estimation Window
+
+Different time periods produce different principal components. A PCA from calm markets looks very different from crisis periods.
+
+**Implication:** Results are sensitive to the lookback window choice.
+
+### Sensitive to Outliers and Regime Shifts
+
+Extreme returns (crashes, squeezes) can distort the covariance matrix and therefore the PCA.
+
+**Mitigation:** Use robust covariance estimators or winsorize extreme returns.
+
+### Components May Not Have Clear Economic Meaning
+
+Statistical factors aren't necessarily interpretable. The second principal component might be "long tech, short energy," but this doesn't mean there's an economic reason for it.
+
+**Contrast with economic factor models:** Fama-French factors have clear definitions; PCA factors are just math.
+
+### Overfitting Risk If Misapplied
+
+Using too many principal components, or fitting PCA on too short a window, leads to overfitting. The resulting "factors" capture noise rather than signal.
+
+**Rule of thumb:** Use fewer components than you think you need.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**PCA is eigendecomposition of the covariance matrix:**
+
+$$
+\Sigma = Q \Lambda Q^T
+$$
+
+**Principal components:**
+
+- Eigenvectors $\mathbf{q}_i$ = directions of maximum variance
+- Eigenvalues $\lambda_i$ = variance explained by each direction
+- Components are orthogonal (uncorrelated)
+
+**Dimensionality reduction:**
+
+Keep top $k$ components, discard the rest as noise.
+
+### Key Results
+
+- First few PCs typically explain most variance
+- In equities, PC1 ≈ market factor
+- Truncating small eigenvalues stabilizes covariance estimation
+- PCA factors are statistical, not economic
+
+### Financial Applications
+
+- **Factor extraction:** Find hidden drivers of returns
+- **Risk decomposition:** Attribute portfolio risk to components
+- **Covariance denoising:** Remove estimation noise
+- **Portfolio construction:** Build factor-neutral portfolios
+- **Regime detection:** Monitor changes in factor structure
+
+---
+
+## 10. Congratulations!
+
+You've completed **Linear Algebra for Quants**!
+
+You now understand:
+
+- Vectors and linear combinations as portfolio building blocks
+- Matrices and transformations for returns and covariance
+- Row/column spaces and rank for understanding system structure
+- Linear independence for detecting redundancy
+- Projections and least squares for regression
+- Eigenvalues and eigenvectors for matrix decomposition
+- Covariance matrices as the core of portfolio risk
+- PCA for dimensionality reduction and factor extraction
+
+**Linear algebra is the language of modern quantitative finance.** Every risk model, every optimizer, every factor model builds on these foundations.
+
+You're now equipped to tackle advanced topics: factor models, portfolio optimization, statistical arbitrage, and machine learning for finance.

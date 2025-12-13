@@ -387,22 +387,27 @@ export function PersonalizedRoadmapV2({ roadmap, userId }: PersonalizedRoadmapV2
               />
             </motion.div>
 
-            {/* 3-Column Grid - Mixed Categories - Collapsible */}
+            {/* Zigzag Snake Pattern - Collapsible */}
             <AnimatePresence>
               {isExpanded && (
                 <motion.div
-                  className="grid grid-cols-3 gap-6"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                  initial={{ height: 0, overflow: "hidden" }}
+                  animate={{
+                    height: "auto",
+                    overflow: "visible",
+                    transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }
+                  }}
+                  exit={{
+                    height: 0,
+                    overflow: "visible",
+                    transition: { duration: (allNodesForDiff.length - 1) * 0.05 + 0.3 + 0.3, ease: [0.25, 0.1, 0.25, 1] }
+                  }}
                 >
-                {/* Column 1 */}
-                <div className="space-y-3">
+                {/* Vertical columns layout */}
+                <div className="grid grid-cols-3 gap-6 pt-6">
                   {column1.map((node, idx) => (
                     <motion.div
                       key={node.id}
-                      className="relative"
                       initial={{ opacity: 0, y: -20 }}
                       animate={{
                         opacity: 1,
@@ -418,34 +423,25 @@ export function PersonalizedRoadmapV2({ roadmap, userId }: PersonalizedRoadmapV2
                         y: 20,
                         transition: {
                           duration: 0.3,
-                          delay: (column1.length - 1 - idx) * 0.05,
+                          delay: (allNodesForDiff.length - 1 - idx) * 0.05,
                           ease: [0.25, 0.1, 0.25, 1]
                         }
                       }}
+                      className="relative"
                     >
                       <RoadmapCard node={node} />
-                      {idx < column1.length - 1 && (
-                        <div className="flex justify-center my-2">
-                          <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                        </div>
-                      )}
                     </motion.div>
                   ))}
-                </div>
-
-                {/* Column 2 */}
-                <div className="space-y-3">
                   {column2.map((node, idx) => (
                     <motion.div
                       key={node.id}
-                      className="relative"
                       initial={{ opacity: 0, y: -20 }}
                       animate={{
                         opacity: 1,
                         y: 0,
                         transition: {
                           duration: 0.3,
-                          delay: idx * 0.05 + 0.03,
+                          delay: (column1.length + idx) * 0.05,
                           ease: [0.25, 0.1, 0.25, 1]
                         }
                       }}
@@ -454,34 +450,25 @@ export function PersonalizedRoadmapV2({ roadmap, userId }: PersonalizedRoadmapV2
                         y: 20,
                         transition: {
                           duration: 0.3,
-                          delay: (column2.length - 1 - idx) * 0.05 + 0.03,
+                          delay: (allNodesForDiff.length - 1 - (column1.length + idx)) * 0.05,
                           ease: [0.25, 0.1, 0.25, 1]
                         }
                       }}
+                      className="relative"
                     >
                       <RoadmapCard node={node} />
-                      {idx < column2.length - 1 && (
-                        <div className="flex justify-center my-2">
-                          <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                        </div>
-                      )}
                     </motion.div>
                   ))}
-                </div>
-
-                {/* Column 3 */}
-                <div className="space-y-3">
                   {column3.map((node, idx) => (
                     <motion.div
                       key={node.id}
-                      className="relative"
                       initial={{ opacity: 0, y: -20 }}
                       animate={{
                         opacity: 1,
                         y: 0,
                         transition: {
                           duration: 0.3,
-                          delay: idx * 0.05 + 0.06,
+                          delay: (column1.length + column2.length + idx) * 0.05,
                           ease: [0.25, 0.1, 0.25, 1]
                         }
                       }}
@@ -490,17 +477,13 @@ export function PersonalizedRoadmapV2({ roadmap, userId }: PersonalizedRoadmapV2
                         y: 20,
                         transition: {
                           duration: 0.3,
-                          delay: (column3.length - 1 - idx) * 0.05 + 0.06,
+                          delay: (allNodesForDiff.length - 1 - (column1.length + column2.length + idx)) * 0.05,
                           ease: [0.25, 0.1, 0.25, 1]
                         }
                       }}
+                      className="relative"
                     >
                       <RoadmapCard node={node} />
-                      {idx < column3.length - 1 && (
-                        <div className="flex justify-center my-2">
-                          <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                        </div>
-                      )}
                     </motion.div>
                   ))}
                 </div>
@@ -576,122 +559,121 @@ export function PersonalizedRoadmapV2({ roadmap, userId }: PersonalizedRoadmapV2
             />
           </motion.div>
 
-          {/* Execution Nodes - 3 Column Grid - Collapsible */}
+          {/* Execution Nodes - Zigzag Snake Pattern - Collapsible */}
           <AnimatePresence>
             {expandedPhases.has('execution') && (
               <motion.div
-                className="grid grid-cols-3 gap-6"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+                initial={{ height: 0, overflow: "hidden" }}
+                animate={{
+                  height: "auto",
+                  overflow: "visible",
+                  transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }
+                }}
+                exit={{
+                  height: 0,
+                  overflow: "visible",
+                  transition: { duration: (executionNodes.length - 1) * 0.05 + 0.3 + 0.3, ease: [0.25, 0.1, 0.25, 1] }
+                }}
               >
-              {/* Column 1 */}
-              <div className="space-y-3">
-                {executionNodes.filter((_, idx) => idx % 3 === 0).map((node, idx, arr) => (
-                  <motion.div
-                    key={node.id}
-                    className="relative"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      transition: {
-                        duration: 0.3,
-                        delay: idx * 0.05,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                    exit={{
-                      opacity: 0,
-                      y: 20,
-                      transition: {
-                        duration: 0.3,
-                        delay: (arr.length - 1 - idx) * 0.05,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                  >
-                    <RoadmapCard node={node} />
-                    {idx < arr.length - 1 && (
-                      <div className="flex justify-center my-2">
-                        <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
+              {/* Vertical columns layout */}
+              <div className="grid grid-cols-3 gap-6 pt-6">
+                {(() => {
+                  const execColumn1: RoadmapNode[] = []
+                  const execColumn2: RoadmapNode[] = []
+                  const execColumn3: RoadmapNode[] = []
 
-              {/* Column 2 */}
-              <div className="space-y-3">
-                {executionNodes.filter((_, idx) => idx % 3 === 1).map((node, idx, arr) => (
-                  <motion.div
-                    key={node.id}
-                    className="relative"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      transition: {
-                        duration: 0.3,
-                        delay: idx * 0.05 + 0.03,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                    exit={{
-                      opacity: 0,
-                      y: 20,
-                      transition: {
-                        duration: 0.3,
-                        delay: (arr.length - 1 - idx) * 0.05 + 0.03,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                  >
-                    <RoadmapCard node={node} />
-                    {idx < arr.length - 1 && (
-                      <div className="flex justify-center my-2">
-                        <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
+                  executionNodes.forEach((node, idx) => {
+                    if (idx % 3 === 0) execColumn1.push(node)
+                    else if (idx % 3 === 1) execColumn2.push(node)
+                    else execColumn3.push(node)
+                  })
 
-              {/* Column 3 */}
-              <div className="space-y-3">
-                {executionNodes.filter((_, idx) => idx % 3 === 2).map((node, idx, arr) => (
-                  <motion.div
-                    key={node.id}
-                    className="relative"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      transition: {
-                        duration: 0.3,
-                        delay: idx * 0.05 + 0.06,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                    exit={{
-                      opacity: 0,
-                      y: 20,
-                      transition: {
-                        duration: 0.3,
-                        delay: (arr.length - 1 - idx) * 0.05 + 0.06,
-                        ease: [0.25, 0.1, 0.25, 1]
-                      }
-                    }}
-                  >
-                    <RoadmapCard node={node} />
-                    {idx < arr.length - 1 && (
-                      <div className="flex justify-center my-2">
-                        <div className="w-0.5 h-4 bg-gradient-to-b from-zinc-600 to-zinc-700" />
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
+                  return (
+                    <>
+                      {execColumn1.map((node, idx) => (
+                        <motion.div
+                          key={node.id}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.3,
+                              delay: idx * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 20,
+                            transition: {
+                              duration: 0.3,
+                              delay: (executionNodes.length - 1 - idx) * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          className="relative"
+                        >
+                          <RoadmapCard node={node} />
+                        </motion.div>
+                      ))}
+                      {execColumn2.map((node, idx) => (
+                        <motion.div
+                          key={node.id}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.3,
+                              delay: (execColumn1.length + idx) * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 20,
+                            transition: {
+                              duration: 0.3,
+                              delay: (executionNodes.length - 1 - (execColumn1.length + idx)) * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          className="relative"
+                        >
+                          <RoadmapCard node={node} />
+                        </motion.div>
+                      ))}
+                      {execColumn3.map((node, idx) => (
+                        <motion.div
+                          key={node.id}
+                          initial={{ opacity: 0, y: -20 }}
+                          animate={{
+                            opacity: 1,
+                            y: 0,
+                            transition: {
+                              duration: 0.3,
+                              delay: (execColumn1.length + execColumn2.length + idx) * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          exit={{
+                            opacity: 0,
+                            y: 20,
+                            transition: {
+                              duration: 0.3,
+                              delay: (executionNodes.length - 1 - (execColumn1.length + execColumn2.length + idx)) * 0.05,
+                              ease: [0.25, 0.1, 0.25, 1]
+                            }
+                          }}
+                          className="relative"
+                        >
+                          <RoadmapCard node={node} />
+                        </motion.div>
+                      ))}
+                    </>
+                  )
+                })()}
               </div>
             </motion.div>
             )}

@@ -1,0 +1,378 @@
+# Covariance Matrices
+
+## 1. What Covariance Measures
+
+### Covariance as Co-Movement Between Two Variables
+
+**Covariance** measures how two variables move together:
+
+$$
+\text{Cov}(X, Y) = \mathbb{E}[(X - \mu_X)(Y - \mu_Y)]
+$$
+
+When $X$ is above its mean and $Y$ is also above its mean, the product is positive. When they move in opposite directions, the product is negative.
+
+### Positive, Negative, and Zero Covariance
+
+- **Positive covariance:** Variables tend to move together (both up or both down)
+- **Negative covariance:** Variables tend to move opposite (one up, one down)
+- **Zero covariance:** No linear relationship (movements are unrelated)
+
+### Interpretation in Finance
+
+For asset returns $r_A$ and $r_B$:
+
+- $\text{Cov}(r_A, r_B) > 0$: Assets rise and fall together (e.g., two tech stocks)
+- $\text{Cov}(r_A, r_B) < 0$: One tends to rise when the other falls (e.g., stocks vs. bonds in flight-to-safety)
+- $\text{Cov}(r_A, r_B) = 0$: Returns are uncorrelated (ideal for diversification)
+
+**Key insight:** Covariance is the raw material for understanding portfolio risk.
+
+---
+
+## 2. From Covariance to Covariance Matrix
+
+### Constructing the Matrix from Multiple Assets
+
+For $n$ assets with returns $r_1, r_2, \ldots, r_n$, the **covariance matrix** $\Sigma$ collects all pairwise covariances:
+
+$$
+\Sigma = \begin{pmatrix}
+\text{Cov}(r_1, r_1) & \text{Cov}(r_1, r_2) & \cdots & \text{Cov}(r_1, r_n) \\
+\text{Cov}(r_2, r_1) & \text{Cov}(r_2, r_2) & \cdots & \text{Cov}(r_2, r_n) \\
+\vdots & \vdots & \ddots & \vdots \\
+\text{Cov}(r_n, r_1) & \text{Cov}(r_n, r_2) & \cdots & \text{Cov}(r_n, r_n)
+\end{pmatrix}
+$$
+
+### Each Entry as Covariance Between Two Return Series
+
+Entry $\Sigma_{ij} = \text{Cov}(r_i, r_j)$ measures how assets $i$ and $j$ move together.
+
+### Diagonal Entries as Variances
+
+The diagonal contains variances:
+
+$$
+\Sigma_{ii} = \text{Cov}(r_i, r_i) = \text{Var}(r_i) = \sigma_i^2
+$$
+
+### Symmetry
+
+Since $\text{Cov}(r_i, r_j) = \text{Cov}(r_j, r_i)$:
+
+$$
+\Sigma^T = \Sigma
+$$
+
+The matrix is symmetric, this guarantees real eigenvalues and orthogonal eigenvectors.
+
+---
+
+## 3. Properties of Covariance Matrices
+
+### Symmetric Structure
+
+Every covariance matrix is symmetric: $\Sigma = \Sigma^T$.
+
+This is a direct consequence of the symmetry of covariance itself.
+
+### Positive Semi-Definiteness
+
+For any weight vector $\mathbf{x}$:
+
+$$
+\mathbf{x}^T \Sigma \mathbf{x} \geq 0
+$$
+
+**Why?** This quantity represents the variance of a portfolio, and variance cannot be negative.
+
+**Consequence:** All eigenvalues of $\Sigma$ are non-negative: $\lambda_i \geq 0$.
+
+### Rank and Its Meaning
+
+The **rank** of $\Sigma$ tells you how many independent sources of risk exist:
+
+- **Full rank** ($\text{rank}(\Sigma) = n$): All assets have unique risk components
+- **Rank deficient** ($\text{rank}(\Sigma) < n$): Some assets are perfectly correlated combinations of others
+
+### When Covariance Matrices Become Singular
+
+$\Sigma$ is **singular** (not invertible) when:
+
+- Some asset is a perfect linear combination of others
+- You have more assets than time periods of data ($n > T$)
+- Two assets have perfect correlation ($\rho = \pm 1$)
+
+Singular covariance matrices break portfolio optimization (you can't compute $\Sigma^{-1}$).
+
+---
+
+## 4. Covariance Matrix as a Linear Transformation
+
+### Mapping Weights into Portfolio Variance
+
+The covariance matrix transforms portfolio weights into risk:
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+Think of $\Sigma$ as a "risk operator", it takes weights and outputs variance.
+
+### Interpretation of $\Sigma \mathbf{w}$
+
+The vector $\Sigma \mathbf{w}$ gives the **marginal risk contribution** of each asset:
+
+$$
+(\Sigma \mathbf{w})_i = \sum_{j=1}^n w_j \sigma_{ij}
+$$
+
+This is asset $i$'s covariance with the entire portfolio.
+
+### Geometric Picture: Ellipsoids of Risk
+
+The set of portfolios with constant variance:
+
+$$
+\{\mathbf{w} : \mathbf{w}^T \Sigma \mathbf{w} = c\}
+$$
+
+forms an **ellipsoid** in weight space. The eigenvectors of $\Sigma$ are the principal axes of this ellipsoid, and eigenvalues determine how stretched it is along each axis.
+
+---
+
+## 5. Portfolio Risk Using the Covariance Matrix
+
+### Portfolio Variance Formula
+
+For portfolio weights $\mathbf{w} = (w_1, \ldots, w_n)^T$:
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w} = \sum_{i=1}^n \sum_{j=1}^n w_i w_j \sigma_{ij}
+$$
+
+This single formula is the foundation of portfolio theory.
+
+### How Correlations Drive Diversification
+
+Expanding for two assets:
+
+$$
+\sigma_p^2 = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2 w_1 w_2 \sigma_{12}
+$$
+
+Using correlation $\rho_{12} = \sigma_{12}/(\sigma_1 \sigma_2)$:
+
+$$
+\sigma_p^2 = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2 w_1 w_2 \rho_{12} \sigma_1 \sigma_2
+$$
+
+**Diversification benefit:** When $\rho_{12} < 1$, portfolio variance is less than the weighted average of individual variances.
+
+### Example: Diversification Effect
+
+Two assets: $\sigma_1 = 20\%$, $\sigma_2 = 30\%$, equal weights $w_1 = w_2 = 0.5$.
+
+- $\rho = 1$: Portfolio volatility = 25.0% (no diversification)
+- $\rho = 0.5$: Portfolio volatility = 22.4%
+- $\rho = 0$: Portfolio volatility = 18.0%
+- $\rho = -0.5$: Portfolio volatility = 12.7%
+- $\rho = -1$: Portfolio volatility = 5.0% (maximum diversification)
+
+### Why Diversification Fails When Correlations Rise
+
+In market crises, correlations spike toward 1. The diversification benefit vanishes precisely when you need it most, this is the "correlation breakdown" problem.
+
+---
+
+## 6. Eigenvalues and Eigenvectors of Covariance Matrices
+
+### Spectral Decomposition
+
+Since $\Sigma$ is symmetric and positive semi-definite:
+
+$$
+\Sigma = Q \Lambda Q^T
+$$
+
+where:
+- $Q$ = orthogonal matrix (columns are eigenvectors)
+- $\Lambda$ = diagonal matrix of eigenvalues $(\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0)$
+
+### Variance Along Principal Directions
+
+Each eigenvector $\mathbf{q}_i$ is a **principal portfolio**, a direction in asset space.
+
+The eigenvalue $\lambda_i$ is the **variance** of returns when you invest along direction $\mathbf{q}_i$.
+
+### Dominant Eigenvalues as Market Factors
+
+In practice, the first few eigenvalues often dominate:
+
+- **Largest eigenvalue:** Usually corresponds to "market factor" (all assets moving together)
+- **Second eigenvalue:** Often a sector or style factor
+- **Small eigenvalues:** Idiosyncratic noise
+
+### Interpreting Small Eigenvalues
+
+Very small eigenvalues indicate:
+- Near-perfect correlations among some assets
+- Redundant information in the data
+- Potential numerical instability in optimization
+
+### Total Variance Decomposition
+
+$$
+\text{Total variance} = \text{tr}(\Sigma) = \sum_{i=1}^n \lambda_i
+$$
+
+**Variance explained by first $k$ factors:**
+
+$$
+\frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^n \lambda_i}
+$$
+
+Often 2-3 factors explain 70-90% of variance in equity markets.
+
+---
+
+## 7. Estimating Covariance from Data
+
+### Sample Covariance Formula
+
+Given $T$ observations of $n$ asset returns (stored in matrix $X$ of size $T \times n$, with each row a time period):
+
+$$
+\hat{\Sigma} = \frac{1}{T-1} \sum_{t=1}^T (\mathbf{r}_t - \bar{\mathbf{r}})(\mathbf{r}_t - \bar{\mathbf{r}})^T
+$$
+
+Or in matrix form (assuming demeaned returns):
+
+$$
+\hat{\Sigma} = \frac{1}{T-1} X^T X
+$$
+
+### Estimation Error
+
+Sample covariance is an **estimate**, it has error. This error matters because:
+
+- Small errors in $\Sigma$ can cause large errors in $\Sigma^{-1}$
+- Portfolio optimization amplifies estimation errors
+- Extreme weights often result from noisy covariance estimates
+
+### High-Dimensional Issues
+
+**The curse of dimensionality:** A covariance matrix for $n$ assets has $n(n+1)/2$ unique entries.
+
+For 500 stocks: 125,250 parameters to estimate!
+
+**Rule of thumb:** You need $T >> n$ observations for reliable estimation. With $T < n$, the sample covariance matrix is guaranteed to be singular.
+
+### Shrinkage (Intuition)
+
+**Shrinkage estimators** blend the sample covariance with a simpler target (like the identity matrix):
+
+$$
+\hat{\Sigma}_{\text{shrunk}} = \alpha \hat{\Sigma}_{\text{sample}} + (1-\alpha) \hat{\Sigma}_{\text{target}}
+$$
+
+This reduces estimation error at the cost of some bias, usually a good tradeoff in practice.
+
+---
+
+## 8. Quant Applications
+
+### Factor Structure from Covariance
+
+The eigendecomposition of $\Sigma$ reveals latent factors:
+
+$$
+\Sigma \approx \sum_{i=1}^k \lambda_i \mathbf{q}_i \mathbf{q}_i^T + \text{residual}
+$$
+
+Keeping only the largest $k$ eigenvalues gives a **low-rank approximation**, a factor model with $k$ factors.
+
+### Risk Decomposition
+
+**Marginal contribution to risk (MCTR):**
+
+$$
+\text{MCTR}_i = \frac{(\Sigma \mathbf{w})_i}{\sigma_p}
+$$
+
+**Component contribution to risk:**
+
+$$
+\text{CCR}_i = w_i \times \text{MCTR}_i
+$$
+
+These decompose total portfolio risk into contributions from each asset.
+
+### Stress Testing Through Covariance Shocks
+
+To stress test a portfolio:
+
+1. Shock the covariance matrix (e.g., double all correlations toward 1)
+2. Recompute portfolio variance under stressed $\Sigma$
+3. Assess how diversification benefits disappear
+
+Alternatively, shock along the dominant eigenvector, this represents the worst-case correlated move.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Covariance matrix:**
+
+$$
+\Sigma_{ij} = \text{Cov}(r_i, r_j)
+$$
+
+**Properties:**
+- Symmetric: $\Sigma = \Sigma^T$
+- Positive semi-definite: $\mathbf{x}^T \Sigma \mathbf{x} \geq 0$
+- Eigenvalues $\geq 0$
+
+**Portfolio variance:**
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+**Eigendecomposition:**
+
+$$
+\Sigma = Q \Lambda Q^T
+$$
+
+### Key Results
+
+- Diversification works when correlations are low
+- Eigenvalues measure variance along principal directions
+- A few factors often explain most of the variance
+- Estimation is challenging in high dimensions
+
+### Financial Implications
+
+- Covariance matrices are the core of portfolio optimization
+- Eigenstructure reveals hidden factor structure
+- Small eigenvalues indicate near-redundancy
+- Correlation spikes destroy diversification in crises
+
+---
+
+## 10. What's Next?
+
+The covariance matrix contains all the information about asset co-movement, but it can be high-dimensional and noisy. How do we extract the most important patterns and reduce dimensionality?
+
+**Next lesson: PCA (Quant Version)**
+
+You'll learn:
+
+- Principal Component Analysis as eigendecomposition of covariance
+- Dimension reduction while preserving variance
+- Interpreting principal components as risk factors
+- PCA for portfolio construction and risk management

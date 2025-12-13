@@ -1,0 +1,450 @@
+# Conditional Probability and Independence
+
+## 1. Why Conditioning Matters
+
+In finance, probabilities are never static. Every piece of information, an earnings report, a Fed announcement, a price movement, changes what we believe about the future.
+
+**Information changes probabilities.**
+
+Consider these questions:
+- What's the probability a stock drops 5% tomorrow? Maybe 10%.
+- What's the probability it drops 5% tomorrow *given* it already dropped 8% today? Probably different.
+
+The second question involves **conditional probability**: the probability of an event given that we know something else has occurred.
+
+### Markets Move Based on What Is Known
+
+Prices reflect available information. When new information arrives:
+- Traders update their beliefs
+- Prices adjust to new probability assessments
+- Risk estimates change
+
+A quant who ignores conditioning is using stale probabilities that don't reflect current information.
+
+### Conditioning as "Updating the Model"
+
+Think of conditional probability as updating your probability model after observing data:
+
+**Before observation:** "There's a 20% chance of recession."
+
+**After observing inverted yield curve:** "Given the yield curve inverted, there's now a 40% chance of recession."
+
+The underlying random process hasn't changed. Your *knowledge* about it has, and your probabilities should reflect that.
+
+---
+
+## 2. Definition of Conditional Probability
+
+### The Formula
+
+The probability of event $A$ given that event $B$ has occurred:
+
+$$
+P(A|B) = \frac{P(A \cap B)}{P(B)}
+$$
+
+provided $P(B) > 0$.
+
+**Read as:** "The probability of A given B."
+
+### Building Intuition
+
+Why does this formula make sense?
+
+When we know $B$ occurred, we've eliminated all outcomes outside of $B$. The sample space effectively shrinks from $\Omega$ to $B$.
+
+Within this restricted sample space:
+- The "favorable" outcomes are those in both $A$ and $B$ (i.e., $A \cap B$)
+- The "total" outcomes are everything in $B$
+
+So the conditional probability is the ratio of favorable to total within the restricted space.
+
+### Numerical Example
+
+Suppose we're analyzing a stock:
+- $P(\text{stock up}) = 0.55$
+- $P(\text{market up}) = 0.60$
+- $P(\text{stock up AND market up}) = 0.45$
+
+What's the probability the stock goes up given the market is up?
+
+$$
+P(\text{stock up} | \text{market up}) = \frac{P(\text{stock up} \cap \text{market up})}{P(\text{market up})} = \frac{0.45}{0.60} = 0.75
+$$
+
+When the market is up, there's a 75% chance the stock is up, much higher than the unconditional 55%.
+
+---
+
+## 3. Interpreting Conditional Events
+
+### How Conditioning Reshapes Outcomes
+
+Conditioning fundamentally changes what we consider possible:
+
+**Unconditional view:** All outcomes in $\Omega$ are possible.
+
+**Conditional view (given $B$):** Only outcomes in $B$ are possible. Everything else has been ruled out.
+
+This is why:
+$$
+P(A|B) + P(A^c|B) = 1
+$$
+
+Within the world where $B$ occurred, either $A$ happens or it doesn't.
+
+### Financial Interpretation: Information Sets
+
+In finance, we often write probabilities conditional on an **information set** $\mathcal{F}_t$, everything known up to time $t$:
+
+$$
+P(A | \mathcal{F}_t)
+$$
+
+This captures the idea that our probability assessment depends on what information we have.
+
+**Example:** The probability of default depends on:
+- Current credit rating (known)
+- Recent earnings (known)
+- Future economic conditions (unknown)
+
+As time passes and more information arrives, $\mathcal{F}_t$ grows and our conditional probabilities update.
+
+### News, Signals, and Information
+
+Every piece of market information can be thought of as an event to condition on:
+
+- **Earnings beat:** Condition on $B = \{\text{earnings exceed estimates}\}$
+- **Fed raises rates:** Condition on $B = \{\text{rate hike announced}\}$
+- **Technical signal:** Condition on $B = \{\text{price crosses 200-day MA}\}$
+
+Smart trading is about correctly computing $P(\text{profit} | \text{signal})$.
+
+---
+
+## 4. Independence of Events
+
+### Formal Definition
+
+Events $A$ and $B$ are **independent** if knowing $B$ occurred tells you nothing about $A$:
+
+$$
+P(A|B) = P(A)
+$$
+
+Using the definition of conditional probability, this is equivalent to:
+
+$$
+P(A \cap B) = P(A) \cdot P(B)
+$$
+
+The joint probability equals the product of marginals.
+
+### Independence vs. Disjoint Events
+
+**A critical distinction that trips up many students:**
+
+**Disjoint (mutually exclusive):** $A$ and $B$ cannot both occur.
+$$
+A \cap B = \emptyset \quad \Rightarrow \quad P(A \cap B) = 0
+$$
+
+**Independent:** Knowing one tells you nothing about the other.
+$$
+P(A \cap B) = P(A) \cdot P(B)
+$$
+
+**These are almost opposites!**
+
+If $A$ and $B$ are disjoint and both have positive probability, they are *dependent*: knowing $A$ occurred tells you $B$ definitely didn't.
+
+$$
+P(B|A) = \frac{P(A \cap B)}{P(A)} = \frac{0}{P(A)} = 0 \neq P(B)
+$$
+
+### Why Independence Is a Strong Assumption
+
+Independence is mathematically convenient but rarely accurate in finance:
+
+**Stocks are not independent:** They share common risk factors (market, sector, macro).
+
+**Returns across time are not independent:** Volatility clusters, big moves follow big moves.
+
+**Defaults are not independent:** Economic downturns hit multiple firms simultaneously.
+
+**Rule:** Never assume independence without strong justification. The cost of being wrong is underestimating risk.
+
+---
+
+## 5. Conditional Independence
+
+### Independence Given Information
+
+Two events can be dependent unconditionally but become independent once you condition on some third event.
+
+$A$ and $B$ are **conditionally independent given $C$** if:
+
+$$
+P(A \cap B | C) = P(A|C) \cdot P(B|C)
+$$
+
+Equivalently:
+$$
+P(A | B \cap C) = P(A | C)
+$$
+
+Once you know $C$, learning $B$ tells you nothing more about $A$.
+
+### How Dependence Can Disappear
+
+**Example:** Two stocks in the same sector.
+
+- Unconditionally, their returns are correlated (both exposed to sector risk)
+- Conditional on the sector return, their residual returns may be independent
+
+This is the foundation of **factor models**: assets are dependent because of shared factors, but conditionally independent given factor realizations.
+
+### Relevance for Factor Models
+
+The classic factor model assumes:
+
+$$
+r_i = \alpha_i + \beta_i f + \epsilon_i
+$$
+
+where $\epsilon_i$ are conditionally independent given $f$.
+
+**Translation:** Once you know the factor return, the idiosyncratic components of different assets don't affect each other.
+
+This assumption:
+- Simplifies covariance estimation
+- Reduces dimensionality
+- May or may not hold in practice (test it!)
+
+---
+
+## 6. Common Pitfalls
+
+### Pitfall 1: Confusing Independence with Zero Correlation
+
+**Independence implies zero correlation, but not vice versa.**
+
+Zero correlation means linear relationship is absent:
+$$
+\text{Cov}(X, Y) = 0 \quad \Rightarrow \quad E[XY] = E[X]E[Y]
+$$
+
+Independence is stronger, *all* relationships are absent:
+$$
+P(X \in A, Y \in B) = P(X \in A) \cdot P(Y \in B) \text{ for all } A, B
+$$
+
+**Classic counterexample:** Let $X \sim \text{Uniform}(-1, 1)$ and $Y = X^2$.
+
+Then $\text{Cov}(X, Y) = 0$ (no linear relationship), but $X$ and $Y$ are completely dependent ($Y$ is a function of $X$).
+
+### Pitfall 2: Ignoring Conditioning in Market Models
+
+Many models estimate unconditional statistics:
+- Average return
+- Average volatility
+- Average correlation
+
+But markets are highly regime-dependent:
+- Volatility in crises vs. calm periods
+- Correlations during stress vs. normal times
+- Return distributions in bull vs. bear markets
+
+**Better approach:** Model conditional distributions:
+$$
+P(\text{return} | \text{volatility regime})
+$$
+
+### Pitfall 3: Why Naive Probability Models Fail
+
+**The Gaussian copula disaster (2008):**
+
+Models assumed mortgage defaults were conditionally independent given a single factor. In reality:
+- Dependencies were much stronger in stress
+- The "single factor" didn't capture systemic risk
+- Tail dependencies were underestimated
+
+**Lesson:** Conditional independence assumptions must be validated, especially in the tails.
+
+---
+
+## 7. The Multiplication Rule
+
+Rearranging the conditional probability definition:
+
+$$
+P(A \cap B) = P(A|B) \cdot P(B) = P(B|A) \cdot P(A)
+$$
+
+**Use case:** When you know conditional probabilities but need the joint.
+
+**Example:**
+- $P(\text{recession}) = 0.20$
+- $P(\text{default} | \text{recession}) = 0.15$
+
+What's the probability of both recession AND default?
+
+$$
+P(\text{recession} \cap \text{default}) = P(\text{default}|\text{recession}) \cdot P(\text{recession}) = 0.15 \times 0.20 = 0.03
+$$
+
+### Chain Rule for Multiple Events
+
+For a sequence of events:
+
+$$
+P(A_1 \cap A_2 \cap A_3) = P(A_1) \cdot P(A_2|A_1) \cdot P(A_3|A_1 \cap A_2)
+$$
+
+**Financial application:** Multi-period survival probability.
+
+What's the probability a firm survives 3 years?
+$$
+P(\text{survive 3 years}) = P(S_1) \cdot P(S_2|S_1) \cdot P(S_3|S_1 \cap S_2)
+$$
+
+Each year's survival probability depends on having survived previous years.
+
+---
+
+## 8. Law of Total Probability
+
+If events $B_1, B_2, \ldots, B_n$ form a **partition** of $\Omega$ (mutually exclusive and exhaustive):
+
+$$
+P(A) = \sum_{i=1}^n P(A|B_i) \cdot P(B_i)
+$$
+
+**Intuition:** Break the probability into scenarios, compute each, then aggregate.
+
+### Credit Risk Example
+
+What's the unconditional probability a bond defaults?
+
+**Partition by economic state:**
+- Recession: $P(B_1) = 0.15$, $P(\text{default}|B_1) = 0.12$
+- Normal: $P(B_2) = 0.70$, $P(\text{default}|B_2) = 0.02$
+- Expansion: $P(B_3) = 0.15$, $P(\text{default}|B_3) = 0.005$
+
+$$
+P(\text{default}) = 0.12(0.15) + 0.02(0.70) + 0.005(0.15)
+$$
+$$
+= 0.018 + 0.014 + 0.00075 = 0.03275 \approx 3.3\%
+$$
+
+This is how credit models typically work: estimate conditional default rates per scenario, then weight by scenario probabilities.
+
+---
+
+## 9. Worked Examples
+
+### Example 1: Conditional Probability Calculation
+
+**Given:**
+- $P(A) = 0.40$ (stock A up)
+- $P(B) = 0.50$ (stock B up)
+- $P(A \cap B) = 0.25$ (both up)
+
+**Find:** $P(A|B)$ and $P(B|A)$
+
+$$
+P(A|B) = \frac{P(A \cap B)}{P(B)} = \frac{0.25}{0.50} = 0.50
+$$
+
+$$
+P(B|A) = \frac{P(A \cap B)}{P(A)} = \frac{0.25}{0.40} = 0.625
+$$
+
+**Interpretation:** When B is up, A has 50% chance of being up. When A is up, B has 62.5% chance of being up.
+
+### Example 2: Testing for Independence
+
+**Given the same data:** Are A and B independent?
+
+**Test:** Does $P(A \cap B) = P(A) \cdot P(B)$?
+
+$$
+P(A) \cdot P(B) = 0.40 \times 0.50 = 0.20
+$$
+
+But $P(A \cap B) = 0.25 \neq 0.20$.
+
+**Conclusion:** A and B are **dependent**. They're positively associated, when one is up, the other is more likely to be up.
+
+### Example 3: Multi-Period Survival
+
+A startup has:
+- Year 1 survival: $P(S_1) = 0.70$
+- Year 2 survival given year 1: $P(S_2|S_1) = 0.80$
+- Year 3 survival given years 1-2: $P(S_3|S_1 \cap S_2) = 0.90$
+
+**Probability of surviving all 3 years:**
+
+$$
+P(S_1 \cap S_2 \cap S_3) = 0.70 \times 0.80 \times 0.90 = 0.504
+$$
+
+About 50% chance of making it through 3 years.
+
+---
+
+## 10. Summary
+
+### Key Concepts
+
+**Conditional probability** measures probability given information:
+$$
+P(A|B) = \frac{P(A \cap B)}{P(B)}
+$$
+
+**Independence** means knowing one event tells you nothing about another:
+$$
+P(A|B) = P(A) \quad \Leftrightarrow \quad P(A \cap B) = P(A) \cdot P(B)
+$$
+
+**Conditional independence** means events become independent after conditioning on a third event.
+
+### Key Formulas
+
+**Multiplication rule:**
+$$
+P(A \cap B) = P(A|B) \cdot P(B)
+$$
+
+**Law of total probability:**
+$$
+P(A) = \sum_i P(A|B_i) \cdot P(B_i)
+$$
+
+**Independence test:**
+$$
+P(A \cap B) \stackrel{?}{=} P(A) \cdot P(B)
+$$
+
+### Key Insights for Quants
+
+1. **All probabilities in finance are conditional**, on current information
+2. **Independence is rare and dangerous to assume**, test it
+3. **Disjoint ≠ independent**, in fact, almost opposite
+4. **Conditional independence** underlies factor models
+5. **Zero correlation ≠ independence**, nonlinear dependencies can exist
+
+---
+
+## 11. What's Next?
+
+We can now update probabilities given new information. But what if we observe an *effect* and want to infer the *cause*? What if we want to reverse the direction of conditioning?
+
+**Next lesson: Bayes' Rule and Updating Beliefs**
+
+You'll learn:
+- How to flip conditional probabilities
+- Bayesian updating: prior → posterior
+- Why Bayes' rule is fundamental to quantitative inference
+- Applications to signal processing and trading

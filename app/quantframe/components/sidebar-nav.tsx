@@ -108,7 +108,10 @@ export function SidebarNav({ userEmail }: SidebarNavProps) {
     },
   ]
 
-  const isActive = (href: string) => pathname === href
+  const isActive = (href: string) => {
+    // Check if current path matches exactly OR if it's a nested route
+    return pathname === href || pathname.startsWith(href + '/')
+  }
 
   return (
     <>

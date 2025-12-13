@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 import confetti from 'canvas-confetti'
 import { InlineMath, BlockMath } from 'react-katex'
 import 'katex/dist/katex.min.css'
+import { compareAnswers } from '@/lib/math-compare'
 
 interface QuizQuestion {
   id: string
@@ -29,6 +30,9 @@ interface QuizQuestion {
   solution: string
   answer: string
   order_index: number
+  question_type: 'free_text' | 'multiple_choice'
+  options?: string[]
+  correct_option_index?: number
 }
 
 interface QuizClientProps {
@@ -122,6 +126,7 @@ export function QuizClient({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [currentAnswer, setCurrentAnswer] = useState('')
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
   const [showSolutionWarning, setShowSolutionWarning] = useState(false)
@@ -143,31 +148,50 @@ export function QuizClient({
 
   // Load saved answer when switching questions
   useEffect(() => {
-    setCurrentAnswer(answers[currentQuestion?.id] || '')
+    const savedAnswer = answers[currentQuestion?.id] || ''
+    setCurrentAnswer(savedAnswer)
+
+    // For multiple choice, restore the selected option index
+    if (currentQuestion?.question_type === 'multiple_choice' && savedAnswer) {
+      setSelectedOptionIndex(parseInt(savedAnswer))
+    } else {
+      setSelectedOptionIndex(null)
+    }
+
     setShowHint(false)
     setShowSolution(false)
     setHasAnswered(false)
     setIsCorrect(null)
   }, [currentQuestionIndex])
 
-  const normalizeAnswer = (answer: string): string => {
-    return answer.trim().toLowerCase().replace(/\s+/g, '')
-  }
-
   const handleAnswerSubmit = () => {
-    if (!currentAnswer.trim()) {
-      toast.error('Please enter an answer')
-      return
-    }
+    let correct = false
+    let answerToSave = ''
 
-    // Check if answer is correct
-    const correct = normalizeAnswer(currentAnswer) === normalizeAnswer(currentQuestion.answer)
+    // Handle multiple choice questions
+    if (currentQuestion.question_type === 'multiple_choice') {
+      if (selectedOptionIndex === null) {
+        toast.error('Please select an answer')
+        return
+      }
+      correct = selectedOptionIndex === currentQuestion.correct_option_index
+      answerToSave = selectedOptionIndex.toString()
+    }
+    // Handle free text questions
+    else {
+      if (!currentAnswer.trim()) {
+        toast.error('Please enter an answer')
+        return
+      }
+      correct = compareAnswers(currentAnswer, currentQuestion.answer)
+      answerToSave = currentAnswer
+    }
 
     // If solution was viewed, still mark as failed (but acknowledge correct answer)
     if (hasSolutionBeenViewed) {
       setIsCorrect(false) // Will fail the question
       setHasAnswered(true)
-      setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+      setAnswers(prev => ({ ...prev, [currentQuestion.id]: answerToSave }))
 
       // Show appropriate message
       if (correct) {
@@ -181,7 +205,7 @@ export function QuizClient({
     setHasAnswered(true)
 
     // Save answer
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: answerToSave }))
 
     if (correct) {
       confetti({
@@ -378,9 +402,9 @@ export function QuizClient({
             </span>
           </div>
 
-          <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="relative h-2 bg-zinc-800 rounded-full">
             <div
-              className="h-full bg-gradient-to-r from-phthalo-600 to-phthalo-500 rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-phthalo-600 to-phthalo-500 rounded-full transition-all duration-500 overflow-hidden relative"
               style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
             >
               <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer-slide"></div>
@@ -409,7 +433,7 @@ export function QuizClient({
                 className={
                   isCorrect
                     ? "bg-green-500/10 text-green-400 border-green-500/20"
-                    : hasSolutionBeenViewed && normalizeAnswer(currentAnswer) === normalizeAnswer(currentQuestion.answer)
+                    : hasSolutionBeenViewed && compareAnswers(currentAnswer, currentQuestion.answer)
                     ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
                     : "bg-red-500/10 text-red-400 border-red-500/20"
                 }
@@ -419,7 +443,7 @@ export function QuizClient({
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Correct
                   </>
-                ) : hasSolutionBeenViewed && normalizeAnswer(currentAnswer) === normalizeAnswer(currentQuestion.answer) ? (
+                ) : hasSolutionBeenViewed && compareAnswers(currentAnswer, currentQuestion.answer) ? (
                   <>
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Failed (Solution Viewed)
@@ -445,26 +469,85 @@ export function QuizClient({
           {/* Answer Input Section */}
           <div className="mb-8 p-6 bg-zinc-800/30 border border-zinc-700 rounded-lg">
             <h3 className="text-lg font-semibold mb-4 text-white">Your Answer</h3>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <input
-                type="text"
-                value={currentAnswer}
-                onChange={(e) => setCurrentAnswer(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && !hasAnswered && handleAnswerSubmit()}
-                placeholder="Enter your answer..."
-                disabled={hasAnswered}
-                className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-phthalo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-              {!hasAnswered && (
-                <Button
-                  onClick={handleAnswerSubmit}
-                  disabled={!currentAnswer.trim()}
-                  className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50 px-8"
-                >
-                  Submit Answer
-                </Button>
-              )}
-            </div>
+
+            {/* Multiple Choice Options */}
+            {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
+              <div className="space-y-3 mb-4">
+                {currentQuestion.options.map((option, index) => {
+                  const isSelected = selectedOptionIndex === index
+                  const isThisCorrect = index === currentQuestion.correct_option_index
+
+                  let optionStyle = ''
+                  if (!hasAnswered) {
+                    optionStyle = isSelected
+                      ? 'border-phthalo-500 bg-phthalo-500/10 cursor-pointer'
+                      : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900/70 cursor-pointer'
+                  } else {
+                    if (isThisCorrect) {
+                      optionStyle = 'border-green-500 bg-green-500/10 cursor-not-allowed'
+                    } else if (isSelected && !isCorrect) {
+                      optionStyle = 'border-red-500 bg-red-500/10 cursor-not-allowed'
+                    } else {
+                      optionStyle = 'border-zinc-800 bg-zinc-900/50 opacity-50 cursor-not-allowed'
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => !hasAnswered && setSelectedOptionIndex(index)}
+                      disabled={hasAnswered}
+                      className={`w-full p-4 rounded-lg text-left transition-all border-2 ${optionStyle}`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-zinc-300">{option}</span>
+                        {hasAnswered && isThisCorrect && (
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        )}
+                        {hasAnswered && isSelected && !isCorrect && (
+                          <XCircle className="w-5 h-5 text-red-500" />
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Free Text Input */}
+            {currentQuestion.question_type === 'free_text' && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={currentAnswer}
+                  onChange={(e) => setCurrentAnswer(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !hasAnswered && handleAnswerSubmit()}
+                  placeholder="Enter your answer..."
+                  disabled={hasAnswered}
+                  className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-phthalo-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                {!hasAnswered && (
+                  <Button
+                    onClick={handleAnswerSubmit}
+                    disabled={!currentAnswer.trim()}
+                    className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50 px-8"
+                  >
+                    Submit Answer
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Submit Button for Multiple Choice */}
+            {currentQuestion.question_type === 'multiple_choice' && !hasAnswered && (
+              <Button
+                onClick={handleAnswerSubmit}
+                disabled={selectedOptionIndex === null}
+                className="w-full bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50"
+              >
+                Submit Answer
+              </Button>
+            )}
 
             {/* Feedback Message */}
             {hasAnswered && isCorrect && (
@@ -479,7 +562,7 @@ export function QuizClient({
 
             {hasAnswered && !isCorrect && (
               <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                {hasSolutionBeenViewed && normalizeAnswer(currentAnswer) === normalizeAnswer(currentQuestion.answer) ? (
+                {hasSolutionBeenViewed && compareAnswers(currentAnswer, currentQuestion.answer) ? (
                   <>
                     <p className="font-semibold text-yellow-400">Correct answer, but question failed.</p>
                     <p className="text-sm text-zinc-400 mt-1">

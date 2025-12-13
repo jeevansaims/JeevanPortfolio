@@ -263,7 +263,7 @@ export default function quantframePage() {
                 <span className="sr-only">TikTok</span>
               </Button>
             </Link>
-            <Link href="mailto:antonije@mirkovic.no">
+            <Link href="mailto:contact@mirkovic.dev">
               <Button
                 variant="ghost"
                 size="icon"

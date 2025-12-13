@@ -1,0 +1,348 @@
+# Convexity and Global Optimality
+
+## 1. Why Convexity Is Central in Optimization
+
+### Why Some Optimization Problems Are Easy and Others Are Hard
+
+Not all optimization problems are created equal. Some can be solved efficiently with guarantees; others are computationally intractable.
+
+**Easy problems:**
+
+- Linear programming (linear objective, linear constraints)
+- Quadratic programming with convex objective
+- Any convex optimization problem
+
+**Hard problems:**
+
+- Non-convex objectives with many local minima
+- Integer constraints (discrete choices)
+- Problems where verifying optimality is itself difficult
+
+The difference? **Convexity**. Convex problems have structure that algorithms can exploit. Non-convex problems can hide the global optimum among countless local traps.
+
+### Local Minima vs Global Minima
+
+**Local minimum:** A point where you can't improve by making small changes. You're at the bottom of a valley, but there might be deeper valleys elsewhere.
+
+**Global minimum:** The absolute best point. No other feasible point has a lower objective value.
+
+**The problem:** Most optimization algorithms find local minima. They follow the gradient downhill until they can't descend further. But this doesn't guarantee you've found the global minimum.
+
+**Example:** A function with two valleys. Gradient descent from the left finds the left valley's bottom. Gradient descent from the right finds the right valley's bottom. Only one is the true global minimum.
+
+### Why Quants Prefer Convex Problems
+
+In quantitative finance, we actively seek convex formulations because:
+
+**Reliability:** Convex problems have a single answer. No matter where you start or which algorithm you use, you find the same optimum.
+
+**Efficiency:** Convex optimization algorithms have polynomial-time complexity. You can solve large problems quickly.
+
+**Guarantees:** When you find a solution, you know it's optimal. No uncertainty about whether a better solution exists.
+
+**Portfolio optimization is convex:** Minimizing variance subject to linear constraints is a convex quadratic program. This is why Markowitz mean-variance optimization is so widely used: it's mathematically tractable.
+
+---
+
+## 2. Convex Sets
+
+### Definition and Geometric Intuition
+
+A set $C$ is **convex** if for any two points $x, y \in C$ and any $\lambda \in [0, 1]$:
+
+$$
+\lambda x + (1-\lambda) y \in C
+$$
+
+**In words:** The line segment connecting any two points in the set stays entirely within the set.
+
+**Geometric intuition:** A convex set has no "dents" or "holes." If you can see from any point to any other point, the entire line of sight stays inside.
+
+### Line Segments Staying Inside the Set
+
+The expression $\lambda x + (1-\lambda) y$ traces out the line segment from $y$ (when $\lambda = 0$) to $x$ (when $\lambda = 1$).
+
+**Test for convexity:** Pick any two points. Draw the line segment between them. If the segment ever leaves the set, the set is not convex.
+
+**Examples of convex sets:**
+
+- A solid ball or sphere
+- A half-space (one side of a plane)
+- A polyhedron (intersection of half-spaces)
+- The entire space $\mathbb{R}^n$
+- A single point
+
+**Key property:** The intersection of convex sets is convex. This is crucial because constraints define feasible regions through intersections.
+
+### Examples of Convex and Non-Convex Feasible Regions
+
+**Convex feasible regions:**
+
+- Budget constraint: $\{w : \sum_i w_i = 1\}$ (a hyperplane, convex)
+- Long-only constraint: $\{w : w_i \geq 0\}$ (a half-space for each asset, intersection is convex)
+- Position limits: $\{w : -0.1 \leq w_i \leq 0.1\}$ (box constraint, convex)
+- Risk budget: $\{w : w^T \Sigma w \leq \sigma^2\}$ (ellipsoid, convex)
+
+**Non-convex feasible regions:**
+
+- Cardinality constraint: "Hold at most 20 stocks" (discrete, non-convex)
+- Minimum position size: "If you hold a stock, hold at least 1%" (creates gaps, non-convex)
+- Either-or constraints: "Invest in A or B but not both" (union of sets, non-convex)
+
+### Financial Interpretation of Constraints
+
+Constraints in finance often have natural interpretations:
+
+**Linear equality constraints** (always convex): Budget constraints, sector neutrality, beta targets
+
+**Linear inequality constraints** (always convex): Position limits, exposure bounds, leverage limits
+
+**Quadratic constraints** (convex if the matrix is positive semi-definite): Risk budgets, tracking error limits
+
+**When constraints are convex, the feasible region is convex.** This preserves the tractability of the optimization problem.
+
+---
+
+## 3. Convex Functions
+
+### Definition Using Line Segments
+
+A function $f$ is **convex** if for any $x, y$ in its domain and any $\lambda \in [0, 1]$:
+
+$$
+f(\lambda x + (1-\lambda) y) \leq \lambda f(x) + (1-\lambda) f(y)
+$$
+
+**Left side:** The function value at a point on the line segment between $x$ and $y$.
+
+**Right side:** The weighted average of function values at $x$ and $y$ (a point on the chord).
+
+**In words:** The function lies below the chord connecting any two points on its graph.
+
+### Shape Intuition: Bowl-Like Behavior
+
+**Bowl shape:** A convex function curves upward (or is flat). It has a "bowl" shape when viewed from above.
+
+**No hills:** A convex function has no downward-curving regions. You can't have a local maximum in the interior.
+
+**Single valley:** If there's a minimum, you can roll downhill from anywhere and reach it. There's only one valley.
+
+**Visualizations:**
+
+- $f(x) = x^2$: Classic parabola, curves upward everywhere
+- $f(x) = |x|$: V-shape, convex but not smooth at origin
+- $f(x) = e^x$: Exponential, curves upward everywhere
+
+### Examples of Convex and Non-Convex Functions
+
+**Convex functions:**
+
+- Linear: $f(x) = ax + b$ (both convex and concave)
+- Quadratic with positive coefficient: $f(x) = ax^2$ for $a > 0$
+- Exponential: $f(x) = e^x$
+- Norms: $f(x) = \|x\|$
+- Maximum of convex functions: $f(x) = \max(f_1(x), f_2(x))$
+
+**Non-convex functions:**
+
+- $f(x) = \sin(x)$: Oscillates, has many local minima
+- $f(x) = x^3$: Has an inflection point, curves both ways
+- $f(x) = -x^2$: Curves downward (this is concave)
+- $f(x) = x^4 - x^2$: Has two local minima
+
+**In finance:**
+
+- Portfolio variance $w^T \Sigma w$: Convex (covariance matrix is positive semi-definite)
+- Negative Sharpe ratio: Non-convex (ratio of linear to square root of quadratic)
+- Log-likelihood for many models: May or may not be convex
+
+### Why Convexity Rules Out Bad Local Minima
+
+The geometric definition directly implies:
+
+**Claim:** If $f$ is convex and $x^*$ is a local minimum, then $x^*$ is a global minimum.
+
+**Why:** Suppose $x^*$ is a local minimum but not global. Then there exists some $y$ with $f(y) < f(x^*)$. Consider points on the segment from $x^*$ to $y$:
+
+$$
+f(\lambda x^* + (1-\lambda) y) \leq \lambda f(x^*) + (1-\lambda) f(y) < f(x^*)
+$$
+
+for $\lambda$ close to 1. This means points arbitrarily close to $x^*$ have lower function values, contradicting that $x^*$ is a local minimum.
+
+**Conclusion:** For convex functions, local = global. This is the fundamental reason convex optimization is tractable.
+
+---
+
+## 4. First-Order Characterization of Convexity
+
+### Supporting Hyperplanes
+
+For a convex function, the tangent line (or tangent plane in higher dimensions) lies entirely below the function.
+
+**Supporting hyperplane:** At any point $x$, the hyperplane defined by the gradient "supports" the function from below.
+
+Mathematically, for all $y$:
+
+$$
+f(y) \geq f(x) + \nabla f(x)^T (y - x)
+$$
+
+This says the function value at $y$ is at least as large as what the linear approximation at $x$ predicts.
+
+### Gradient Inequality Intuition
+
+**For convex functions:** The linear approximation always underestimates the true function (except at the point of tangency).
+
+**For non-convex functions:** The linear approximation may overestimate in some regions.
+
+**Visual:** Draw a tangent line to a parabola. The parabola is always above the tangent line. This is convexity.
+
+### What Gradients Tell You in Convex Problems
+
+The gradient inequality has powerful implications:
+
+**At a minimum:** If $\nabla f(x^*) = 0$, then for all $y$:
+
+$$
+f(y) \geq f(x^*) + 0 \cdot (y - x^*) = f(x^*)
+$$
+
+So $x^*$ is a global minimum. **Zero gradient implies global optimality for convex functions.**
+
+**Direction of improvement:** If $\nabla f(x) \neq 0$, moving in direction $-\nabla f(x)$ decreases the function. For convex functions, this eventually leads to the global minimum.
+
+**No deception:** The gradient always points toward higher ground. It never misleads you into a local trap because there are no local traps.
+
+---
+
+## 5. Global Optimality in Convex Problems
+
+### Any Local Minimum Is Global
+
+This is the central theorem of convex optimization:
+
+**Theorem:** Let $f$ be a convex function over a convex set $C$. If $x^*$ is a local minimum of $f$ over $C$, then $x^*$ is a global minimum.
+
+**Proof intuition:** We showed this geometrically in Section 3. The chord inequality prevents any point from being locally optimal without being globally optimal.
+
+**Consequence:** Any algorithm that finds a local minimum has solved the problem completely. No need to restart from different points or worry about being trapped.
+
+### Uniqueness of the Solution (When Applicable)
+
+**Strictly convex functions:** If $f$ is strictly convex (strict inequality in the definition), then the global minimum is unique.
+
+$$
+f(\lambda x + (1-\lambda) y) < \lambda f(x) + (1-\lambda) f(y) \quad \text{for } \lambda \in (0,1)
+$$
+
+**Why uniqueness:** If two distinct points $x^*$ and $y^*$ were both global minima, consider their midpoint. By strict convexity, the midpoint has strictly lower function value. Contradiction.
+
+**When uniqueness fails:** For convex (but not strictly convex) functions, there may be multiple global minima forming a convex set. Linear functions over bounded regions have minima along entire edges or faces.
+
+**In finance:** Portfolio variance is strictly convex when the covariance matrix is positive definite (not just semi-definite). This guarantees a unique minimum-variance portfolio.
+
+### Consequences for Algorithm Design
+
+**Gradient descent works:** For convex problems, gradient descent converges to the global minimum from any starting point.
+
+**No random restarts needed:** Unlike non-convex optimization, you don't need to try multiple starting points.
+
+**Efficient algorithms exist:** Interior-point methods, cutting-plane methods, and other specialized algorithms solve convex problems in polynomial time.
+
+**Certificates of optimality:** KKT conditions (covered later) provide verifiable proof that a solution is optimal.
+
+---
+
+## 6. Strong Convexity (Intuition)
+
+### What Strong Convexity Adds
+
+A function is **strongly convex** with parameter $\mu > 0$ if:
+
+$$
+f(y) \geq f(x) + \nabla f(x)^T (y - x) + \frac{\mu}{2} \|y - x\|^2
+$$
+
+**Interpretation:** The function curves upward at least as fast as a quadratic with curvature $\mu$.
+
+**Regular convexity:** Function lies above its tangent plane.
+
+**Strong convexity:** Function lies above its tangent plane plus a quadratic bowl.
+
+### Why Curvature Improves Convergence
+
+Strong convexity guarantees a minimum amount of curvature everywhere. This has major algorithmic benefits:
+
+**Faster convergence:** Gradient descent on strongly convex functions achieves linear convergence (error decreases by a constant factor each iteration). Regular convex functions only guarantee sublinear convergence.
+
+**Condition number:** The ratio $L/\mu$ (smoothness over strong convexity) is the condition number. Smaller condition number means faster, more stable optimization.
+
+**Unique minimum:** Strong convexity implies strict convexity, guaranteeing a unique global minimum.
+
+### Stability and Robustness in Optimization
+
+**Stability:** With strong convexity, the minimum is well-defined and doesn't change dramatically with small perturbations to the problem.
+
+**Robustness:** Algorithms are less sensitive to step size choices. The "bowl" shape provides a natural restoring force toward the minimum.
+
+**In finance:** Adding a regularization term (like ridge regression's $\lambda \|w\|^2$) makes the objective strongly convex. This stabilizes portfolio optimization when the covariance matrix is nearly singular.
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**Convex sets** contain all line segments between their points. Feasible regions defined by linear and convex quadratic constraints are convex.
+
+**Convex functions** lie below chords connecting points on their graphs. They have bowl-like shapes with no local maxima in the interior.
+
+**Global optimality:** For convex functions over convex sets, every local minimum is a global minimum.
+
+**Strict convexity** guarantees uniqueness of the global minimum.
+
+**Strong convexity** guarantees minimum curvature, leading to faster algorithmic convergence.
+
+### Key Formulas
+
+**Convex set definition:**
+
+$$
+\lambda x + (1-\lambda) y \in C \quad \text{for all } x, y \in C, \lambda \in [0,1]
+$$
+
+**Convex function definition:**
+
+$$
+f(\lambda x + (1-\lambda) y) \leq \lambda f(x) + (1-\lambda) f(y)
+$$
+
+**First-order condition:**
+
+$$
+f(y) \geq f(x) + \nabla f(x)^T (y - x)
+$$
+
+### Key Insights for Quants
+
+1. **Convexity is the dividing line** between tractable and intractable optimization
+2. **Portfolio variance is convex**, making mean-variance optimization efficient
+3. **Local minima don't exist** for convex problems, any solution found is optimal
+4. **Strong convexity accelerates convergence** and stabilizes solutions
+5. **Formulating problems as convex** is often more important than choosing the algorithm
+
+---
+
+## 8. What's Next?
+
+We've seen that convexity guarantees global optimality. But how do we analyze curvature more precisely? How do we determine whether a function is convex by examining its second derivatives?
+
+**Next lesson: Hessians and Curvature**
+
+You'll learn:
+
+- The Hessian matrix as second-order information
+- How eigenvalues reveal curvature
+- Second-order conditions for convexity
+- Using curvature to accelerate optimization

@@ -1,0 +1,399 @@
+# Risk Metrics: Volatility and Value at Risk
+
+## 1. Why Risk Metrics Matter
+
+### Risk as Uncertainty in Outcomes
+
+Every financial decision involves uncertainty. When you buy a stock, you don't know if it will go up or down. When you trade a strategy, outcomes vary from day to day.
+
+**Risk** is the possibility that actual outcomes differ from expected outcomes. It's not just about losing money; it's about the unpredictability of results.
+
+Quantifying risk lets us:
+- Compare investments on a risk-adjusted basis
+- Set appropriate position sizes
+- Communicate risk to stakeholders
+- Meet regulatory requirements
+
+### Why Expected Return Alone Is Not Enough
+
+Two investments can have the same expected return but vastly different risk profiles:
+
+**Investment A:** Always returns exactly 8%
+
+**Investment B:** Returns 50% half the time, -34% half the time
+
+Both have 8% expected return. But Investment B could wipe out a third of your capital in a bad year. No rational investor treats these as equivalent.
+
+Expected return tells you the center. Risk metrics tell you the spread and the tails.
+
+### How Quants Summarize and Control Risk
+
+Quants use risk metrics to:
+
+**Measure:** Quantify how much uncertainty exists in a portfolio
+
+**Compare:** Evaluate risk-adjusted performance across strategies
+
+**Limit:** Set hard constraints on acceptable risk levels
+
+**Report:** Communicate risk exposure to management, clients, and regulators
+
+The most common metrics are **volatility** (standard deviation), **Value at Risk** (VaR), and **Expected Shortfall** (ES). Each captures different aspects of risk.
+
+---
+
+## 2. Volatility
+
+### Volatility as Standard Deviation of Returns
+
+**Volatility** is the standard deviation of returns:
+
+$$
+\sigma = \sqrt{E[(R - E[R])^2]}
+$$
+
+For a sample of historical returns $r_1, r_2, \ldots, r_T$:
+
+$$
+\hat{\sigma} = \sqrt{\frac{1}{T-1} \sum_{t=1}^T (r_t - \bar{r})^2}
+$$
+
+where $\bar{r}$ is the sample mean return.
+
+### Interpretation as Typical Size of Fluctuations
+
+Volatility measures the typical size of deviations from the mean. If annual volatility is 20%:
+- Returns typically fluctuate within roughly 20% of the mean
+- About 68% of returns fall within one standard deviation
+- About 95% fall within two standard deviations (assuming normality)
+
+**Example:** A stock with 10% expected return and 20% volatility might reasonably return anywhere from -10% to 30% in a typical year (mean plus or minus one standard deviation).
+
+### Annualization Intuition
+
+Volatility scales with the square root of time:
+
+$$
+\sigma_{annual} = \sigma_{daily} \times \sqrt{252}
+$$
+
+where 252 is the typical number of trading days per year.
+
+**Why square root?** Variance adds over time (for independent returns), so standard deviation grows as square root of time.
+
+**Example:** Daily volatility of 1% becomes annual volatility of roughly 16% (since $\sqrt{252} \approx 15.9$).
+
+**Practical rule:** To convert daily vol to annual, multiply by 16. To convert monthly vol to annual, multiply by $\sqrt{12} \approx 3.5$.
+
+### What Volatility Captures and What It Ignores
+
+**Volatility captures:**
+- Overall dispersion of returns
+- Typical magnitude of fluctuations
+- A symmetric measure of uncertainty
+
+**Volatility ignores:**
+- Direction of risk (treats gains and losses equally)
+- Tail behavior (extreme events)
+- Asymmetry (skewness)
+- Time-varying nature (volatility clusters)
+
+**Key limitation:** A 20% gain and a 20% loss contribute equally to volatility. But investors care more about losses.
+
+---
+
+## 3. Portfolio Volatility
+
+### Combining Asset Risks
+
+Individual asset volatilities don't simply add up. Portfolio volatility depends on how assets move together.
+
+For a two-asset portfolio with weights $w_1$ and $w_2$:
+
+$$
+\sigma_p^2 = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2w_1 w_2 \rho_{12} \sigma_1 \sigma_2
+$$
+
+The correlation term $\rho_{12}$ is crucial. It determines whether combining assets reduces or amplifies risk.
+
+### Role of Correlation and Diversification
+
+**Perfect positive correlation (rho = 1):**
+
+$$
+\sigma_p = w_1 \sigma_1 + w_2 \sigma_2
+$$
+
+Volatilities add linearly. No diversification benefit.
+
+**Zero correlation (rho = 0):**
+
+$$
+\sigma_p = \sqrt{w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2}
+$$
+
+Portfolio volatility is less than the weighted average. Diversification reduces risk.
+
+**Perfect negative correlation (rho = -1):**
+
+$$
+\sigma_p = |w_1 \sigma_1 - w_2 \sigma_2|
+$$
+
+With the right weights, portfolio volatility can be zero. Perfect hedge.
+
+**Key insight:** Diversification works because uncorrelated or negatively correlated assets partially offset each other's fluctuations.
+
+### Why Volatility Can Rise Even When Assets Look Safe Individually
+
+**Crisis correlations:** During market stress, correlations spike. Assets that seemed diversifying suddenly move together. Portfolio volatility increases even if individual volatilities stay constant.
+
+**Example:** In 2008, many "diversified" portfolios saw volatility surge because correlations jumped to near 1 across asset classes.
+
+**Lesson:** Don't trust historical correlations during crises. Stress-test with elevated correlation assumptions.
+
+### Link Back to Covariance and Correlation
+
+Portfolio variance in matrix form:
+
+$$
+\sigma_p^2 = w^T \Sigma w
+$$
+
+where $\Sigma$ is the covariance matrix.
+
+This formula shows that portfolio risk depends on the entire covariance structure, not just individual variances. The covariance matrix is the central object in portfolio construction and risk management.
+
+---
+
+## 4. Value at Risk (VaR)
+
+### Definition and Intuition
+
+**Value at Risk (VaR)** answers: What's the worst loss I can expect over a given time horizon at a given confidence level?
+
+More precisely: VaR is the loss level that will not be exceeded with probability $(1 - \alpha)$ over a specified time period.
+
+**Example:** "1-day 95% VaR of 2 million dollars" means: There's a 95% probability that the portfolio won't lose more than 2 million dollars in one day.
+
+### VaR as a Quantile of the Loss Distribution
+
+VaR is the $\alpha$-quantile of the loss distribution. If losses are denoted $L$:
+
+$$
+VaR_\alpha = \inf\{l : P(L > l) \leq \alpha\}
+$$
+
+**For a normal distribution with mean $\mu$ and volatility $\sigma$:**
+
+$$
+VaR_{95\%} = -\mu + 1.645 \sigma
+$$
+
+$$
+VaR_{99\%} = -\mu + 2.326 \sigma
+$$
+
+The numbers 1.645 and 2.326 are the 95th and 99th percentiles of the standard normal distribution.
+
+### Interpreting Confidence Levels
+
+**95% VaR:** The loss exceeded only 5% of the time (about 12-13 trading days per year)
+
+**99% VaR:** The loss exceeded only 1% of the time (about 2-3 trading days per year)
+
+Higher confidence means capturing more extreme scenarios, resulting in larger VaR numbers.
+
+**Example:** If 95% VaR is 1 million dollars and 99% VaR is 1.5 million dollars, the extra 4% of confidence (going from 95% to 99%) costs an additional 500,000 dollars in risk capital.
+
+### What VaR Does and Does Not Tell You
+
+**VaR tells you:**
+- A threshold loss level at a given confidence
+- A single number summarizing downside risk
+- A regulatory-recognized risk measure
+
+**VaR does NOT tell you:**
+- How bad losses can get beyond VaR
+- The expected loss when VaR is breached
+- Anything about the shape of the tail
+
+**Critical limitation:** Two portfolios can have identical VaR but very different tail behavior. One might have losses just slightly worse than VaR when breached; another might face catastrophic losses.
+
+---
+
+## 5. Expected Shortfall (Light Intuition)
+
+### Why VaR Is Incomplete
+
+VaR has a fundamental flaw: it tells you nothing about what happens when things go wrong.
+
+**Example:** Two portfolios both have 99% VaR of 10 million dollars. But:
+- Portfolio A: When VaR is breached, average loss is 12 million
+- Portfolio B: When VaR is breached, average loss is 50 million
+
+VaR treats these identically. That's dangerous.
+
+### Expected Shortfall as Average Tail Loss
+
+**Expected Shortfall (ES)**, also called **Conditional VaR (CVaR)** or **Average VaR**, measures the average loss in the worst $\alpha$% of cases:
+
+$$
+ES_\alpha = E[L | L > VaR_\alpha]
+$$
+
+This is the expected loss given that you're already in the tail.
+
+**Example:** 99% ES of 15 million dollars means: On the 1% of worst days, you lose 15 million dollars on average.
+
+ES is always greater than or equal to VaR (since it's averaging losses worse than VaR).
+
+### Why Tail Risk Matters in Finance
+
+Financial crises don't happen often, but when they do, they're severe:
+- 1987 Black Monday: 20%+ single-day drop
+- 2008 Financial Crisis: Months of extreme losses
+- 2020 COVID crash: Fastest 30% drop in history
+
+These tail events can wipe out years of profits. Risk management that ignores tails is incomplete.
+
+**Lesson:** VaR answers "how often do I lose big?" ES answers "when I lose big, how bad is it?" Both questions matter.
+
+### Conceptual Comparison with VaR
+
+**VaR:**
+- Single percentile of loss distribution
+- Easy to interpret and communicate
+- Ignores tail severity
+- Not subadditive (combining portfolios can increase VaR)
+
+**Expected Shortfall:**
+- Average of all losses beyond VaR
+- Captures tail severity
+- Harder to estimate accurately
+- Subadditive (portfolio ES less than or equal to sum of individual ES)
+
+Regulators increasingly require ES for capital calculations because it better captures tail risk.
+
+---
+
+## 6. Estimating Risk Metrics
+
+### Historical Estimation
+
+**Method:** Use past returns directly.
+
+**For volatility:**
+$$
+\hat{\sigma} = \sqrt{\frac{1}{T-1} \sum_{t=1}^T (r_t - \bar{r})^2}
+$$
+
+**For VaR:** Sort historical returns, find the $\alpha$-th percentile.
+
+**Pros:**
+- No distributional assumptions
+- Simple to implement
+- Captures actual market behavior
+
+**Cons:**
+- Assumes past represents future
+- Limited by historical sample size
+- May miss events that haven't happened yet
+
+### Parametric Intuition
+
+**Method:** Assume returns follow a distribution (often normal), estimate parameters.
+
+**For normal returns with mean $\mu$ and volatility $\sigma$:**
+
+$VaR_{95\%} = -\mu + 1.645\sigma$
+
+$VaR_{99\%} = -\mu + 2.326\sigma$
+
+**Pros:**
+- Clean formulas
+- Works with limited data
+- Easy to update
+
+**Cons:**
+- Normal assumption often wrong (fat tails)
+- Underestimates tail risk
+- Model risk
+
+**Improvement:** Use fat-tailed distributions (Student-t, GARCH) for more realistic tails.
+
+### Monte Carlo Intuition
+
+**Method:** Simulate many scenarios from a model, compute risk metrics from simulated distribution.
+
+**Process:**
+1. Specify a model for returns (could include correlations, fat tails, jumps)
+2. Generate thousands of simulated return paths
+3. Compute portfolio values for each path
+4. Calculate VaR/ES from the simulated distribution
+
+**Pros:**
+- Flexible, can incorporate complex features
+- Handles non-linear instruments (options)
+- Can stress-test specific scenarios
+
+**Cons:**
+- Computationally intensive
+- Results depend on model assumptions
+- Requires expertise to implement correctly
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**Volatility** measures the standard deviation of returns, capturing typical fluctuation size.
+
+**Portfolio volatility** depends on correlations, not just individual asset volatilities.
+
+**Value at Risk (VaR)** is the loss threshold at a given confidence level over a time horizon.
+
+**Expected Shortfall (ES)** is the average loss when VaR is breached, capturing tail severity.
+
+### Key Formulas
+
+**Annualized volatility:**
+$$
+\sigma_{annual} = \sigma_{daily} \times \sqrt{252}
+$$
+
+**Portfolio volatility (two assets):**
+$$
+\sigma_p = \sqrt{w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2w_1 w_2 \rho \sigma_1 \sigma_2}
+$$
+
+**Parametric VaR (normal):**
+$$
+VaR_{99\%} = -\mu + 2.326\sigma
+$$
+
+### Key Insights for Quants
+
+1. **Volatility is the standard risk measure** but ignores tails and asymmetry
+2. **Diversification reduces portfolio volatility** when correlations are less than 1
+3. **VaR gives a threshold** but not tail severity
+4. **Expected Shortfall captures tail risk** better than VaR
+5. **All risk metrics have limitations**, use multiple approaches
+
+---
+
+## 8. What's Next?
+
+Congratulations! You've completed the Probability and Random Variables module. You now understand:
+- Sample spaces, events, and probability rules
+- Conditional probability and Bayes' rule
+- Random variables and their distributions
+- Expectation, variance, and moments
+- Joint distributions and correlation
+- The Law of Large Numbers and Central Limit Theorem
+- Risk metrics for practical applications
+
+These concepts form the foundation for everything in quantitative finance: portfolio theory, derivatives pricing, risk management, and statistical modeling.
+
+**Recommended next module:** Continue to advanced topics like stochastic processes, options pricing, or statistical inference for finance.

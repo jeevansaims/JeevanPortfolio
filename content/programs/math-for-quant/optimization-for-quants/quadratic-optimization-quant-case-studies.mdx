@@ -1,0 +1,659 @@
+# Quadratic Optimization and Quant Case Studies
+
+## 1. Why Quadratic Problems Dominate Quant Finance
+
+### Quadratic Objectives as the Simplest Nonlinear Problems
+
+Linear optimization is powerful but limited. Many real problems have curvature: costs increase faster than linearly, risks compound, and trade-offs are nonlinear.
+
+**Quadratic functions** are the simplest step beyond linear:
+
+$$
+f(x) = \frac{1}{2} x^T Q x + c^T x
+$$
+
+**Why quadratic is special:**
+
+- Rich enough to capture curvature and trade-offs
+- Simple enough to analyze and solve efficiently
+- Closed-form solutions often exist
+- Well-understood theory from linear algebra
+
+**The sweet spot:** Quadratic objectives capture most practical nonlinearity while remaining tractable. This is why they dominate quantitative finance.
+
+### Why Risk Naturally Appears as a Quadratic Form
+
+**Variance is inherently quadratic:**
+
+$$
+\text{Var}(w^T r) = w^T \Sigma w
+$$
+
+where $\Sigma$ is the covariance matrix and $w$ is the portfolio weights.
+
+**This is not a modeling choice. It's mathematics:** The variance of a linear combination is a quadratic form in the weights. Risk, measured by variance or volatility, is fundamentally quadratic.
+
+**Consequences:**
+
+- Portfolio risk minimization is a quadratic optimization problem
+- Hedging error (squared) is quadratic
+- Tracking error is quadratic
+- Least squares regression is quadratic
+
+**The quadratic structure of risk creates the quadratic structure of quant finance.**
+
+### Tractability, Convexity, and Closed-Form Structure
+
+**Why quadratic problems are tractable:**
+
+**Convexity:** When $Q$ is positive semi-definite, the quadratic objective is convex. Any local minimum is global. No bad local minima exist.
+
+**Closed-form solutions:** Many quadratic problems have explicit solutions. You can write down the optimal weights directly, without iteration.
+
+**Efficient algorithms:** Even without closed forms, quadratic programs can be solved in polynomial time. Interior-point methods handle large-scale problems efficiently.
+
+**Sensitivity analysis:** Quadratic problems have clean sensitivity formulas. You can understand how solutions change with parameters.
+
+**This tractability is why Markowitz's mean-variance framework revolutionized finance.** It made portfolio optimization computationally feasible and mathematically rigorous.
+
+---
+
+## 2. Quadratic Optimization Basics
+
+### General Quadratic Objective
+
+The general quadratic minimization problem:
+
+$$
+\min_x \frac{1}{2} x^T Q x + c^T x
+$$
+
+**Components:**
+
+- $Q$: An $n \times n$ matrix encoding curvature (second-order terms)
+- $c$: A vector encoding linear terms (first-order)
+- $x$: The decision variables
+
+**The Hessian is $Q$:** For this objective, the Hessian matrix is exactly $Q$. All the curvature analysis from earlier lessons applies directly.
+
+**Gradient:**
+
+$$
+\nabla f(x) = Qx + c
+$$
+
+**Setting gradient to zero:**
+
+$$
+Qx^* = -c \implies x^* = -Q^{-1}c
+$$
+
+This is the unconstrained optimum (when $Q$ is invertible and positive definite).
+
+### Positive Definite vs Indefinite Cases
+
+**Positive definite $Q$:**
+
+- All eigenvalues positive
+- Function curves upward in every direction
+- Unique global minimum exists
+- $x^* = -Q^{-1}c$ is the global minimizer
+
+**Positive semi-definite $Q$:**
+
+- All eigenvalues non-negative, some may be zero
+- Function curves upward or is flat
+- Minimum exists but may not be unique
+- Flat directions create a set of optimal solutions
+
+**Indefinite $Q$:**
+
+- Some eigenvalues positive, some negative
+- Function has saddle points
+- No finite minimum exists (problem is unbounded below)
+- The optimization problem is ill-posed
+
+**In portfolio optimization:** The covariance matrix $\Sigma$ is always positive semi-definite (and typically positive definite for non-degenerate assets). This guarantees a well-posed problem.
+
+### When Quadratic Problems Are Convex
+
+**A quadratic function is convex if and only if $Q \succeq 0$ (positive semi-definite).**
+
+**Checking convexity:**
+
+- Compute eigenvalues of $Q$
+- All non-negative eigenvalues means convex
+- Any negative eigenvalue means non-convex
+
+**With linear constraints:** Adding linear equality or inequality constraints preserves convexity. The feasible region is a polyhedron (convex), and restricting a convex function to a convex set keeps the problem convex.
+
+**Practical implication:** Most quadratic problems in finance are convex by construction. Risk is convex. Linear constraints are convex. The combination is a tractable convex program.
+
+### Connection to Earlier Lessons on Hessians and Curvature
+
+**Everything connects:**
+
+- The Hessian of the quadratic objective is $Q$
+- Eigenvalues of $Q$ are curvatures along principal directions
+- Condition number $\kappa = \lambda_{max}/\lambda_{min}$ determines optimization difficulty
+- Positive definiteness ensures a unique minimum
+
+**Newton's method on quadratic functions:** Newton's method converges in exactly one step for pure quadratic objectives. The quadratic approximation is exact, so the Newton step lands directly at the optimum.
+
+**This is why quadratic problems are easy:** The second-order approximation captures the entire function. No higher-order complications exist.
+
+---
+
+## 3. Mean-Variance Portfolio Optimization
+
+### Portfolio Variance as a Quadratic Form
+
+For a portfolio with weights $w = (w_1, \ldots, w_n)^T$:
+
+$$
+\sigma_p^2 = w^T \Sigma w = \sum_{i=1}^n \sum_{j=1}^n w_i w_j \sigma_{ij}
+$$
+
+**This is a quadratic form in the weights.** The covariance matrix $\Sigma$ plays the role of $Q$.
+
+**Structure:**
+
+- Diagonal terms $w_i^2 \sigma_i^2$: Individual asset variances
+- Off-diagonal terms $2 w_i w_j \sigma_{ij}$: Covariance contributions
+- Diversification reduces risk when correlations are less than 1
+
+### Expected Return as a Linear Objective
+
+The expected portfolio return:
+
+$$
+\mu_p = w^T \mu = \sum_{i=1}^n w_i \mu_i
+$$
+
+**This is linear in weights.** No curvature, just a weighted sum.
+
+**The mean-variance trade-off:** Combining a quadratic risk term with a linear return term creates the classic mean-variance objective:
+
+$$
+\min_w w^T \Sigma w - \lambda \cdot w^T \mu
+$$
+
+or equivalently:
+
+$$
+\min_w w^T \Sigma w \quad \text{subject to} \quad w^T \mu \geq \mu_{target}
+$$
+
+### Budget and Leverage Constraints
+
+**Budget constraint:**
+
+$$
+\sum_{i=1}^n w_i = 1
+$$
+
+Invest 100% of capital. This is a linear equality constraint.
+
+**Leverage constraint:**
+
+$$
+\sum_{i=1}^n |w_i| \leq L
+$$
+
+Limit total gross exposure. This bounds leverage.
+
+**Both are linear constraints.** They define a convex feasible region, preserving the tractability of the quadratic optimization.
+
+### Interpretation of the Optimal Solution
+
+**The minimum-variance portfolio** (no return constraint):
+
+$$
+w^* = \frac{\Sigma^{-1} \mathbf{1}}{\mathbf{1}^T \Sigma^{-1} \mathbf{1}}
+$$
+
+**Interpretation:** Weights are proportional to the inverse covariance matrix applied to the ones vector. Assets with low variance and low correlation get higher weights.
+
+**The tangency portfolio** (maximum Sharpe ratio):
+
+$$
+w^* = \frac{\Sigma^{-1} \mu}{\mathbf{1}^T \Sigma^{-1} \mu}
+$$
+
+**Interpretation:** Weights are proportional to the inverse covariance matrix applied to expected returns. This balances return against risk.
+
+**Lagrange multipliers reveal shadow prices:** The multiplier on the return constraint tells you the marginal cost of increasing the target return in terms of additional risk.
+
+---
+
+## 4. Constrained Portfolio Optimization
+
+### Long-Only Constraints
+
+**No short selling:**
+
+$$
+w_i \geq 0 \quad \text{for all } i
+$$
+
+**Impact on the solution:**
+
+- Some assets may receive zero weight (corner solutions)
+- The unconstrained optimal portfolio often has negative weights
+- Long-only constraints force diversification away from extreme positions
+
+**Active constraints:** At the optimum, some long-only constraints bind ($w_i = 0$) while others are slack ($w_i > 0$). The KKT conditions identify which.
+
+### Risk Limits and Box Constraints
+
+**Position limits:**
+
+$$
+l_i \leq w_i \leq u_i
+$$
+
+Lower and upper bounds on each weight. This prevents excessive concentration.
+
+**Risk budget:**
+
+$$
+w^T \Sigma w \leq \sigma^2_{max}
+$$
+
+Cap total portfolio variance. This is a convex quadratic constraint.
+
+**Sector exposure:**
+
+$$
+\sum_{i \in \text{sector}} w_i \leq s_{max}
+$$
+
+Limit exposure to any single sector.
+
+### How Constraints Reshape Optimal Portfolios
+
+**Without constraints:** The optimal portfolio might be extreme (large shorts, massive concentration).
+
+**With constraints:** The solution is pushed to the boundary of the feasible region. Constraints force:
+
+- Diversification (position limits prevent concentration)
+- Realism (long-only prevents impossible shorts)
+- Risk control (risk budgets cap total exposure)
+
+**Trade-off:** Constraints improve feasibility but worsen the objective. You sacrifice some return or risk efficiency for practical implementability.
+
+### Role of KKT Conditions in Portfolio Problems
+
+**At the optimum:**
+
+$$
+\Sigma w^* - \lambda \mu + \nu \mathbf{1} - \gamma = 0
+$$
+
+where:
+
+- $\lambda$ is the multiplier on the return constraint
+- $\nu$ is the multiplier on the budget constraint
+- $\gamma$ are multipliers on inequality constraints (position limits, long-only)
+
+**Complementary slackness:** For each inequality constraint:
+
+- If the constraint is slack (not binding), its multiplier is zero
+- If the multiplier is positive, the constraint is binding
+
+**Interpretation:** KKT conditions reveal which constraints are actually affecting the solution and how much you would gain by relaxing them.
+
+---
+
+## 5. Hedging as a Quadratic Optimization Problem
+
+### Hedging Error as a Squared Loss
+
+**The goal of hedging:** Reduce risk by taking offsetting positions.
+
+**Hedging error:** The difference between the hedged portfolio and the target exposure.
+
+**Quadratic loss:**
+
+$$
+\min_h E[(V - h \cdot H)^2]
+$$
+
+where $V$ is the exposure to hedge and $H$ is the hedging instrument.
+
+**Why squared error?** Squaring penalizes large errors more than small ones. This is risk-averse: a 10% error is more than twice as bad as a 5% error.
+
+### Minimum Variance Hedging
+
+**The minimum variance hedge ratio:**
+
+$$
+h^* = \frac{\text{Cov}(V, H)}{\text{Var}(H)}
+$$
+
+**This is a regression coefficient.** It minimizes the variance of the hedged position.
+
+**Derivation:** Expand the quadratic, take derivative with respect to $h$, set to zero. The solution involves covariance and variance, exactly like regression.
+
+**Interpretation:** $h^*$ tells you how many units of the hedge instrument to hold per unit of exposure. It's determined by how the hedge co-moves with your position.
+
+### Interpreting Hedge Ratios
+
+**Hedge ratio as beta:**
+
+$$
+h^* = \beta_{VH} = \frac{\text{Cov}(V, H)}{\text{Var}(H)}
+$$
+
+This is the slope in a regression of $V$ on $H$.
+
+**Perfect hedge:** If correlation is $\pm 1$, the hedge eliminates all risk.
+
+**Imperfect hedge:** Residual variance remains:
+
+$$
+\text{Var}(V - h^* H) = \text{Var}(V)(1 - \rho^2)
+$$
+
+where $\rho$ is the correlation. The $R^2$ of the hedging regression determines hedge effectiveness.
+
+### Link to Projections and Least Squares
+
+**Hedging is projection:** The optimal hedge is the projection of the exposure onto the space spanned by hedging instruments.
+
+**Minimum variance = Least squares:** Both solve the same mathematical problem: minimize squared deviations.
+
+**Multiple hedging instruments:** With several instruments, the optimal hedge is multiple regression:
+
+$$
+h^* = (\text{Var}(H))^{-1} \text{Cov}(H, V)
+$$
+
+This is exactly the OLS formula.
+
+---
+
+## 6. Regression and Least Squares (Quant View)
+
+### Least Squares as Quadratic Minimization
+
+**The regression problem:**
+
+$$
+\min_\beta \|y - X\beta\|^2 = \min_\beta \sum_{i=1}^n (y_i - x_i^T \beta)^2
+$$
+
+**This is a quadratic optimization problem** in $\beta$.
+
+**Expand:**
+
+$$
+(y - X\beta)^T(y - X\beta) = y^T y - 2\beta^T X^T y + \beta^T X^T X \beta
+$$
+
+**Quadratic form:** $Q = X^T X$ and $c = -X^T y$.
+
+**Solution:**
+
+$$
+\beta^* = (X^T X)^{-1} X^T y
+$$
+
+### Factor Model Estimation
+
+**Factor models in finance:**
+
+$$
+r_i = \alpha_i + \beta_i f + \epsilon_i
+$$
+
+where $f$ is a factor (like market return) and $\beta_i$ is the factor loading.
+
+**Estimation:** Regress returns on factors using least squares.
+
+**Multiple factors:**
+
+$$
+r_i = \alpha_i + \sum_{k=1}^K \beta_{ik} f_k + \epsilon_i
+$$
+
+Each regression is a quadratic optimization.
+
+### Residual Risk Interpretation
+
+**Total variance decomposition:**
+
+$$
+\text{Var}(r_i) = \beta_i^2 \text{Var}(f) + \text{Var}(\epsilon_i)
+$$
+
+**Systematic risk:** $\beta_i^2 \text{Var}(f)$ comes from factor exposure.
+
+**Idiosyncratic risk:** $\text{Var}(\epsilon_i)$ is specific to the asset.
+
+**The $R^2$:** Fraction of variance explained by factors. Higher $R^2$ means the factor model captures more of the return variation.
+
+### Why Regression Is an Optimization Problem
+
+**Every regression is optimization:**
+
+- Choose parameters to minimize error
+- Squared error leads to quadratic optimization
+- Closed-form solution exists when the design matrix has full rank
+
+**This unifies:**
+
+- Factor model estimation
+- Hedging
+- Risk decomposition
+- Prediction
+
+All are quadratic optimization problems with the same mathematical structure.
+
+---
+
+## 7. Sensitivity and Stability
+
+### Conditioning of Quadratic Problems
+
+**The condition number matters:**
+
+$$
+\kappa = \frac{\lambda_{max}}{\lambda_{min}}
+$$
+
+For portfolio optimization, this is the condition number of the covariance matrix.
+
+**Well-conditioned ($\kappa$ small):** Solutions are stable. Small changes in inputs cause small changes in outputs.
+
+**Ill-conditioned ($\kappa$ large):** Solutions are unstable. Tiny input changes cause huge output changes.
+
+### Impact of Covariance Estimation Error
+
+**The problem:** We don't know the true covariance matrix $\Sigma$. We estimate it from historical data.
+
+**Estimation error:**
+
+$$
+\hat{\Sigma} = \Sigma + E
+$$
+
+where $E$ is estimation noise.
+
+**Impact on optimal portfolio:**
+
+$$
+\hat{w}^* \approx w^* + \Sigma^{-1} E w^*
+$$
+
+Errors get amplified by $\Sigma^{-1}$. If $\Sigma$ has small eigenvalues, this amplification is severe.
+
+### Why Small Eigenvalues Cause Unstable Solutions
+
+**Small eigenvalue = near-singular direction:** The covariance matrix is nearly singular in some direction. This happens with highly correlated assets.
+
+**Effect on inverse:** $\Sigma^{-1}$ has large eigenvalues in those directions. Small estimation errors in correlated asset covariances cause large swings in optimal weights.
+
+**Practical consequence:** Minimum variance portfolios often have extreme, unstable weights because they exploit (unreliable) estimates of near-zero eigenvalue directions.
+
+### Motivation for Regularization and Constraints
+
+**Regularization:** Add a penalty to stabilize:
+
+$$
+\min_w w^T \Sigma w + \lambda \|w\|^2
+$$
+
+This shrinks weights and reduces sensitivity to estimation error.
+
+**Constraints as implicit regularization:**
+
+- Position limits bound extreme weights
+- Long-only prevents exploiting negative weights
+- These constraints stabilize solutions even without explicit regularization
+
+**Shrinkage estimators:** Shrink the sample covariance toward a structured target (like diagonal or single-factor). This improves conditioning and out-of-sample performance.
+
+---
+
+## 8. Case Study Perspective
+
+### Portfolio Construction as One Large Optimization Problem
+
+**The full portfolio problem:**
+
+$$
+\min_w w^T \Sigma w
+$$
+
+subject to:
+
+- Budget: $\sum_i w_i = 1$
+- Return target: $w^T \mu \geq \mu_{min}$
+- Long-only: $w_i \geq 0$
+- Position limits: $w_i \leq u_i$
+- Sector limits: $\sum_{i \in S} w_i \leq s_S$
+- Tracking error: $(w - w_{bench})^T \Sigma (w - w_{bench}) \leq TE^2$
+
+**All of this is one quadratic program.** Solvers handle it efficiently.
+
+### Risk Management as Constraint Design
+
+**Risk managers design constraints:**
+
+- What position limits?
+- What sector exposures?
+- What leverage bounds?
+- What tracking error limits?
+
+**These are optimization inputs.** The risk manager's job is to specify the feasible region that captures acceptable portfolios.
+
+**KKT multipliers inform risk decisions:** If a position limit has a high shadow price, relaxing it would significantly improve the portfolio. This guides constraint refinement.
+
+### Hedging, Regression, and Factor Models Under One Framework
+
+**All share the same mathematics:**
+
+- **Hedging:** Minimize $E[(V - h \cdot H)^2]$
+- **Regression:** Minimize $\|y - X\beta\|^2$
+- **Factor model:** Minimize residual variance
+
+**Same structure:**
+
+- Quadratic objective
+- Linear constraints (if any)
+- Closed-form or efficient algorithmic solutions
+
+**Unified view:** Understanding quadratic optimization means understanding all of these simultaneously.
+
+### Seeing Quant Finance as Structured Optimization
+
+**The quant perspective:**
+
+Every financial decision is an optimization problem:
+
+- What to hold? (portfolio optimization)
+- How to hedge? (minimum variance hedging)
+- What factors matter? (regression)
+- How to trade? (execution optimization)
+
+**Constraints encode reality:**
+
+- Regulations
+- Risk limits
+- Trading costs
+- Information limitations
+
+**Objectives encode goals:**
+
+- Risk minimization
+- Return maximization
+- Tracking benchmark
+- Minimizing hedging error
+
+**Quant finance is applied optimization with financial constraints and objectives.**
+
+---
+
+## 9. Summary and What This Unlocks
+
+### Quadratic Optimization Is the Workhorse of Quant Finance
+
+**Key insight:** Risk is quadratic. This single fact makes quadratic optimization central to finance.
+
+**Tractability:** Convex quadratic problems have efficient solutions. Closed forms exist for many cases. Large-scale problems are computationally feasible.
+
+**Universality:** Portfolio optimization, hedging, regression, factor models, and risk management all reduce to quadratic optimization.
+
+### Portfolio Optimization, Hedging, and Regression Share the Same Core Math
+
+**The common thread:**
+
+- Minimize a quadratic objective
+- Subject to linear constraints
+- Analyze using Hessians, eigenvalues, and KKT conditions
+
+**Once you understand one, you understand all.** The mathematics transfers directly across applications.
+
+### This Module Completes the Bridge
+
+**From foundations to applications:**
+
+- Calculus gave you gradients and optimization intuition
+- Linear algebra gave you matrices, eigenvalues, and quadratic forms
+- This module connected them to constrained optimization and KKT conditions
+- Now everything applies to real quant problems
+
+**You can now formulate and solve** the core optimization problems in quantitative finance.
+
+### Natural Next Steps
+
+**Statistics and estimation:** How to estimate the inputs (expected returns, covariances) that go into optimization.
+
+**Factor models:** Structured ways to model covariance and decompose risk.
+
+**Machine learning:** Advanced prediction and optimization techniques.
+
+**Stochastic optimization:** Optimization under uncertainty, dynamic problems, and scenario analysis.
+
+**This module is the foundation.** The mathematics you've learned here underlies everything that comes next in quantitative finance.
+
+---
+
+## Congratulations!
+
+You've completed **Optimization for Quants**.
+
+You now understand:
+
+- Optimization problem structure and formulation
+- Gradient descent and first-order methods
+- Convexity and why it guarantees global optimality
+- Hessians, curvature, and second-order conditions
+- Constrained optimization and feasible regions
+- Lagrange multipliers and KKT conditions
+- Quadratic programming and its applications
+
+**Most importantly:** You see that portfolio optimization, hedging, regression, and risk management are all instances of the same mathematical framework.
+
+This is the engine of quantitative finance. You now know how to use it.

@@ -1,0 +1,366 @@
+# Gradient & Directional Derivatives
+
+## 1. Motivation: Why Gradients Matter in Finance
+
+In Lesson 2, we learned that partial derivatives measure sensitivity in **one direction at a time**:
+
+- **Delta** $= \frac{\partial C}{\partial S}$ measures how option price changes with stock price alone
+- **Vega** $= \frac{\partial C}{\partial \sigma}$ measures sensitivity to volatility alone
+
+But real-world financial decisions involve **multiple variables changing simultaneously**:
+
+- Shifting multiple portfolio weights at once
+- Stock price and volatility both moving (they're often correlated!)
+- Interest rates and time both changing as markets evolve
+
+**We need a single mathematical object that captures all directions simultaneously.**
+
+That object is the **gradient**.
+
+### Key Questions in Finance
+
+**Portfolio Gradient**
+
+How does portfolio value change as **all asset prices** shift together?
+
+The gradient $\nabla V$ tells you the sensitivity to every asset price at once.
+
+**Greeks Vector**
+
+The famous option Greeks $(\Delta, \text{Vega}, \Theta, \rho)$ are literally the **gradient** of the option pricing function $C(S, \sigma, r, T)$.
+
+They represent all first-order sensitivities packaged into one vector.
+
+**Optimization**
+
+To find maximum Sharpe ratio, minimum variance, or optimal hedge ratios, you need to know which direction improves your objective function most.
+
+The gradient points you there.
+
+**The gradient is not optional in quantitative finance, it's foundational for risk management, hedging, and optimization.**
+
+---
+
+## 2. Definition of the Gradient
+
+For a function $f: \mathbb{R}^n \to \mathbb{R}$, the **gradient** is the vector of all partial derivatives:
+
+$$
+\nabla f(x_1, \ldots, x_n) = \begin{pmatrix} \frac{\partial f}{\partial x_1} \\ \frac{\partial f}{\partial x_2} \\ \vdots \\ \frac{\partial f}{\partial x_n} \end{pmatrix}
+$$
+
+**Key properties:**
+
+- The gradient is a **vector**, not a scalar
+- It collects all $n$ partial derivatives into one object
+- At each point, the gradient points in the direction of **steepest increase**
+
+**Notation:**
+
+$$
+\nabla f, \quad \text{grad}(f), \quad \mathbf{D}f
+$$
+
+The symbol $\nabla$ is called "nabla" or "del."
+
+### Example 1: Gradient of a Quadratic
+
+$$
+f(x, y) = x^2 + y^2
+$$
+
+**Compute partial derivatives:**
+
+$$
+\frac{\partial f}{\partial x} = 2x, \quad \frac{\partial f}{\partial y} = 2y
+$$
+
+**Gradient:**
+
+$$
+\nabla f(x, y) = \begin{pmatrix} 2x \\ 2y \end{pmatrix}
+$$
+
+**At point $(3, 4)$:**
+
+$$
+\nabla f(3, 4) = \begin{pmatrix} 6 \\ 8 \end{pmatrix}
+$$
+
+**Interpretation:** At $(3, 4)$, the function increases fastest in the direction of the vector $(6, 8)$.
+
+### Example 2: Gradient of a Plane
+
+$$
+f(x, y) = 3x - y^2
+$$
+
+**Compute partial derivatives:**
+
+$$
+\frac{\partial f}{\partial x} = 3, \quad \frac{\partial f}{\partial y} = -2y
+$$
+
+**Gradient:**
+
+$$
+\nabla f(x, y) = \begin{pmatrix} 3 \\ -2y \end{pmatrix}
+$$
+
+**At point $(1, 2)$:**
+
+$$
+\nabla f(1, 2) = \begin{pmatrix} 3 \\ -4 \end{pmatrix}
+$$
+
+Notice the gradient **depends on the point**. At different locations, the steepest direction changes.
+
+---
+
+## 3. Geometric Meaning: Direction of Steepest Ascent
+
+Consider the surface $z = f(x, y)$ living in 3D space.
+
+**The gradient at a point tells you the direction where climbing is steepest.**
+
+### Three Key Geometric Facts
+
+**1. Magnitude = Steepness**
+
+The length of the gradient vector:
+
+$$
+\|\nabla f\| = \text{rate of steepest increase}
+$$
+
+If $\|\nabla f\| = 0$, you're at a **critical point** (minimum, maximum, or saddle).
+
+**2. Direction = Fastest Increase**
+
+Moving in the direction of $\nabla f$ gives the **maximum rate of increase**.
+
+Moving in the direction of $-\nabla f$ gives the **steepest descent** (critical for optimization algorithms).
+
+**3. Gradient is Perpendicular to Level Curves**
+
+This is subtle but powerful:
+
+If you stand on a level curve (where $f$ is constant), the gradient points **perpendicular** to that curve.
+
+**Why?** Moving along a level curve doesn't change $f$, so the derivative in that direction is zero. The gradient, pointing in the direction of maximum change, must be perpendicular.
+
+### Example: Visualizing Perpendicularity
+
+For $f(x, y) = x^2 + y^2$:
+
+- **Level curves** are circles: $x^2 + y^2 = c$
+- **Gradient** is $\nabla f = (2x, 2y)$
+
+At any point $(x, y)$, the gradient $(2x, 2y)$ points **radially outward**, exactly perpendicular to the circle passing through that point.
+
+This geometric insight is why gradient descent works: you always move perpendicular to level sets, heading toward lower (or higher) values.
+
+---
+
+## 4. Directional Derivatives: Changing in Any Direction
+
+Partial derivatives measure change along coordinate axes ($x$-direction, $y$-direction, etc.).
+
+But what if you want to know how $f$ changes in an **arbitrary direction**?
+
+### Definition: Directional Derivative
+
+The **directional derivative** of $f$ at point $\mathbf{x}_0$ in the direction of unit vector $\mathbf{u}$ is:
+
+$$
+D_{\mathbf{u}} f(\mathbf{x}_0) = \nabla f(\mathbf{x}_0) \cdot \mathbf{u}
+$$
+
+**Key points:**
+
+- $\mathbf{u}$ must be a **unit vector**: $\|\mathbf{u}\| = 1$
+- The directional derivative is a **dot product** (scalar result)
+- Partial derivatives are special cases: $\frac{\partial f}{\partial x} = D_{\mathbf{e}_1} f$ where $\mathbf{e}_1 = (1, 0, \ldots, 0)$
+
+### Formula Breakdown
+
+$$
+D_{\mathbf{u}} f = \nabla f \cdot \mathbf{u} = \|\nabla f\| \|\mathbf{u}\| \cos \theta = \|\nabla f\| \cos \theta
+$$
+
+where $\theta$ is the angle between $\nabla f$ and $\mathbf{u}$.
+
+**Consequence:**
+
+- Maximum when $\cos \theta = 1$ (i.e., $\mathbf{u}$ points in direction of $\nabla f$)
+- Zero when $\cos \theta = 0$ (i.e., $\mathbf{u}$ perpendicular to $\nabla f$, moving along a level curve)
+- Minimum (most negative) when $\cos \theta = -1$ (i.e., $\mathbf{u}$ points opposite $\nabla f$)
+
+### Example: Computing a Directional Derivative
+
+$$
+f(x, y) = x^2 + y^2
+$$
+
+**Compute the directional derivative at $(1, 2)$ in the direction $\mathbf{u} = \frac{1}{\sqrt{5}}(2, 1)$.**
+
+**Step 1:** Compute the gradient:
+
+$$
+\nabla f = (2x, 2y) = (2, 4) \quad \text{at } (1, 2)
+$$
+
+**Step 2:** Verify $\mathbf{u}$ is a unit vector:
+
+$$
+\|\mathbf{u}\| = \sqrt{\left(\frac{2}{\sqrt{5}}\right)^2 + \left(\frac{1}{\sqrt{5}}\right)^2} = \sqrt{\frac{4 + 1}{5}} = 1 \quad \checkmark
+$$
+
+**Step 3:** Compute the dot product:
+
+$$
+D_{\mathbf{u}} f = (2, 4) \cdot \frac{1}{\sqrt{5}}(2, 1) = \frac{1}{\sqrt{5}}(2 \cdot 2 + 4 \cdot 1) = \frac{8}{\sqrt{5}} = \frac{8\sqrt{5}}{5}
+$$
+
+**Interpretation:** At point $(1, 2)$, moving in direction $\mathbf{u} = \frac{1}{\sqrt{5}}(2, 1)$, the function increases at rate $\frac{8\sqrt{5}}{5} \approx 3.58$ per unit distance.
+
+---
+
+## 5. Quant Finance Examples
+
+Gradients are everywhere in quantitative finance. Let's see the key applications.
+
+### A. Greeks Vector = Gradient of the Option Price
+
+For a European call option with price $C(S, \sigma, r, T)$:
+
+$$
+\nabla C = \begin{pmatrix} \frac{\partial C}{\partial S} \\ \frac{\partial C}{\partial \sigma} \\ \frac{\partial C}{\partial r} \\ \frac{\partial C}{\partial T} \end{pmatrix} = \begin{pmatrix} \Delta \\ \text{Vega} \\ \rho \\ \Theta \end{pmatrix}
+$$
+
+**The Greeks are literally the gradient of the option price surface.**
+
+**What this means:**
+
+- The gradient tells you **all first-order sensitivities** at once
+- If you want to know how $C$ changes when $(S, \sigma, r, T)$ all shift slightly, you use the gradient
+- For a small change $(\Delta S, \Delta \sigma, \Delta r, \Delta T)$, the approximate change in option price is:
+
+$$
+\Delta C \approx \nabla C \cdot \begin{pmatrix} \Delta S \\ \Delta \sigma \\ \Delta r \\ \Delta T \end{pmatrix} = \Delta \cdot \Delta S + \text{Vega} \cdot \Delta \sigma + \rho \cdot \Delta r + \Theta \cdot \Delta T
+$$
+
+This is a **first-order Taylor approximation**, the gradient gives you the linear approximation of how the option price responds to changes.
+
+### B. Portfolio Gradient
+
+For a portfolio:
+
+$$
+V(S_1, S_2, \ldots, S_n) = w_1 S_1 + w_2 S_2 + \cdots + w_n S_n
+$$
+
+The gradient with respect to asset prices is:
+
+$$
+\nabla_S V = \begin{pmatrix} \frac{\partial V}{\partial S_1} \\ \frac{\partial V}{\partial S_2} \\ \vdots \\ \frac{\partial V}{\partial S_n} \end{pmatrix} = \begin{pmatrix} w_1 \\ w_2 \\ \vdots \\ w_n \end{pmatrix}
+$$
+
+**Interpretation:**
+
+- **The sensitivity to asset price changes is exactly the weight vector.**
+- If you hold 100 shares of asset 1, then $\frac{\partial V}{\partial S_1} = 100$, your portfolio value changes by \$100 for every \$1 move in $S_1$.
+- The portfolio is **most sensitive** in the direction of the weight vector.
+
+**Directional derivative example:**
+
+If all asset prices move proportionally in direction $\mathbf{u} = \frac{1}{\sqrt{n}}(1, 1, \ldots, 1)$ (equal percentage increase across all assets):
+
+$$
+D_{\mathbf{u}} V = \nabla V \cdot \mathbf{u} = \frac{1}{\sqrt{n}} \sum_{i=1}^n w_i
+$$
+
+This tells you how your portfolio responds to broad market moves.
+
+### C. Gradient Descent in Optimization
+
+**Problem:** Minimize portfolio variance $\sigma^2(\mathbf{w})$ or maximize Sharpe ratio $\text{SR}(\mathbf{w})$.
+
+**Approach:** Follow the gradient.
+
+To **minimize** a function $f(\mathbf{x})$, move in the direction of **steepest descent** $-\nabla f$:
+
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - \alpha \nabla f(\mathbf{x}_k)
+$$
+
+where $\alpha > 0$ is the **step size** (learning rate).
+
+**Applications:**
+
+- **Portfolio optimization:** Minimize variance $\sigma^2(\mathbf{w})$ by walking down the gradient
+- **Model calibration:** Fit model parameters by minimizing squared errors
+- **Machine learning for trading:** Train neural networks to predict returns by minimizing loss functions
+
+**Why it works:** The gradient points uphill. Walking against it ($-\nabla f$) takes you downhill, toward a minimum.
+
+Later in the Optimization module, you'll use gradients extensively to solve:
+
+$$
+\min_{\mathbf{w}} \quad \mathbf{w}^T \Sigma \mathbf{w} \quad \text{subject to constraints}
+$$
+
+For now, just know: **gradients are the engine of optimization.**
+
+---
+
+## 6. Summary
+
+Let's consolidate the key ideas:
+
+- **Gradient** $\nabla f$ is the vector of all partial derivatives:
+
+$$
+\nabla f = \begin{pmatrix} \frac{\partial f}{\partial x_1} \\ \vdots \\ \frac{\partial f}{\partial x_n} \end{pmatrix}
+$$
+
+- **Geometric meaning:** The gradient points in the **direction of steepest ascent**.
+
+- **Magnitude** $\|\nabla f\|$ gives the **rate of steepest climb**.
+
+- **Perpendicular to level sets:** At every point, $\nabla f$ is perpendicular to the level curve/surface passing through that point.
+
+- **Directional derivative** measures change in any direction:
+
+$$
+D_{\mathbf{u}} f = \nabla f \cdot \mathbf{u}
+$$
+
+- **Maximum directional derivative** equals $\|\nabla f\|$ and occurs when $\mathbf{u}$ points in the direction of $\nabla f$.
+
+- **Greeks are a gradient:** $(\Delta, \text{Vega}, \rho, \Theta) = \nabla C$.
+
+- **Portfolio sensitivities form a gradient:** $\nabla V = (w_1, \ldots, w_n)$.
+
+- **Optimization algorithms** (gradient descent, Newton's method) rely on the gradient to find minima and maxima.
+
+**Key takeaway:** The gradient is the multivariable generalization of the derivative. It's the foundation of sensitivity analysis, hedging, and optimization in quantitative finance.
+
+---
+
+## 7. Next Steps
+
+We've now mastered **first-order** information: how functions change locally.
+
+But to understand **curvature**, whether a point is a minimum, maximum, or saddle, we need **second derivatives**.
+
+**Next lesson: Hessians & Curvature**
+
+You'll learn:
+- How to assemble second partial derivatives into the **Hessian matrix**
+- What the Hessian tells you about curvature and convexity
+- How to classify critical points (minimum, maximum, saddle)
+- Why the Hessian governs portfolio risk (the covariance matrix is a Hessian!)
+- Applications to optimization and risk management
+
+The Hessian is the cornerstone of modern optimization. Let's build it.

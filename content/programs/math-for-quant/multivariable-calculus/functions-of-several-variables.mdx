@@ -1,0 +1,585 @@
+# Functions of Several Variables
+
+## 1. Intuition: Why We Need More Than One Variable
+
+In single-variable calculus, a function looks like:
+
+$$
+f(x) \to \mathbb{R}
+$$
+
+and input changes move along a line. You're restricted to one dimension, one parameter changing at a time.
+
+**In quantitative finance, most models depend on many variables simultaneously.**
+
+Think about it: when pricing an option, does the price depend only on the stock price? Of course not. Volatility matters. Interest rates matter. Time to expiration matters. The real world is inherently multidimensional.
+
+### Examples from Finance
+
+**Portfolio Value**
+
+The value of a portfolio depends on multiple asset prices:
+
+$$
+V = f(S_1, S_2, \ldots, S_n)
+$$
+
+where $S_i$ represents the price of asset $i$. If you hold Apple stock, Tesla stock, and Bitcoin, your portfolio value changes as all three prices move.
+
+**European Option Pricing**
+
+The price of a European call option under the Black-Scholes model depends on multiple parameters:
+
+$$
+C = f(S, \sigma, r, T)
+$$
+
+where:
+- $S$ = current stock price
+- $\sigma$ = volatility (annualized standard deviation of returns)
+- $r$ = risk-free interest rate
+- $T$ = time to maturity (in years)
+
+Each of these variables affects the option price. Increasing volatility increases option value (more uncertainty = more upside potential). Increasing time to maturity also increases value (more time for the stock to move in your favor).
+
+**Risk Model**
+
+A factor-based risk model depends on exposures to multiple risk factors:
+
+$$
+\text{Risk} = f(\beta_1, \beta_2, \ldots, \beta_k)
+$$
+
+where $\beta_i$ represents exposure to factor $i$ (market risk, size, value, momentum, etc.).
+
+### Key Message
+
+**You cannot describe the real world with one variable. Finance especially lives in high dimensions.**
+
+Every serious quantitative model, from simple portfolio math to sophisticated derivative pricing, requires functions of multiple variables. Understanding how these functions work is not optional; it's foundational.
+
+---
+
+## 2. Definition: What Is a Function of Several Variables?
+
+A **function of two variables** is a rule:
+
+$$
+f(x, y): \mathbb{R}^2 \to \mathbb{R}
+$$
+
+that assigns a unique real number to each ordered pair $(x, y)$ in its domain.
+
+**Notation breakdown:**
+- $\mathbb{R}^2$ is the **domain** (the set of all possible input pairs)
+- $\mathbb{R}$ is the **codomain** (the set where outputs live)
+- The function $f$ is the **rule** that maps inputs to outputs
+
+Similarly for 3 variables:
+
+$$
+f(x, y, z): \mathbb{R}^3 \to \mathbb{R}
+$$
+
+And generally for $n$ variables:
+
+$$
+f(x_1, x_2, \ldots, x_n): \mathbb{R}^n \to \mathbb{R}
+$$
+
+**Important:** The function must be **well-defined**, meaning each input produces exactly one output.
+
+### Basic Examples
+
+**Linear Profit Function**
+
+Profit depending on price $p$ and quantity $q$:
+
+$$
+\Pi = f(p, q) = pq - C(q)
+$$
+
+where $C(q)$ is the cost function (e.g., $C(q) = 100 + 5q$ for fixed costs of 100 and variable costs of 5 per unit).
+
+If you sell 10 units at price 20, and costs are $C(10) = 100 + 5(10) = 150$:
+
+$$
+\Pi(20, 10) = 20 \cdot 10 - 150 = 200 - 150 = 50
+$$
+
+**Temperature Map**
+
+Temperature depending on latitude and longitude:
+
+$$
+T = f(\text{lat}, \text{long})
+$$
+
+At coordinates (40.7°N, 74.0°W) (New York City), the temperature might be 15°C. At (51.5°N, 0.1°W) (London), it might be 12°C.
+
+**Geometric Surface: Paraboloid**
+
+$$
+f(x, y) = x^2 + y^2
+$$
+
+This describes a bowl-shaped surface (paraboloid) in 3D space. Plug in any $(x, y)$ and get the height:
+
+- $f(0, 0) = 0$ (bottom of the bowl)
+- $f(1, 1) = 2$
+- $f(2, 3) = 4 + 9 = 13$
+
+As you move away from the origin, the height increases quadratically.
+
+---
+
+## 3. Quant Example: Portfolio Value as a Multivariable Function
+
+For a simple 2-asset portfolio:
+
+$$
+V(w_1, w_2) = w_1 S_1 + w_2 S_2
+$$
+
+**Inputs (variables):**
+- $w_1$ = weight (fraction of capital) in asset 1
+- $w_2$ = weight in asset 2
+- $S_1, S_2$ = asset prices
+
+**Output:** Total portfolio value $V$.
+
+### Example Calculation
+
+Suppose you have \$100,000 to invest in two assets:
+- Asset 1 (Apple stock): $S_1 = 150$ per share
+- Asset 2 (Treasury bond): $S_2 = 100$ per share
+
+You decide to allocate:
+- $w_1 = 0.6$ (60% in Apple)
+- $w_2 = 0.4$ (40% in bonds)
+
+Portfolio value:
+
+$$
+V(0.6, 0.4) = 0.6 \times 100{,}000 + 0.4 \times 100{,}000 = 60{,}000 + 40{,}000 = 100{,}000
+$$
+
+Now suppose Apple stock rises to $S_1 = 165$. Your portfolio holds 400 shares of Apple:
+
+$$
+V' = 400 \times 165 + 400 \times 100 = 66{,}000 + 40{,}000 = 106{,}000
+$$
+
+Your portfolio gained \$6,000 due to Apple's price increase.
+
+**This immediately shows where multivariable functions matter in practice.**
+
+---
+
+## 4. Level Sets & Contours
+
+For a function $f(x, y)$, a **level set** (or **contour**) is the set of all points $(x, y)$ where:
+
+$$
+f(x, y) = c
+$$
+
+for some constant $c$.
+
+**Geometric intuition:** Imagine slicing a 3D surface $z = f(x, y)$ with a horizontal plane at height $z = c$. The curve where the plane intersects the surface is the level curve.
+
+Level curves are like topographic maps, lines connecting points of equal elevation.
+
+### Geometric Example: Circles
+
+For $f(x, y) = x^2 + y^2$, the level sets are:
+
+$$
+x^2 + y^2 = c
+$$
+
+This is the equation of a circle centered at the origin with radius $r = \sqrt{c}$:
+
+- $c = 1$: Circle of radius 1
+- $c = 4$: Circle of radius 2
+- $c = 9$: Circle of radius 3
+
+As $c$ increases, the circles expand outward. All points on a given circle have the same function value.
+
+### Finance Example: Constant Portfolio Value Line
+
+If portfolio value is:
+
+$$
+V(S_1, S_2) = w_1 S_1 + w_2 S_2
+$$
+
+and we want all combinations of $(S_1, S_2)$ that give the same portfolio value, we set:
+
+$$
+w_1 S_1 + w_2 S_2 = V_0
+$$
+
+**Example:** If $w_1 = w_2 = 0.5$ and we want $V = 100$:
+
+$$
+0.5 S_1 + 0.5 S_2 = 100 \implies S_1 + S_2 = 200
+$$
+
+This is a **straight line** in the $(S_1, S_2)$ plane. Points on this line:
+- $(100, 100)$: Both assets at 100
+- $(150, 50)$: Asset 1 at 150, Asset 2 at 50
+
+All these combinations produce the same portfolio value of 100.
+
+**Interpretation:** Level sets show trade-offs. If $S_1$ increases, $S_2$ must decrease proportionally to keep $V$ constant. This is the basis of hedging, finding combinations of positions that offset each other.
+
+### Risk Level Sets
+
+For portfolio variance (assuming uncorrelated assets):
+
+$$
+\sigma^2(w_1, w_2) = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2
+$$
+
+Level curves satisfy:
+
+$$
+w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 = c
+$$
+
+This is an **ellipse** in the $(w_1, w_2)$ plane (assuming $\sigma_1 \neq \sigma_2$). All portfolios on the same ellipse have the same risk level.
+
+---
+
+## 5. Domain, Range, and Constraints in Finance
+
+### Domain
+
+The **domain** is the set of all allowed input values.
+
+**Black-Scholes Option Pricing**
+
+For the Black-Scholes formula $C = f(S, \sigma, r, T)$, domain constraints are:
+
+- $S > 0$ (stock price must be positive)
+- $\sigma > 0$ (volatility must be positive)
+- $T > 0$ (time to maturity must be positive)
+- $r \geq 0$ (risk-free rate typically non-negative)
+
+You cannot price an option with $S = -50$ or $\sigma = 0$, these inputs are **outside the domain**.
+
+**Portfolio Weights**
+
+For a long-only portfolio (no short selling):
+
+- $w_i \geq 0$ for all $i$ (no negative weights)
+- $\sum_{i=1}^n w_i = 1$ (fully invested)
+
+The domain is the **probability simplex** in $n$ dimensions, a geometric object where weights are non-negative and sum to 1.
+
+For $n = 2$, the simplex is a line segment from $(1, 0)$ to $(0, 1)$ in the $(w_1, w_2)$ plane.
+
+### Range
+
+The **range** is the set of all possible output values.
+
+**Option Prices**
+
+European call option price:
+
+$$
+C \geq 0
+$$
+
+The option cannot have negative value. Also:
+
+$$
+C \leq S
+$$
+
+The call option cannot be worth more than the underlying stock.
+
+**Portfolio Variance**
+
+$$
+\sigma^2 \geq 0
+$$
+
+Variance is always non-negative. It equals zero only if the portfolio is riskless (e.g., 100% cash).
+
+### Constrained Domains in Optimization
+
+A utility function $U(w_1, w_2)$ representing investor preferences may only make sense when:
+
+$$
+w_1 + w_2 = 1, \quad w_i \geq 0
+$$
+
+This restricts the domain to the **simplex** in 2D, a line segment from $(1, 0)$ to $(0, 1)$.
+
+**This gently introduces constrained optimization that comes later.** When maximizing utility subject to these constraints, you're not free to choose any $(w_1, w_2)$, you must stay within the feasible set.
+
+For example, $(0.7, 0.3)$ is **feasible** (weights sum to 1, both non-negative), but $(1.2, -0.2)$ is **infeasible** (negative weight violates long-only constraint).
+
+---
+
+## 6. Visualization: Surfaces & Interpretation
+
+A function of 2 variables $f(x, y)$ can be visualized as a **surface** in 3D space:
+
+$$
+z = f(x, y)
+$$
+
+**The height of the surface at point $(x, y)$ equals the function value $f(x, y)$.**
+
+### Examples to Visualize
+
+**Quadratic Bowl: Paraboloid**
+
+$$
+f(x, y) = x^2 + y^2
+$$
+
+- This is a paraboloid opening upward (like a bowl)
+- Minimum at $(0, 0)$ where $f(0, 0) = 0$
+- As you move away from the origin in any direction, height increases
+- Circular cross-sections (level curves are circles)
+- Used to model convex optimization problems (we'll see this later)
+
+**Simple Plane**
+
+$$
+f(x, y) = 3x + 2y
+$$
+
+- This is a flat tilted plane
+- No local minima or maxima
+- Slope in $x$-direction is 3: moving one unit in $x$ increases $f$ by 3
+- Slope in $y$-direction is 2: moving one unit in $y$ increases $f$ by 2
+- Level curves are parallel straight lines
+
+**Saddle Surface**
+
+$$
+f(x, y) = x^2 - y^2
+$$
+
+- Curves **upward** along the $x$-axis (parabola opening up)
+- Curves **downward** along the $y$-axis (parabola opening down)
+- Has a **saddle point** at $(0, 0)$: neither a minimum nor a maximum
+- This surface looks like a horse saddle or a Pringles chip
+
+Saddle points appear frequently in optimization and game theory, they're critical points that are neither minima nor maxima.
+
+### Quant Example: Risk Surface
+
+If portfolio risk is modeled as:
+
+$$
+R(w_1, w_2) = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2
+$$
+
+(assuming uncorrelated assets for simplicity), then:
+
+- $R$ is a **bowl-shaped surface** (paraboloid)
+- The minimum is at $(0, 0)$: no position = no risk
+- As weights increase, risk increases quadratically
+
+**Later in Lesson 3, gradients (which we'll define rigorously) will tell you which direction increases risk fastest.**
+
+For now, keep it geometric: the surface represents how risk changes as you adjust your portfolio weights.
+
+---
+
+## 7. Basic Operations: Sums, Products, Compositions
+
+You can build complex multivariable functions from simpler ones using standard operations.
+
+### Sum
+
+If $f(x, y)$ and $g(x, y)$ are functions, their sum is:
+
+$$
+(f + g)(x, y) = f(x, y) + g(x, y)
+$$
+
+**Example:**
+
+$$
+f(x, y) = x^2 + y, \quad g(x, y) = 2xy
+$$
+
+$$
+(f + g)(x, y) = x^2 + y + 2xy
+$$
+
+### Product
+
+$$
+(f \cdot g)(x, y) = f(x, y) \cdot g(x, y)
+$$
+
+**Example:**
+
+$$
+f(x, y) = x + y, \quad g(x, y) = x - y
+$$
+
+$$
+(f \cdot g)(x, y) = (x + y)(x - y) = x^2 - y^2
+$$
+
+(This is a saddle surface!)
+
+### Composition
+
+If $z = g(x, y)$ and $f$ is a function of one variable, then:
+
+$$
+(f \circ g)(x, y) = f(g(x, y))
+$$
+
+**Example:**
+
+$$
+g(x, y) = x^2 + y^2, \quad f(z) = e^z
+$$
+
+$$
+(f \circ g)(x, y) = e^{x^2 + y^2}
+$$
+
+This is a **Gaussian-like surface**, it peaks at the origin and decays exponentially as you move away.
+
+### Quant Example: Volatility Surface → Option Pricing Surface
+
+**Step 1:** Implied volatility as a function of strike and maturity:
+
+$$
+\sigma = \sigma(K, T)
+$$
+
+In practice, implied volatility varies with strike $K$ and time to maturity $T$, creating a "volatility surface" or "smile."
+
+**Step 2:** Option price depends on volatility:
+
+$$
+C = C(S, K, T, r, \sigma)
+$$
+
+But $\sigma$ itself depends on $K$ and $T$:
+
+$$
+C(S, K, T, r, \sigma(K, T))
+$$
+
+**Result:** By substituting the volatility surface into the option pricing formula, you get the **option pricing surface** as a function of strike and maturity.
+
+This is **composition**. You build complex models by chaining simpler functions together.
+
+---
+
+## 8. Simple Quant Applications
+
+### A. Pricing as a Multivariable Surface
+
+Option price:
+
+$$
+C = f(S, \sigma, r, T)
+$$
+
+**Intuition (no calculus):**
+
+- **Increasing $S$** (stock price) usually increases $C$: if the stock is higher, a call option (the right to buy) is more valuable
+- **Increasing $\sigma$** (volatility) increases $C$: more uncertainty means more upside potential
+- **Increasing $T$** (time to maturity) increases $C$: more time means more chance for the stock to move in-the-money
+
+You can think of the option price as a 4-dimensional surface (impossible to visualize directly, but you can examine 3D slices by holding one variable constant).
+
+### B. Portfolio Value as a Linear Function
+
+If weights $w_1, w_2$ vary:
+
+$$
+V(w_1, w_2) = w_1 S_1 + w_2 S_2
+$$
+
+**The surface is a plane.**
+
+**Why?** This is a linear combination of $w_1$ and $w_2$, no quadratic terms, no products, just straight lines. The graph is a flat tilted plane in 3D space.
+
+Portfolio value changes linearly with weight adjustments. This contrasts sharply with risk, which involves quadratic terms.
+
+### C. Risk as a Multivariable Quadratic Function
+
+Portfolio variance for 2 assets:
+
+$$
+\text{Var}(w_1, w_2) = \sigma_1^2 w_1^2 + 2\rho \sigma_1 \sigma_2 w_1 w_2 + \sigma_2^2 w_2^2
+$$
+
+where:
+- $\sigma_1, \sigma_2$ = standard deviations of the two assets
+- $\rho$ = correlation between the assets
+
+**Geometry:** This is a **curved bowl-shaped surface** (if $\rho < 1$, which is typical).
+
+**Key insight:** Risk is **not linear** in portfolio weights. Doubling your position doesn't just double your risk, it quadruples it (because risk depends on $w^2$).
+
+<details>
+<summary><strong>Optional: Deeper Dive on Correlation Effects (Can Skip on First Read)</strong></summary>
+
+The cross term $2\rho \sigma_1 \sigma_2 w_1 w_2$ means the two positions interact:
+
+- If $\rho = 1$ (perfect correlation), diversification provides no benefit
+- If $\rho = -1$ (perfect negative correlation), you can eliminate risk entirely by choosing the right weights
+- If $\rho = 0$ (uncorrelated), the cross term vanishes and risk is simply the sum of individual variances
+
+**Later in Lesson 5:** We'll compute gradients (slopes) to find the minimum-variance portfolio, and Hessians (curvature in Lesson 6) to verify it's truly a minimum.
+
+</details>
+
+For now, just visualize: **the variance surface is a curved bowl, and navigating it requires understanding multivariable calculus.**
+
+---
+
+## 9. Summary
+
+Let's consolidate what we've learned:
+
+- **A function $f(x, y)$ maps a pair $(x, y)$ to a number:** $f: \mathbb{R}^2 \to \mathbb{R}$. More generally, $f: \mathbb{R}^n \to \mathbb{R}$ for $n$ variables.
+
+- **Level sets** (contours) show where the function has constant value: $f(x, y) = c$. They're like topographic maps, revealing the function's structure.
+
+- **Domain** includes constraints that make sense in context: stock prices must be positive ($S > 0$), portfolio weights must sum to 1 ($\sum w_i = 1$), etc.
+
+- **Surfaces** in 3D visualize functions of 2 variables. Surfaces can be bowls (paraboloids), planes (linear functions), or saddles (non-convex).
+
+- **Portfolio value, option prices, and risk are all multivariable functions.** Value is linear in weights. Risk is quadratic.
+
+- **Operations like composition build complex models from simple pieces.** Volatility surfaces feed into pricing models, which feed into hedging strategies.
+
+**Key takeaway:** Multivariable functions are the language of quantitative finance. You cannot describe markets, portfolios, or derivatives with single variables.
+
+---
+
+## 10. Next Steps
+
+Now that we understand functions of multiple variables, we need to understand **how they change**.
+
+In single-variable calculus, the derivative $f'(x)$ tells you the rate of change. But for $f(x, y)$, there's no single "derivative", the function can change differently in different directions.
+
+**Next lesson: Partial Derivatives**
+
+You'll learn:
+- How to take derivatives with respect to one variable at a time (holding others constant)
+- What partial derivatives mean geometrically (slopes along coordinate directions)
+- How to compute **sensitivity** (the "Greeks" in options: Delta, Gamma, Vega, Theta, Rho)
+- Why $\frac{\partial C}{\partial S} = \Delta$ (the option delta measures how option price changes with stock price)
+
+Partial derivatives unlock the ability to analyze how functions respond to changes in individual inputs. They're the foundation for optimization, risk management, and hedging.
+
+Let's continue building your multivariable calculus toolkit.

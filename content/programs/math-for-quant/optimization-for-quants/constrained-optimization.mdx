@@ -1,0 +1,314 @@
+# Constrained Optimization
+
+## 1. Why Constraints Matter
+
+### Real World Optimization Is Rarely Unconstrained
+
+In textbooks, we often minimize $f(x)$ over all of $\mathbb{R}^n$. In practice, this almost never happens.
+
+**Real constraints exist:**
+
+- Portfolio weights must sum to 100%
+- You can't hold negative quantities of most assets (long-only)
+- Regulatory limits cap position sizes
+- Risk budgets bound total portfolio variance
+- Capital constraints limit total investment
+
+**Ignoring constraints gives meaningless solutions.** An unconstrained minimum-variance portfolio might suggest infinite shorting of one asset to fund infinite positions in another. Mathematically optimal, practically useless.
+
+### Constraints Encode Feasibility, Risk Limits, and Regulations
+
+Constraints represent real-world limitations:
+
+**Feasibility constraints:** Physical or logical requirements that must hold.
+
+- Weights sum to 1 (you invest 100% of capital)
+- Integer shares (can't buy 0.7 shares in some contexts)
+- Minimum trade sizes (exchange requirements)
+
+**Risk constraints:** Bounds on acceptable risk exposure.
+
+- Maximum portfolio volatility
+- Sector exposure limits
+- Single-name concentration limits
+
+**Regulatory constraints:** Rules imposed by authorities.
+
+- Leverage limits
+- Short-selling restrictions
+- Liquidity requirements
+
+### Why Ignoring Constraints Leads to Unrealistic Solutions
+
+**Example:** Minimize variance of a two-asset portfolio without constraints.
+
+The unconstrained solution might put weight -500% on one asset and +600% on the other. Minimum variance achieved, but:
+
+- You can't short 500% of your capital
+- Leverage of 11x violates most regulations
+- Transaction costs would be enormous
+
+**Constraints force realistic solutions.** They're not obstacles to optimization; they're essential parts of the problem definition.
+
+---
+
+## 2. Types of Constraints
+
+### Equality Constraints
+
+**Form:** $h(x) = 0$
+
+The solution must satisfy the equation exactly.
+
+**Examples:**
+
+- Budget constraint: $\sum_i w_i = 1$ (fully invested)
+- Target return: $\sum_i w_i \mu_i = \mu_{target}$
+- Market neutrality: $\sum_i w_i \beta_i = 0$
+
+**Geometric interpretation:** Equality constraints define surfaces (hyperplanes for linear constraints). The solution must lie exactly on these surfaces.
+
+### Inequality Constraints
+
+**Form:** $g(x) \leq 0$
+
+The solution must satisfy the inequality (can be strict or at the boundary).
+
+**Examples:**
+
+- Long-only: $-w_i \leq 0$ (equivalently $w_i \geq 0$)
+- Position limit: $w_i \leq 0.10$ (no more than 10% in any asset)
+- Risk budget: $w^T \Sigma w \leq \sigma^2_{max}$
+
+**Geometric interpretation:** Inequality constraints define half-spaces or regions. The solution must lie within (or on the boundary of) these regions.
+
+### Bound Constraints
+
+**Form:** $l_i \leq x_i \leq u_i$
+
+Simple lower and upper bounds on individual variables.
+
+**Examples:**
+
+- Long-only: $0 \leq w_i$
+- Position limits: $-0.05 \leq w_i \leq 0.10$
+- Leverage: $-1 \leq \sum_i w_i \leq 2$
+
+**Computational advantage:** Bound constraints are the simplest to handle. Many algorithms have special efficient methods for them.
+
+### Geometric Interpretation of Feasible Regions
+
+**The feasible region** is the set of all points satisfying all constraints:
+
+$$
+\mathcal{F} = \{x : g_i(x) \leq 0 \text{ for all } i, \quad h_j(x) = 0 \text{ for all } j\}
+$$
+
+**Linear constraints create polyhedra:** Intersections of half-spaces form multi-faceted shapes with flat faces, edges, and corners.
+
+**Quadratic constraints create curved boundaries:** Ellipsoids, cones, and other smooth surfaces.
+
+**The optimization searches only within $\mathcal{F}$.** Points outside are infeasible and ignored, no matter how good their objective value.
+
+---
+
+## 3. Feasible Set and Boundary Behavior
+
+### Interior vs Boundary Solutions
+
+**Interior solution:** The optimum lies strictly inside the feasible region. All inequality constraints are slack (not binding).
+
+**Boundary solution:** The optimum lies on the boundary of the feasible region. At least one inequality constraint is active (binding).
+
+**Key insight:** Constrained optima often occur on boundaries. The unconstrained optimum typically lies outside the feasible region, so the constrained optimum is pushed to the nearest feasible point.
+
+### Why Optima Often Occur on Boundaries
+
+**Example:** Minimize $f(x) = (x-5)^2$ subject to $x \leq 3$.
+
+The unconstrained minimum is at $x = 5$, but this violates $x \leq 3$.
+
+The constrained minimum is at $x = 3$, on the boundary.
+
+**General principle:** When constraints prevent reaching the unconstrained optimum, the solution is pushed to the constraint boundary.
+
+**In portfolio optimization:** Without constraints, optimal weights might be extreme. With position limits, optimal weights often hit those limits exactly. The constraint is active.
+
+### Visual Intuition in Low Dimensions
+
+**2D visualization:** Draw the feasible region (a polygon for linear constraints). Draw level curves of the objective function. The optimum is where the lowest level curve touches the feasible region.
+
+**For interior optima:** The lowest touching level curve touches at an interior point. The gradient is zero there.
+
+**For boundary optima:** The lowest touching level curve is tangent to the boundary. The gradient points outward, but you can't move in that direction without leaving the feasible region.
+
+**Corner solutions:** When the boundary has corners (as with linear constraints), optima often occur at corners. Linear programming always has corner solutions.
+
+---
+
+## 4. First-Order Conditions with Constraints (Intuition)
+
+### Why Gradient Equals Zero No Longer Applies
+
+In unconstrained optimization, the optimum satisfies $\nabla f(x^*) = 0$.
+
+**With constraints, this fails.** At a boundary optimum, the gradient typically isn't zero. It points toward the unconstrained optimum, which is outside the feasible region.
+
+**Example:** Minimize $(x-5)^2$ subject to $x \leq 3$.
+
+At $x^* = 3$: gradient is $2(3-5) = -4 \neq 0$.
+
+The gradient points toward decreasing the objective (moving right), but the constraint prevents it.
+
+### Gradient Alignment with Constraint Boundaries
+
+At a boundary optimum, a special relationship holds:
+
+**The objective gradient is perpendicular to the constraint boundary** (or a combination of active constraint gradients).
+
+**Intuition:** If the gradient had a component along the boundary, you could move along the boundary and improve. So at an optimum, any improving direction must point outside the feasible region.
+
+**Mathematically:** The gradient of $f$ must be a linear combination of gradients of active constraints. This is the basis for Lagrange multipliers.
+
+### Tangent Space Intuition
+
+**Tangent space:** At a point on a constraint surface, the tangent space is the set of directions you can move while staying on the surface (to first order).
+
+**Optimality condition:** At a constrained optimum, there should be no improving direction within the tangent space.
+
+**This means:** The gradient of $f$, projected onto the tangent space, must be zero. Any non-zero component would indicate an improving feasible direction.
+
+---
+
+## 5. Active and Inactive Constraints
+
+### What It Means for a Constraint to Be Active
+
+**Active (binding) constraint:** At the solution $x^*$, the constraint holds with equality.
+
+- Equality constraint $h(x) = 0$: Always active by definition
+- Inequality constraint $g(x) \leq 0$: Active if $g(x^*) = 0$
+
+**Inactive (slack) constraint:** At the solution, the inequality is strict.
+
+- Inequality $g(x) \leq 0$: Inactive if $g(x^*) < 0$
+
+**Example:** With constraint $w_i \leq 0.10$:
+
+- If optimal $w_i^* = 0.10$, constraint is active (binding)
+- If optimal $w_i^* = 0.07$, constraint is inactive (slack)
+
+### How Active Constraints Shape the Solution
+
+**Active constraints matter.** They directly influence the optimal solution by restricting where it can be.
+
+**Inactive constraints don't affect the solution** (locally). Removing them slightly wouldn't change the optimum.
+
+**The challenge:** We don't know in advance which constraints will be active. The optimization must discover this.
+
+**Active set methods:** Some algorithms explicitly track which constraints are active and solve the reduced problem. They add/remove constraints from the active set as needed.
+
+### Constraint Switching and Corner Solutions
+
+**Constraint switching:** As problem parameters change, different constraints become active.
+
+**Example:** Portfolio optimization with changing expected returns. At low target return, maybe the budget constraint alone is active. At higher target return, position limits might become active too.
+
+**Corner solutions:** When multiple constraints are active simultaneously, the solution is at a "corner" of the feasible region.
+
+**Sensitivity:** At corners, small parameter changes can cause the solution to jump to a different corner. This discontinuous behavior matters for risk management.
+
+---
+
+## 6. Feasibility vs Optimality
+
+### Difference Between Satisfying Constraints and Being Optimal
+
+**Feasible:** A point satisfies all constraints. It's in the feasible region.
+
+**Optimal:** A feasible point that achieves the best objective value among all feasible points.
+
+**The distinction matters:**
+
+- Many points are feasible. Only one (or a set) is optimal.
+- Finding any feasible point can itself be hard (feasibility problem)
+- An infeasible problem has no solution, regardless of the objective
+
+### Trade-Offs Enforced by Constraints
+
+Constraints create trade-offs:
+
+**Return vs risk:** Higher target return requires accepting more risk. The constraint $\mu^T w \geq \mu_{target}$ trades off against minimizing $w^T \Sigma w$.
+
+**Diversification vs conviction:** Position limits force diversification, even if you're highly confident in one asset.
+
+**Feasibility vs optimality:** Tighter constraints shrink the feasible region. The optimal objective value worsens (or stays the same, never improves).
+
+**Lagrange multipliers quantify trade-offs:** They tell you how much the objective would improve if a constraint were relaxed slightly. This is the "shadow price" of the constraint.
+
+### Why Constraints Change Problem Geometry
+
+**Without constraints:** The optimization landscape is just the objective function. Optima are where the gradient vanishes.
+
+**With constraints:** The landscape is the objective function restricted to the feasible region. The boundary creates new potential optima that wouldn't exist unconstrained.
+
+**Geometry changes:**
+
+- New optima can appear on boundaries
+- Unconstrained optima may become infeasible
+- The effective dimension may reduce (equality constraints lower dimension)
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**Constraints** encode real-world limitations: budgets, risk limits, regulations.
+
+**Equality constraints** ($h(x) = 0$) force exact conditions.
+
+**Inequality constraints** ($g(x) \leq 0$) define allowed regions.
+
+**The feasible region** is where all constraints are satisfied.
+
+**Active constraints** bind at the solution and directly affect it.
+
+**Boundary solutions** are common when constraints prevent reaching the unconstrained optimum.
+
+### Key Formulas
+
+**General constrained problem:**
+
+$$
+\min_x f(x) \quad \text{subject to} \quad g_i(x) \leq 0, \quad h_j(x) = 0
+$$
+
+**Feasible region:**
+
+$$
+\mathcal{F} = \{x : g_i(x) \leq 0, \quad h_j(x) = 0 \text{ for all } i, j\}
+$$
+
+### Key Insights for Quants
+
+1. **Real optimization problems always have constraints**
+2. **Optima often occur on constraint boundaries**, not at zero-gradient points
+3. **Active constraints shape the solution**; inactive ones don't matter locally
+4. **Constraints create trade-offs** that Lagrange multipliers quantify
+5. **Understanding which constraints bind** is crucial for sensitivity analysis
+
+---
+
+## 8. What's Next?
+
+We've seen that constraints change optimality conditions fundamentally. The gradient-equals-zero condition no longer applies at boundary solutions. We need a systematic way to handle constraints mathematically.
+
+**Next lesson: Lagrangian and KKT Conditions**
+
+You'll learn:
+
+- The Lagrangian function and multipliers
+- KKT conditions for constrained optimality
+- Complementary slackness and its interpretation
+- When KKT conditions are sufficient for global optimality

@@ -1,0 +1,427 @@
+# Optimization Problems and Objective Functions
+
+## 1. Why Optimization Matters for Quants
+
+### Most Quant Problems Are Optimization Problems
+
+At its core, quantitative finance is about making optimal decisions:
+
+- **What portfolio weights maximize risk-adjusted return?**
+- **What model parameters best fit market prices?**
+- **What trade execution minimizes market impact?**
+- **What hedge ratio minimizes residual risk?**
+
+Each of these questions is an optimization problem. You have choices to make (decision variables), a goal to achieve (objective function), and limitations to respect (constraints).
+
+### Trading, Portfolio Construction, Calibration, and Risk
+
+**Portfolio construction:** Given expected returns and covariances, find weights that maximize Sharpe ratio or minimize variance for a target return.
+
+**Model calibration:** Find parameters that minimize the difference between model prices and market prices. Every option pricing model must be calibrated this way.
+
+**Risk management:** Minimize Value at Risk or Expected Shortfall while maintaining portfolio characteristics. Find the minimum-cost hedge.
+
+**Trade execution:** Split a large order across time to minimize price impact and execution cost.
+
+**Signal construction:** Find factor weights that maximize predictive power while controlling turnover.
+
+### Optimization as Decision Making Under Constraints
+
+In the real world, decisions face limitations:
+
+- You can't short more than regulations allow
+- Position sizes are bounded by liquidity
+- Portfolio weights must sum to 100%
+- Transaction costs eat into returns
+
+Optimization provides a systematic framework for finding the best decision subject to these real-world constraints. Without optimization, you're guessing. With optimization, you're making principled, quantifiable choices.
+
+---
+
+## 2. What an Optimization Problem Is
+
+### Objective Function
+
+The **objective function** $f(x)$ is what you want to minimize or maximize. It maps your decision variables to a single number representing "how good" that decision is.
+
+**Examples:**
+
+- Portfolio variance: $f(w) = w^T \Sigma w$
+- Negative Sharpe ratio (to minimize): $f(w) = -\frac{w^T \mu - r_f}{\sqrt{w^T \Sigma w}}$
+- Calibration error: $f(\theta) = \sum_i (P_i^{model}(\theta) - P_i^{market})^2$
+- Tracking error: $f(w) = (w - w_{benchmark})^T \Sigma (w - w_{benchmark})$
+
+The objective function encodes your goal mathematically.
+
+### Decision Variables
+
+**Decision variables** $x$ (or $w$ for weights, $\theta$ for parameters) are what you control. These are the inputs you can choose.
+
+**Examples:**
+
+- Portfolio weights: $w = (w_1, w_2, \ldots, w_n)$
+- Model parameters: $\theta = (\sigma, \kappa, \theta_{mean})$
+- Trade schedule: quantities to execute at each time step
+- Hedge ratios: how much of each hedging instrument to hold
+
+The optimization algorithm searches over possible values of the decision variables to find the best ones.
+
+### Feasible Set
+
+The **feasible set** $\mathcal{X}$ is the collection of all decision variable values that satisfy the constraints. Any solution outside the feasible set is invalid.
+
+$$
+\mathcal{X} = \{x : \text{all constraints are satisfied}\}
+$$
+
+**Examples:**
+
+- Weights summing to 1: $\{w : \sum_i w_i = 1\}$
+- Long-only constraint: $\{w : w_i \geq 0 \text{ for all } i\}$
+- Bounded positions: $\{w : -0.1 \leq w_i \leq 0.1 \text{ for all } i\}$
+
+### Maximization vs Minimization
+
+Every optimization problem is either:
+
+$$
+\min_{x \in \mathcal{X}} f(x) \quad \text{or} \quad \max_{x \in \mathcal{X}} f(x)
+$$
+
+These are equivalent because:
+
+$$
+\max_{x} f(x) = -\min_{x} (-f(x))
+$$
+
+**Convention:** Most optimization theory focuses on minimization. To maximize, just negate the objective.
+
+**In finance:**
+
+- Minimize: risk, tracking error, transaction costs, calibration error
+- Maximize: return, Sharpe ratio, utility, likelihood
+
+---
+
+## 3. Types of Objective Functions
+
+### Linear Objectives
+
+A **linear objective** is a weighted sum of decision variables:
+
+$$
+f(x) = c^T x = c_1 x_1 + c_2 x_2 + \cdots + c_n x_n
+$$
+
+**Properties:**
+
+- No curvature (flat "bowl")
+- Optimum always at boundary or corner of feasible set
+- Very easy to optimize
+
+**Financial example:** Maximize expected return (before considering risk):
+
+$$
+\max_w \mu^T w = \mu_1 w_1 + \mu_2 w_2 + \cdots + \mu_n w_n
+$$
+
+### Quadratic Objectives
+
+A **quadratic objective** includes squared and cross terms:
+
+$$
+f(x) = \frac{1}{2} x^T Q x + c^T x
+$$
+
+where $Q$ is a matrix (typically symmetric).
+
+**Properties:**
+
+- Parabolic shape (bowl if $Q$ is positive definite)
+- Has curvature, allowing interior optima
+- Still tractable with efficient algorithms
+
+**Financial example:** Portfolio variance:
+
+$$
+f(w) = w^T \Sigma w
+$$
+
+where $\Sigma$ is the covariance matrix.
+
+### Nonlinear Objectives
+
+**Nonlinear objectives** are everything else: ratios, exponentials, logarithms, etc.
+
+$$
+f(x) = \text{any nonlinear function}
+$$
+
+**Properties:**
+
+- Can have multiple local optima
+- May be non-convex
+- Harder to solve, may require specialized algorithms
+
+**Financial examples:**
+
+- Sharpe ratio: $\frac{\mu^T w - r_f}{\sqrt{w^T \Sigma w}}$ (ratio of linear to square root of quadratic)
+- Log-likelihood in maximum likelihood estimation
+- Utility functions: $E[u(W)]$ where $u$ is concave
+
+### Why Quadratic Objectives Appear So Often in Finance
+
+Quadratic objectives dominate quantitative finance because:
+
+**Variance is quadratic:** Portfolio variance $w^T \Sigma w$ is the fundamental risk measure, and it's quadratic in weights.
+
+**Mean-variance framework:** Markowitz portfolio theory optimizes quadratic objectives with linear constraints.
+
+**Tractability:** Quadratic problems with linear constraints (quadratic programs) have efficient, reliable solvers.
+
+**Approximations:** Many complex objectives can be approximated by quadratics near the optimum (Taylor expansion).
+
+**Covariance structure:** Financial returns are characterized by covariances, which naturally lead to quadratic forms.
+
+---
+
+## 4. Constraints and Feasible Regions
+
+### Equality vs Inequality Constraints
+
+**Equality constraints** force exact conditions:
+
+$$
+h(x) = 0
+$$
+
+**Examples:**
+
+- Budget constraint: $\sum_i w_i = 1$ (weights sum to 1)
+- Target return: $\mu^T w = \mu_{target}$
+- Zero net exposure: $\sum_i w_i = 0$ (market neutral)
+
+**Inequality constraints** allow ranges:
+
+$$
+g(x) \leq 0
+$$
+
+**Examples:**
+
+- Long-only: $-w_i \leq 0$ (equivalently $w_i \geq 0$)
+- Position limits: $w_i \leq 0.10$ (no position exceeds 10%)
+- Risk budget: $w^T \Sigma w \leq \sigma_{max}^2$
+
+### Bound Constraints
+
+**Bound constraints** are simple inequalities on individual variables:
+
+$$
+l_i \leq x_i \leq u_i
+$$
+
+**Examples:**
+
+- Long-only: $0 \leq w_i$
+- No shorting more than 50%: $-0.5 \leq w_i$
+- Maximum position of 10%: $w_i \leq 0.1$
+- Combined: $-0.05 \leq w_i \leq 0.10$
+
+Bound constraints are the simplest and most computationally friendly.
+
+### Geometric Interpretation of Feasible Sets
+
+The feasible set has a geometric shape:
+
+**Linear equality constraints:** Hyperplanes (flat surfaces). The intersection of hyperplanes is a lower-dimensional affine subspace.
+
+**Linear inequality constraints:** Half-spaces. The intersection of half-spaces is a **polyhedron** (a multi-faceted geometric shape).
+
+**Quadratic constraints:** Ellipsoids or other curved surfaces.
+
+**Example:** With $w_1 + w_2 = 1$ and $w_1, w_2 \geq 0$, the feasible set is the line segment from $(0, 1)$ to $(1, 0)$.
+
+### Why Constraints Encode Real World Limitations
+
+Constraints aren't arbitrary mathematical objects. They represent genuine limitations:
+
+**Regulatory constraints:** Position limits, leverage caps, sector exposure limits
+
+**Risk constraints:** Maximum volatility, VaR limits, drawdown limits
+
+**Operational constraints:** Minimum trade size, integer share quantities
+
+**Market constraints:** Liquidity (can't take positions larger than market can absorb)
+
+**Accounting constraints:** Weights must sum to 1 for a fully invested portfolio
+
+A solution that violates constraints is useless in practice, no matter how good the objective value looks.
+
+---
+
+## 5. Unconstrained vs Constrained Problems
+
+### Conceptual Difference
+
+**Unconstrained optimization:**
+
+$$
+\min_x f(x)
+$$
+
+The decision variable can be anything. The optimum is found where the gradient equals zero (for smooth functions).
+
+**Constrained optimization:**
+
+$$
+\min_{x \in \mathcal{X}} f(x)
+$$
+
+The decision variable must lie in the feasible set. The optimum may be at a boundary, not necessarily where the gradient is zero.
+
+### Why Unconstrained Problems Are Rare in Practice
+
+Pure unconstrained problems almost never appear in finance:
+
+**Budget constraints exist:** Portfolio weights must sum to something (usually 1 or 0).
+
+**Boundedness matters:** Without bounds, optimal solutions often go to infinity (infinite leverage).
+
+**Regulations impose limits:** Real portfolios face position limits, sector constraints, etc.
+
+**Risk limits are universal:** No rational investor ignores risk entirely.
+
+However, understanding unconstrained optimization is valuable because:
+
+- It provides foundational intuition
+- Algorithms often solve sequences of unconstrained subproblems
+- Constrained problems can sometimes be transformed into unconstrained ones
+
+### Preview of Constrained Optimization Tools
+
+Later lessons will cover tools for handling constraints:
+
+**Lagrange multipliers:** Convert constrained problems to unconstrained by introducing dual variables.
+
+**KKT conditions:** Generalize first-order conditions to include inequality constraints.
+
+**Penalty methods:** Add constraint violations to the objective function.
+
+**Interior point methods:** Navigate through the interior of the feasible set.
+
+**Active set methods:** Identify which constraints are "active" (binding) at the solution.
+
+---
+
+## 6. Local vs Global Optima
+
+### Definition of Local and Global Minima and Maxima
+
+**Local minimum:** A point $x^*$ where $f(x^*) \leq f(x)$ for all $x$ sufficiently close to $x^*$.
+
+You can't improve by making small changes, but there might be better solutions far away.
+
+**Global minimum:** A point $x^*$ where $f(x^*) \leq f(x)$ for all feasible $x$.
+
+This is the truly best solution. No other feasible point has a lower objective value.
+
+**Analogies:**
+
+- Local minimum: The bottom of a valley (there might be deeper valleys elsewhere)
+- Global minimum: The bottom of the deepest valley (the absolute lowest point)
+
+### Multiple Optima and Flat Regions
+
+Real optimization problems can have:
+
+**Multiple local minima:** The objective function has several "valleys." Different starting points may lead to different solutions.
+
+**Plateaus:** Regions where the objective is constant. The gradient is zero, but it's not a minimum.
+
+**Saddle points:** Points where the gradient is zero but the point is a minimum in some directions and maximum in others.
+
+**Example:** A function like $f(x) = x^4 - 2x^2$ has local minima at $x = \pm 1$ and a local maximum at $x = 0$.
+
+### Why Convexity Changes Everything (Preview)
+
+A function is **convex** if it curves upward everywhere (like a bowl).
+
+**The key theorem:** For convex problems, every local minimum is a global minimum.
+
+**Implications:**
+
+- Any algorithm that finds a local minimum has found THE solution
+- No need to worry about getting stuck in suboptimal valleys
+- Efficient algorithms with guarantees exist
+
+**In finance:** Portfolio variance $w^T \Sigma w$ is convex (when $\Sigma$ is positive semi-definite). This is why mean-variance optimization is tractable.
+
+**Non-convex problems** (like maximizing Sharpe ratio directly, or fitting complex models) are much harder. You may find a local optimum without knowing if it's global.
+
+We'll explore convexity deeply in Lesson 3.
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**Optimization problem:** Minimize or maximize an objective function over a feasible set defined by constraints.
+
+**Objective function:** Maps decision variables to a single number measuring solution quality.
+
+**Decision variables:** The quantities you control and optimize over.
+
+**Feasible set:** All solutions satisfying the constraints.
+
+**Constraints:** Equality and inequality conditions encoding real-world limitations.
+
+**Local vs global optima:** Local is best nearby; global is best overall.
+
+### Key Formulas
+
+**General optimization problem:**
+
+$$
+\min_{x \in \mathcal{X}} f(x)
+$$
+
+**Quadratic objective (portfolio variance):**
+
+$$
+f(w) = w^T \Sigma w
+$$
+
+**Linear constraints:**
+
+$$
+Ax = b \quad \text{(equality)}
+$$
+
+$$
+Cx \leq d \quad \text{(inequality)}
+$$
+
+### Key Insights for Quants
+
+1. **Most quant problems are optimization problems** in disguise
+2. **Quadratic objectives dominate** because variance is quadratic
+3. **Constraints are essential**, not optional, in real applications
+4. **Local vs global** distinction matters, convexity resolves it
+5. **Formulating the problem correctly** is half the battle
+
+---
+
+## 8. What's Next?
+
+We've defined what optimization problems look like. Now we need methods to solve them.
+
+**Next lesson: First-Order Optimization Methods**
+
+You'll learn:
+
+- Gradient descent and its variants
+- How derivatives guide the search for optima
+- Step sizes and convergence
+- Why first-order methods are workhorses of optimization

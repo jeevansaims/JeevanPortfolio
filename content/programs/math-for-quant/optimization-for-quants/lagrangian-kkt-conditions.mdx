@@ -1,0 +1,335 @@
+# Lagrangian and KKT Conditions
+
+## 1. Why the Lagrangian Framework Matters
+
+### Turning Constrained Problems into Structured Systems
+
+The Lagrangian framework transforms constrained optimization into a structured system of equations. Instead of searching over a complicated feasible region, you solve a system that automatically handles constraints.
+
+**The core idea:** Introduce new variables (multipliers) that encode the "cost" of constraints. The combined system of original variables plus multipliers captures both the objective and constraints in one framework.
+
+**Why this works:** At an optimum, the desire to improve the objective is exactly balanced by the constraints preventing further improvement. The Lagrangian captures this balance mathematically.
+
+### Dual Variables as Shadow Prices
+
+**Lagrange multipliers** (also called dual variables) have a powerful interpretation:
+
+**Shadow price:** The multiplier $\lambda$ tells you how much the optimal objective value would improve if the constraint were relaxed by one unit.
+
+**Example:** In portfolio optimization with a budget constraint, the multiplier tells you the value of having one more dollar to invest.
+
+**Sensitivity analysis:** Multipliers reveal which constraints are "expensive" (large multiplier) versus "cheap" (small multiplier). This guides decisions about which constraints to relax if possible.
+
+### Why This Framework Dominates Constrained Optimization
+
+**Universality:** The Lagrangian approach works for equality constraints, inequality constraints, convex problems, non-convex problems, and virtually any smooth optimization problem.
+
+**Optimality conditions:** KKT conditions provide a complete characterization of optimality. Checking KKT is how you verify a solution is truly optimal.
+
+**Algorithmic foundation:** Most optimization algorithms (interior point, active set, SQP) are based on solving or approximating KKT conditions.
+
+**Duality:** The Lagrangian leads to dual problems that sometimes are easier to solve than the original (primal) problem.
+
+---
+
+## 2. Equality-Constrained Optimization and the Lagrangian
+
+### Constructing the Lagrangian
+
+For the problem:
+
+$$
+\min_x f(x) \quad \text{subject to} \quad h(x) = 0
+$$
+
+The **Lagrangian** is:
+
+$$
+\mathcal{L}(x, \lambda) = f(x) + \lambda^T h(x)
+$$
+
+where $\lambda$ is the vector of Lagrange multipliers (one per constraint).
+
+**What this does:** The Lagrangian combines the objective and constraints into a single function. Finding a stationary point of the Lagrangian (with respect to both $x$ and $\lambda$) gives you a candidate for the constrained optimum.
+
+### Stationarity Conditions
+
+At an optimum $(x^*, \lambda^*)$, the Lagrangian is stationary:
+
+$$
+\nabla_x \mathcal{L} = \nabla f(x^*) + \lambda^{*T} \nabla h(x^*) = 0
+$$
+
+$$
+\nabla_\lambda \mathcal{L} = h(x^*) = 0
+$$
+
+The first equation says the objective gradient is a linear combination of constraint gradients.
+
+The second equation says the constraints are satisfied.
+
+**Together:** These form a system of $n + m$ equations in $n + m$ unknowns (where $n$ is the dimension of $x$ and $m$ is the number of constraints).
+
+### Interpreting Lagrange Multipliers
+
+**The multiplier $\lambda_j$ measures the sensitivity** of the optimal objective to constraint $j$.
+
+If you change constraint $h_j(x) = 0$ to $h_j(x) = \epsilon$:
+
+$$
+\frac{df^*}{d\epsilon} \approx -\lambda_j
+$$
+
+**Large $|\lambda_j|$:** The constraint is "expensive." Relaxing it would significantly improve the objective.
+
+**Small $|\lambda_j|$:** The constraint is "cheap." Relaxing it wouldn't help much.
+
+**Sign:** For minimization with $h(x) = 0$, the sign of $\lambda$ indicates which direction of relaxation helps.
+
+### Geometric Intuition: Gradients Balancing Constraints
+
+**At an optimum:**
+
+The objective gradient $\nabla f$ points toward improving the objective (decreasing for minimization).
+
+The constraint gradient $\nabla h$ points perpendicular to the constraint surface.
+
+**The balance:** You can't improve by moving along the constraint surface. This happens when $\nabla f$ is perpendicular to the surface, meaning $\nabla f$ is parallel to $\nabla h$.
+
+**Mathematically:** $\nabla f = -\lambda \nabla h$ for some scalar $\lambda$. This is exactly the stationarity condition.
+
+---
+
+## 3. Inequality Constraints and Complementarity
+
+### Extending the Lagrangian to Inequalities
+
+For inequalities $g(x) \leq 0$, the Lagrangian becomes:
+
+$$
+\mathcal{L}(x, \mu, \lambda) = f(x) + \mu^T g(x) + \lambda^T h(x)
+$$
+
+where $\mu \geq 0$ are multipliers for inequality constraints.
+
+**Key difference:** Inequality multipliers must be non-negative ($\mu \geq 0$). This captures the asymmetry: the constraint only "pushes" in one direction.
+
+### Complementary Slackness Intuition
+
+**Complementary slackness:** At an optimum:
+
+$$
+\mu_i g_i(x^*) = 0 \quad \text{for each inequality } i
+$$
+
+**What this means:** Either $\mu_i = 0$ or $g_i(x^*) = 0$ (or both).
+
+**Interpretation:**
+
+- If constraint is inactive ($g_i(x^*) < 0$, has slack), then $\mu_i = 0$. Inactive constraints don't affect the solution.
+- If multiplier is positive ($\mu_i > 0$), then $g_i(x^*) = 0$. The constraint is active.
+
+**Intuition:** You only "pay" (positive multiplier) for constraints that actually bind. Slack constraints are free.
+
+### Active vs Inactive Constraints Revisited
+
+**Active constraint:** $g_i(x^*) = 0$ and possibly $\mu_i > 0$
+
+**Inactive constraint:** $g_i(x^*) < 0$ and necessarily $\mu_i = 0$
+
+**The optimization discovers** which constraints are active. This is one of the main challenges: we don't know in advance.
+
+**Active set methods:** Algorithms that explicitly track which constraints are active and solve the reduced problem. They add or remove constraints from the active set as they iterate.
+
+---
+
+## 4. Karush-Kuhn-Tucker (KKT) Conditions
+
+### Full KKT System
+
+For the general problem:
+
+$$
+\min_x f(x) \quad \text{subject to} \quad g_i(x) \leq 0, \quad h_j(x) = 0
+$$
+
+The **KKT conditions** are:
+
+**1. Stationarity:**
+
+$$
+\nabla f(x^*) + \sum_i \mu_i^* \nabla g_i(x^*) + \sum_j \lambda_j^* \nabla h_j(x^*) = 0
+$$
+
+**2. Primal feasibility:**
+
+$$
+g_i(x^*) \leq 0, \quad h_j(x^*) = 0
+$$
+
+**3. Dual feasibility:**
+
+$$
+\mu_i^* \geq 0
+$$
+
+**4. Complementary slackness:**
+
+$$
+\mu_i^* g_i(x^*) = 0
+$$
+
+### Necessary Conditions for Optimality
+
+**Theorem:** If $x^*$ is a local minimum and certain regularity conditions hold (constraint qualifications), then there exist multipliers $(\mu^*, \lambda^*)$ such that KKT conditions are satisfied.
+
+**In other words:** Any local optimum must satisfy KKT (under regularity). If a point doesn't satisfy KKT, it's not optimal.
+
+**Use:** To verify optimality, check KKT. To find optima, solve for points satisfying KKT.
+
+### When KKT Conditions Are Sufficient
+
+**For convex problems:** If $f$ is convex, $g_i$ are convex, and $h_j$ are affine (linear), then:
+
+**KKT conditions are necessary AND sufficient for global optimality.**
+
+**This is huge:** For convex problems, finding any point satisfying KKT gives you the global optimum. No need to check second-order conditions or worry about other local minima.
+
+**In finance:** Portfolio variance minimization is convex. KKT conditions completely characterize the solution.
+
+---
+
+## 5. Constraint Qualifications (Intuition Only)
+
+### Why KKT May Fail Without Regularity
+
+**Problem:** KKT conditions require constraint qualifications (regularity conditions). Without them, KKT might not hold at an optimum.
+
+**Example of failure:** Consider $\min x$ subject to $x^2 \leq 0$.
+
+The only feasible point is $x = 0$, so it's optimal.
+
+But the constraint gradient at $x = 0$ is $2x = 0$. The gradient of the active constraint is zero, which violates regularity.
+
+KKT would require $1 + \mu \cdot 0 = 0$, which is impossible.
+
+### Basic Intuition Behind Constraint Qualifications
+
+**What regularity ensures:** The constraint gradients are "well-behaved" at the solution. They span enough directions to properly characterize the feasible region locally.
+
+**Linear Independence Constraint Qualification (LICQ):** The gradients of active constraints are linearly independent.
+
+**Slater's condition (for convex problems):** There exists a strictly feasible point (all inequalities strictly satisfied).
+
+**When satisfied:** Most well-posed problems in finance satisfy constraint qualifications. Pathological cases are rare in practice.
+
+### Why Quants Should Care About Well-Posed Problems
+
+**Numerical stability:** Problems violating constraint qualifications can cause numerical solvers to fail or give unreliable results.
+
+**Solution existence:** Well-posed problems have solutions that can be characterized by KKT.
+
+**Sensitivity analysis:** Multipliers are only meaningful when constraint qualifications hold.
+
+**Best practice:** When formulating optimization problems, check that constraints are "reasonable" and not redundant or degenerate.
+
+---
+
+## 6. Dual Interpretation
+
+### Dual Variables as Sensitivities
+
+The multipliers $\lambda$ and $\mu$ are called **dual variables** because they define the **dual problem**.
+
+**Sensitivity interpretation:** $\lambda_j$ tells you how the optimal objective changes when constraint $j$ is perturbed.
+
+For equality constraint $h_j(x) = b_j$:
+
+$$
+\frac{\partial f^*}{\partial b_j} = -\lambda_j^*
+$$
+
+For inequality constraint $g_i(x) \leq c_i$:
+
+$$
+\frac{\partial f^*}{\partial c_i} = -\mu_i^*
+$$
+
+### Economic Meaning of Multipliers
+
+**Shadow prices:** Multipliers represent the marginal value of relaxing constraints.
+
+**Budget constraint example:** If $\lambda$ is the multiplier on the budget constraint in portfolio optimization, then $\lambda$ represents the marginal value of capital. Adding one dollar to invest improves the optimal portfolio by approximately $\lambda$.
+
+**Risk constraint example:** If $\mu$ is the multiplier on a risk limit, then $\mu$ represents the marginal cost of the risk constraint. How much return are you sacrificing per unit of risk limit?
+
+**Decision making:** Large multipliers indicate binding constraints that significantly affect the objective. These are candidates for relaxation if possible.
+
+### Connection to Pricing
+
+**In financial economics:** Lagrange multipliers often correspond to prices.
+
+**State prices:** In asset pricing, multipliers on constraints give risk-neutral probabilities or state prices.
+
+**Risk premiums:** The multiplier on a risk constraint relates to the price of risk.
+
+**Duality in optimization mirrors duality in economics:** Primal variables are quantities; dual variables are prices. Optimal solutions balance quantities and prices.
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**The Lagrangian** combines objective and constraints: $\mathcal{L}(x, \mu, \lambda) = f(x) + \mu^T g(x) + \lambda^T h(x)$
+
+**KKT conditions** are necessary for optimality: stationarity, primal feasibility, dual feasibility, complementary slackness.
+
+**For convex problems**, KKT conditions are also sufficient.
+
+**Multipliers** are shadow prices showing constraint sensitivity.
+
+**Complementary slackness** links active constraints to positive multipliers.
+
+### Key Formulas
+
+**Lagrangian:**
+
+$$
+\mathcal{L}(x, \mu, \lambda) = f(x) + \sum_i \mu_i g_i(x) + \sum_j \lambda_j h_j(x)
+$$
+
+**Stationarity:**
+
+$$
+\nabla_x \mathcal{L} = 0
+$$
+
+**Complementary slackness:**
+
+$$
+\mu_i g_i(x^*) = 0
+$$
+
+### Key Insights for Quants
+
+1. **KKT conditions characterize** constrained optima completely (for convex problems)
+2. **Multipliers are shadow prices** revealing the cost of constraints
+3. **Complementary slackness** identifies which constraints bind
+4. **Convexity makes KKT sufficient**, guaranteeing global optimality
+5. **Well-posed problems** satisfy constraint qualifications, ensuring KKT applies
+
+---
+
+## 8. What's Next?
+
+We've developed the complete theory of constrained optimization. Now we apply everything to the most important optimization problem in quantitative finance.
+
+**Next lesson: Quadratic Optimization and Quant Case Studies**
+
+You'll learn:
+
+- Quadratic programming structure
+- Mean-variance portfolio optimization
+- The efficient frontier
+- Practical solution methods

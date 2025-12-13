@@ -41,7 +41,9 @@ export async function submitQuiz({
         problem_id,
         math_problems (
           id,
-          answer
+          answer,
+          question_type,
+          correct_option_index
         )
       `)
       .eq('lesson_id', lessonId)
@@ -58,7 +60,7 @@ export async function submitQuiz({
 
     quizData.forEach((q: any) => {
       const questionId = q.math_problems.id
-      const correctAnswer = q.math_problems.answer
+      const questionType = q.math_problems.question_type || 'free_text'
       const userAnswer = answers[questionId] || ''
 
       // Auto-fail if solution was viewed for this question
@@ -67,8 +69,21 @@ export async function submitQuiz({
         return
       }
 
-      // Compare answers using mathematical equivalence
-      const isCorrect = compareAnswers(userAnswer, correctAnswer)
+      let isCorrect = false
+
+      // Handle multiple choice questions
+      if (questionType === 'multiple_choice') {
+        const selectedIndex = parseInt(userAnswer)
+        const correctIndex = q.math_problems.correct_option_index
+        isCorrect = selectedIndex === correctIndex
+      }
+      // Handle free text questions
+      else {
+        const correctAnswer = q.math_problems.answer
+        // Compare answers using mathematical equivalence
+        isCorrect = compareAnswers(userAnswer, correctAnswer)
+      }
+
       results[questionId] = isCorrect
 
       if (isCorrect) {

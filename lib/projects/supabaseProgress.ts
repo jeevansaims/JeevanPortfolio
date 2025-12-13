@@ -25,8 +25,11 @@ export async function getProjectProgress(
       return {
         userId,
         projectSlug,
+        projectId: null,
         completedBlockIds: [],
         blockAttempts: {},
+        completed: false,
+        completedAt: null,
         updatedAt: new Date().toISOString(),
       };
     }
@@ -37,8 +40,11 @@ export async function getProjectProgress(
   return {
     userId: data.user_id,
     projectSlug: data.project_slug,
+    projectId: data.project_id || null,
     completedBlockIds: data.completed_block_ids || [],
     blockAttempts: data.block_attempts || {},
+    completed: data.completed || false,
+    completedAt: data.completed_at || null,
     updatedAt: data.updated_at,
   };
 }
@@ -50,23 +56,27 @@ export async function setProjectProgress(
   userId: string,
   projectSlug: string,
   completedBlockIds: string[],
-  blockAttempts: Record<string, string> = {}
+  blockAttempts: Record<string, string> = {},
+  projectId?: string
 ): Promise<boolean> {
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from('project_progress')
-    .upsert(
-      {
-        user_id: userId,
-        project_slug: projectSlug,
-        completed_block_ids: completedBlockIds,
-        block_attempts: blockAttempts,
-      },
-      {
-        onConflict: 'user_id,project_slug',
-      }
-    );
+  const upsertData: any = {
+    user_id: userId,
+    project_slug: projectSlug,
+    completed_block_ids: completedBlockIds,
+    block_attempts: blockAttempts,
+    updated_at: new Date().toISOString(),
+  };
+
+  // Add project_id if provided
+  if (projectId) {
+    upsertData.project_id = projectId;
+  }
+
+  const { error } = await supabase.from('project_progress').upsert(upsertData, {
+    onConflict: 'user_id,project_slug',
+  });
 
   if (error) {
     console.error('Error saving project progress:', error);
@@ -99,25 +109,54 @@ export async function markBlockCompleted(
     ? { ...progress.blockAttempts, [blockId]: userCode }
     : progress.blockAttempts;
 
-  return setProjectProgress(
-    userId,
-    projectSlug,
-    updatedCompletedIds,
-    updatedAttempts
-  );
+  return setProjectProgress(userId, projectSlug, updatedCompletedIds, updatedAttempts);
+}
+
+/**
+ * Mark a project as fully completed
+ */
+export async function markProjectCompleted(
+  userId: string,
+  projectSlug: string,
+  projectId?: string
+): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('project_progress')
+    .update({
+      completed: true,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .eq('project_slug', projectSlug);
+
+  if (error) {
+    console.error('Error marking project completed:', error);
+    return false;
+  }
+
+  return true;
 }
 
 /**
  * Get all user's project progress (for showing completion on projects list)
  */
-export async function getAllUserProgress(
-  userId: string
-): Promise<Record<string, number>> {
+export async function getAllUserProgress(userId: string): Promise<
+  Record<
+    string,
+    {
+      completedCount: number;
+      completed: boolean;
+    }
+  >
+> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('project_progress')
-    .select('project_slug, completed_block_ids')
+    .select('project_slug, completed_block_ids, completed')
     .eq('user_id', userId);
 
   if (error) {
@@ -125,13 +164,64 @@ export async function getAllUserProgress(
     return {};
   }
 
-  // Convert to { projectSlug: completedCount }
+  // Convert to { projectSlug: { completedCount, completed } }
   return data.reduce(
     (acc, item) => {
-      acc[item.project_slug] =
-        (item.completed_block_ids as string[])?.length || 0;
+      acc[item.project_slug] = {
+        completedCount: (item.completed_block_ids as string[])?.length || 0,
+        completed: item.completed || false,
+      };
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, { completedCount: number; completed: boolean }>
   );
+}
+
+/**
+ * Get completed project count for a user
+ */
+export async function getCompletedProjectCount(userId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from('project_progress')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('completed', true);
+
+  if (error) {
+    console.error('Error fetching completed project count:', error);
+    return 0;
+  }
+
+  return count || 0;
+}
+
+/**
+ * Reset all progress for a project (clears completed blocks and attempts)
+ */
+export async function resetProjectProgress(
+  userId: string,
+  projectSlug: string
+): Promise<boolean> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('project_progress')
+    .update({
+      completed_block_ids: [],
+      block_attempts: {},
+      completed: false,
+      completed_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .eq('project_slug', projectSlug);
+
+  if (error) {
+    console.error('Error resetting project progress:', error);
+    return false;
+  }
+
+  return true;
 }

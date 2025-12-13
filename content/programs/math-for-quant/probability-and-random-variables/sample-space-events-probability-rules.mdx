@@ -1,0 +1,508 @@
+# Sample Space, Events, and Probability Rules
+
+## 1. Why Probability Matters for Quants
+
+Finance is fundamentally about **uncertainty**. Every decision a quant makes involves outcomes that cannot be known in advance:
+
+- Will this stock go up or down tomorrow?
+- What will the portfolio return be next month?
+- Will this counterparty default?
+- How large could our losses be in a market crash?
+
+**Probability is the mathematical framework for reasoning about uncertainty.**
+
+### Probability as a Modeling Framework, Not Truth
+
+A critical insight: probabilities are **models**, not reality. When we say "there's a 60% chance the stock goes up," we're not claiming to know the future. We're building a mathematical model that helps us:
+
+- Make consistent decisions under uncertainty
+- Price derivatives and contingent claims
+- Manage risk systematically
+- Quantify our beliefs about future outcomes
+
+**The goal isn't to predict the future perfectly. It's to make better decisions than we would without a probabilistic framework.**
+
+### From Deterministic to Stochastic
+
+In deterministic math, inputs produce fixed outputs: $f(x) = x^2$ always gives the same result for the same $x$.
+
+In finance, the same "input" (holding a stock) produces different outputs (returns) depending on which state of the world occurs. This is **stochastic** (random) behavior.
+
+Probability theory gives us the tools to work with stochastic systems systematically.
+
+---
+
+## 2. Random Experiments and Sample Space
+
+### What is a Random Experiment?
+
+A **random experiment** is any process whose outcome cannot be predicted with certainty, but whose possible outcomes are known.
+
+**Examples in finance:**
+
+- Observing tomorrow's stock return
+- Recording whether a bond defaults within a year
+- Measuring the VIX at market close
+- Counting how many trades execute in an hour
+
+### The Sample Space
+
+The **sample space** $\Omega$ (omega) is the set of all possible outcomes of a random experiment.
+
+**Key principle:** Before assigning probabilities, you must define what can possibly happen.
+
+### Discrete Sample Spaces
+
+When outcomes are countable (finite or countably infinite):
+
+**Coin flip:**
+$$
+\Omega = \{H, T\}
+$$
+
+**Single die roll:**
+$$
+\Omega = \{1, 2, 3, 4, 5, 6\}
+$$
+
+**Stock direction tomorrow:**
+$$
+\Omega = \{\text{Up}, \text{Down}, \text{Flat}\}
+$$
+
+**Number of defaults in a portfolio:**
+$$
+\Omega = \{0, 1, 2, 3, \ldots, n\}
+$$
+
+### Continuous Sample Spaces
+
+When outcomes can take any value in an interval:
+
+**Stock return tomorrow:**
+$$
+\Omega = \mathbb{R} = (-\infty, \infty)
+$$
+
+**Stock price (must be positive):**
+$$
+\Omega = \mathbb{R}^+ = (0, \infty)
+$$
+
+**Portfolio volatility:**
+$$
+\Omega = [0, \infty)
+$$
+
+### Financial Examples in Detail
+
+**Example 1: Daily Return**
+
+For a single stock's daily return:
+$$
+\Omega = \mathbb{R}
+$$
+
+An outcome $\omega \in \Omega$ might be $\omega = 0.023$ (a 2.3% return).
+
+**Example 2: Credit Event**
+
+For whether a corporate bond defaults this year:
+$$
+\Omega = \{\text{Default}, \text{No Default}\}
+$$
+
+**Example 3: Joint Returns**
+
+For returns of two assets:
+$$
+\Omega = \mathbb{R}^2 = \{(r_1, r_2) : r_1, r_2 \in \mathbb{R}\}
+$$
+
+An outcome might be $\omega = (0.02, -0.01)$: asset 1 up 2%, asset 2 down 1%.
+
+---
+
+## 3. Events
+
+### Events as Subsets
+
+An **event** is a subset of the sample space, a collection of outcomes we're interested in.
+
+$$
+A \subseteq \Omega
+$$
+
+**Why subsets?** We often don't care about exact outcomes. We care about whether outcomes fall into certain categories.
+
+### Simple vs. Compound Events
+
+**Simple event:** Contains a single outcome, like "the stock returns exactly 5%."
+
+**Compound event:** Contains multiple outcomes, like "the stock returns more than 5%." This includes all returns above 5%.
+
+In continuous sample spaces, compound events are typically the only ones with nonzero probability.
+
+### Financial Event Examples
+
+**The stock goes up:**
+$$
+A = \{\omega \in \Omega : r(\omega) > 0\}
+$$
+
+**The portfolio loses more than 10%:**
+$$
+B = \{\omega \in \Omega : R_p(\omega) < -0.10\}
+$$
+
+**At least one of three bonds defaults:**
+$$
+C = \{\omega : \text{one or more defaults occur}\}
+$$
+
+**VIX exceeds 30:**
+$$
+D = \{\omega : \text{VIX}(\omega) > 30\}
+$$
+
+### What It Means for an Event to Occur
+
+After the random experiment is performed, we observe some outcome $\omega^* \in \Omega$.
+
+**Event $A$ occurs** if and only if $\omega^* \in A$.
+
+If today's return is $\omega^* = 0.03$ (3%), then:
+- Event "stock goes up" ($r > 0$) **occurred**
+- Event "stock returns more than 5%" ($r > 0.05$) **did not occur**
+
+---
+
+## 4. Assigning Probabilities
+
+### Probability as a Number
+
+A **probability** $P(A)$ assigns a number between 0 and 1 to each event:
+
+$$
+P: \text{Events} \to [0, 1]
+$$
+
+**Interpretation:**
+- $P(A) = 0$: Event $A$ is impossible
+- $P(A) = 1$: Event $A$ is certain
+- $P(A) = 0.7$: Event $A$ occurs in 70% of scenarios (roughly)
+
+### The Three Axioms of Probability
+
+Every valid probability assignment must satisfy:
+
+**Axiom 1: Non-negativity**
+$$
+P(A) \geq 0 \text{ for all events } A
+$$
+
+**Axiom 2: Normalization**
+$$
+P(\Omega) = 1
+$$
+Something must happen.
+
+**Axiom 3: Additivity**
+
+For **disjoint** events (events that cannot both occur):
+$$
+P(A \cup B) = P(A) + P(B) \text{ when } A \cap B = \emptyset
+$$
+
+These three axioms are the foundation. Everything else in probability theory follows from them.
+
+### Uniform Probability
+
+When all outcomes are equally likely:
+$$
+P(A) = \frac{|A|}{|\Omega|} = \frac{\text{number of outcomes in } A}{\text{total number of outcomes}}
+$$
+
+**Example:** Fair die roll
+$$
+P(\text{roll a 6}) = \frac{1}{6}
+$$
+$$
+P(\text{roll even}) = \frac{|\{2, 4, 6\}|}{6} = \frac{3}{6} = 0.5
+$$
+
+### Subjective vs. Empirical Probabilities
+
+**Empirical (frequentist):** Based on observed frequencies.
+
+"This stock has gone up on 53% of trading days historically, so $P(\text{up}) \approx 0.53$."
+
+**Subjective (Bayesian):** Based on beliefs and information.
+
+"Given the earnings report, I believe there's a 70% chance the stock goes up."
+
+Both approaches are valid. Quants often combine historical data with forward-looking views.
+
+---
+
+## 5. Probability Rules
+
+### The Complement Rule
+
+The complement $A^c$ contains all outcomes NOT in $A$:
+$$
+A^c = \{\omega \in \Omega : \omega \notin A\}
+$$
+
+**Probability rule:**
+$$
+P(A^c) = 1 - P(A)
+$$
+
+**Example:** If $P(\text{stock up}) = 0.55$, then $P(\text{stock not up}) = 0.45$.
+
+**Useful trick:** Sometimes it's easier to calculate the complement.
+
+$P(\text{at least one default}) = 1 - P(\text{no defaults})$
+
+### Union of Events
+
+The union $A \cup B$ occurs if **at least one** of $A$ or $B$ occurs.
+
+$$
+A \cup B = \{\omega : \omega \in A \text{ or } \omega \in B\}
+$$
+
+### Intersection of Events
+
+The intersection $A \cap B$ occurs if **both** $A$ and $B$ occur.
+
+$$
+A \cap B = \{\omega : \omega \in A \text{ and } \omega \in B\}
+$$
+
+### The Addition Rule
+
+For any two events:
+$$
+P(A \cup B) = P(A) + P(B) - P(A \cap B)
+$$
+
+**Why subtract?** Outcomes in both $A$ and $B$ get counted twice if we just add.
+
+**Example:**
+- $P(\text{stock A up}) = 0.6$
+- $P(\text{stock B up}) = 0.5$
+- $P(\text{both up}) = 0.35$
+
+$$
+P(\text{at least one up}) = 0.6 + 0.5 - 0.35 = 0.75
+$$
+
+### Mutually Exclusive Events
+
+Events $A$ and $B$ are **mutually exclusive** (disjoint) if they cannot both occur:
+$$
+A \cap B = \emptyset
+$$
+
+For mutually exclusive events:
+$$
+P(A \cup B) = P(A) + P(B)
+$$
+
+**Example:** A stock cannot simultaneously return exactly +5% and exactly -3%. These are mutually exclusive outcomes.
+
+### Overlapping Events
+
+Events **overlap** when they can both occur:
+$$
+A \cap B \neq \emptyset
+$$
+
+**Example:** "Stock returns positive" and "Stock returns less than 10%" overlap (any return between 0% and 10% satisfies both).
+
+---
+
+## 6. Independence: First Intuition
+
+### What Independence Means
+
+Two events are **independent** if knowing one occurred tells you nothing about whether the other occurred:
+
+$$
+P(A \cap B) = P(A) \cdot P(B)
+$$
+
+**Intuition:** The probability of both happening equals the product of individual probabilities.
+
+### Independence is Rare in Markets
+
+**A critical warning for quants:** Independence is mathematically convenient but rarely holds in financial markets.
+
+**Why markets aren't independent:**
+- Stocks move together (market factor)
+- Volatility clusters (GARCH effects)
+- Correlations spike during crises
+- Momentum and mean-reversion create serial dependence
+
+### Common Independence Mistakes
+
+**Mistake 1:** Assuming daily returns are independent.
+
+Reality: Returns exhibit autocorrelation in volatility (even if not in levels).
+
+**Mistake 2:** Assuming asset returns are independent.
+
+Reality: Correlations are typically positive and increase during stress.
+
+**Mistake 3:** Assuming default events are independent.
+
+Reality: Economic conditions affect multiple firms simultaneously.
+
+### When Independence Approximately Holds
+
+- Returns of unrelated assets over long horizons (weak dependence)
+- Idiosyncratic components after factoring out common risks
+- Some high-frequency microstructure effects
+
+**Rule of thumb:** Never assume independence without justification. Test for it, or model the dependence explicitly.
+
+---
+
+## 7. Key Properties Derived from Axioms
+
+From the three axioms, we can prove:
+
+**Empty set:**
+$$
+P(\emptyset) = 0
+$$
+
+**Complement:**
+$$
+P(A^c) = 1 - P(A)
+$$
+
+**Monotonicity:** If $A \subseteq B$, then:
+$$
+P(A) \leq P(B)
+$$
+
+**Bounds:**
+$$
+0 \leq P(A) \leq 1
+$$
+
+**Inclusion-exclusion for three events:**
+$$
+P(A \cup B \cup C) = P(A) + P(B) + P(C) - P(A \cap B) - P(A \cap C) - P(B \cap C) + P(A \cap B \cap C)
+$$
+
+---
+
+## 8. Worked Examples
+
+### Example 1: Portfolio Loss Probability
+
+**Setup:** A portfolio has:
+- $P(\text{loss on day 1}) = 0.45$
+- $P(\text{loss on day 2}) = 0.45$
+- $P(\text{loss on both days}) = 0.25$
+
+**Question:** What's the probability of losing money on at least one day?
+
+**Solution:**
+$$
+P(\text{loss day 1 or day 2}) = P(D_1) + P(D_2) - P(D_1 \cap D_2)
+$$
+$$
+= 0.45 + 0.45 - 0.25 = 0.65
+$$
+
+### Example 2: Multiple Asset Movements
+
+**Setup:** Three stocks with:
+- $P(A \text{ up}) = 0.6$, $P(B \text{ up}) = 0.5$, $P(C \text{ up}) = 0.55$
+- Assume independence (for illustration)
+
+**Question:** Probability all three go up?
+
+**Solution:** (Using independence)
+$$
+P(A \cap B \cap C) = P(A) \cdot P(B) \cdot P(C) = 0.6 \times 0.5 \times 0.55 = 0.165
+$$
+
+**Question:** Probability at least one goes down?
+
+**Solution:**
+$$
+P(\text{at least one down}) = 1 - P(\text{all up}) = 1 - 0.165 = 0.835
+$$
+
+### Example 3: Complement Trick for Defaults
+
+**Setup:** 10 bonds, each with 2% independent default probability.
+
+**Question:** Probability of at least one default?
+
+**Solution:** Direct calculation is messy. Use complement:
+$$
+P(\text{at least one default}) = 1 - P(\text{no defaults})
+$$
+$$
+= 1 - (0.98)^{10} = 1 - 0.817 = 0.183
+$$
+
+About 18.3% chance of experiencing at least one default.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Sample space $\Omega$:** All possible outcomes of a random experiment.
+
+**Event $A$:** A subset of outcomes we care about.
+
+**Probability $P(A)$:** A number in $[0,1]$ satisfying the three axioms.
+
+### Key Formulas
+
+**Complement rule:**
+$$
+P(A^c) = 1 - P(A)
+$$
+
+**Addition rule:**
+$$
+P(A \cup B) = P(A) + P(B) - P(A \cap B)
+$$
+
+**Independence (definition):**
+$$
+P(A \cap B) = P(A) \cdot P(B)
+$$
+
+### Key Insights for Quants
+
+1. **Define your sample space clearly** before assigning probabilities
+2. **Probabilities are models**, not predictions of reality
+3. **Independence is rare** in financial markets, don't assume it
+4. **The complement trick** often simplifies calculations
+5. **Overlapping events** require careful counting (subtract the intersection)
+
+---
+
+## 10. What's Next?
+
+We've established the foundation: sample spaces, events, and probability rules. But in finance, new information constantly arrives. How do probabilities change when we learn something new?
+
+**Next lesson: Conditional Probability and Independence**
+
+You'll learn:
+- How to update probabilities given new information
+- The formal definition of conditional probability
+- Why conditioning is fundamental to trading and risk management
+- The multiplication rule for dependent events

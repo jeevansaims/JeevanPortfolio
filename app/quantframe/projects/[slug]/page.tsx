@@ -1,21 +1,18 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { getProjectBySlug } from '@/app/quantframe/projects/_data';
+import { getProjectBySlug } from '@/lib/projects/loader';
+import { loadProjectMDX } from '@/lib/projects/mdx-loader';
 import { getProjectProgress } from '@/lib/projects/supabaseProgress';
-import { ProjectNotebookClient } from '../_components/ProjectNotebookClient';
+import { ProjectPageClient } from '@/components/projects';
 import { CvSection } from '../_components/CvSection';
 import { InterviewTips } from '../_components/InterviewTips';
 
 // Make page dynamic for auth
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getProjectBySlug(slug);
 
   if (!project) {
     return {
@@ -29,15 +26,22 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProjectPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+
+  // Get project metadata from database
+  const project = await getProjectBySlug(slug);
 
   if (!project) {
+    notFound();
+  }
+
+  // Load MDX content from file
+  let mdxSource;
+  try {
+    mdxSource = await loadProjectMDX(project.contentPath);
+  } catch (error) {
+    console.error('Failed to load project MDX:', error);
     notFound();
   }
 
@@ -48,12 +52,11 @@ export default async function ProjectPage({
   } = await supabase.auth.getUser();
 
   // Load progress if user is logged in
-  const progress = user
-    ? await getProjectProgress(user.id, project.slug)
-    : null;
+  const progress = user ? await getProjectProgress(user.id, project.slug) : null;
 
   const initialCompletedIds = progress?.completedBlockIds || [];
   const initialBlockAttempts = progress?.blockAttempts || {};
+  const isCompleted = progress?.completed || false;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950">
@@ -66,28 +69,19 @@ export default async function ProjectPage({
 
       {/* Main Content */}
       <div className="relative max-w-5xl mx-auto px-6 py-12">
-        {/* Notebook with integrated header */}
-        <ProjectNotebookClient
-          projectSlug={project.slug}
-          projectTitle={project.title}
-          projectDescription={project.description}
-          projectDifficulty={project.difficulty}
-          projectEstimatedTime={project.estimatedTimeMinutes}
-          projectTags={project.tags}
-          blocks={project.notebookBlocks}
+        {/* Project Content with MDX, Career Sections, and Mark Complete */}
+        <ProjectPageClient
+          project={project}
+          mdxSource={mdxSource}
           initialCompletedIds={initialCompletedIds}
           initialBlockAttempts={initialBlockAttempts}
-          userId={user?.id}
-        />
-
-        {/* Career Sections */}
-        <div className="mt-16 space-y-8">
-          <CvSection
-            cvBullets={project.cvBullets}
-            linkedinSummary={project.linkedinSummary}
-          />
-          <InterviewTips talkingPoints={project.interviewTalkingPoints} />
-        </div>
+          isCompleted={isCompleted}
+          userId={user?.id || null}
+        >
+          {/* Career Sections - rendered inside provider context */}
+          <CvSection cvBullets={project.cvBullets} />
+          <InterviewTips talkingPoints={project.interviewPoints} />
+        </ProjectPageClient>
       </div>
     </div>
   );

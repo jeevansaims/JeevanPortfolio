@@ -1,9 +1,7 @@
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { PROJECTS, getTotalBlocks, getInteractiveBlockCount } from './_data';
+import { getAllProjects } from '@/lib/projects/loader';
 import { getAllUserProgress } from '@/lib/projects/supabaseProgress';
 import { ProjectsGrid } from './_components/ProjectsGrid';
-import { FolderKanban } from 'lucide-react';
 import { PageHeader } from '../components/page-header';
 
 // Make page dynamic for auth
@@ -22,15 +20,17 @@ export default async function ProjectsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Load all projects from database
+  const projects = await getAllProjects();
+
   // Load all user progress if logged in
   const userProgress = user ? await getAllUserProgress(user.id) : {};
 
-  // Add completion data to projects
-  const projectsWithProgress = PROJECTS.map((project) => ({
+  // Add progress data to projects
+  const projectsWithProgress = projects.map((project) => ({
     ...project,
-    completedBlocks: userProgress[project.slug] || 0,
-    totalBlocks: getTotalBlocks(project),
-    interactiveBlocks: getInteractiveBlockCount(project),
+    completedBlocks: userProgress[project.slug]?.completedCount || 0,
+    isCompleted: userProgress[project.slug]?.completed || false,
   }));
 
   return (
@@ -43,10 +43,7 @@ export default async function ProjectsPage() {
       <div className="py-12 md:py-20 px-6">
         <div className="max-w-7xl mx-auto">
           {/* Projects Grid with client-side filtering */}
-          <ProjectsGrid
-            projects={projectsWithProgress}
-            isLoggedIn={!!user}
-          />
+          <ProjectsGrid projects={projectsWithProgress} isLoggedIn={!!user} />
         </div>
       </div>
     </>

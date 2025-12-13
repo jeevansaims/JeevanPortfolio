@@ -1,0 +1,475 @@
+# Expectation, Variance, and Moments
+
+## 1. Why Expectation and Variance Matter
+
+### Expectation as the Central Quantity in Quant Finance
+
+Almost every quantitative finance calculation involves expected values:
+
+- **Expected return:** What's the average profit from this trade?
+- **Expected loss:** What's the average downside in bad scenarios?
+- **Fair price:** What should a derivative cost? (The discounted expected payoff)
+- **Optimal portfolio:** Which weights maximize expected return?
+
+Expectation gives us a single number summarizing a random variable's "center." Without it, we couldn't compare strategies, price assets, or optimize portfolios.
+
+### Variance as Uncertainty and Risk
+
+Expectation tells you the average. But two investments can have the same expected return with wildly different risk:
+
+- Investment A: Always returns 5%
+- Investment B: Returns 25% half the time, -15% half the time
+
+Both have 5% expected return, but B is far riskier. **Variance** captures this difference.
+
+In finance, variance (or its square root, standard deviation) is synonymous with **volatility** and serves as the primary measure of risk.
+
+### Why Most Models Optimize Expectations Under Constraints
+
+The classic portfolio optimization problem:
+
+**Maximize:** Expected return $E[R_p]$
+
+**Subject to:** Variance constraint $\text{Var}(R_p) \leq \sigma^2_{max}$
+
+This mean-variance framework, pioneered by Markowitz, remains foundational. Understanding expectation and variance deeply is essential for anyone building or using such models.
+
+---
+
+## 2. Expectation of a Random Variable
+
+### Definition for Discrete and Continuous Cases
+
+**Discrete random variable:**
+
+$$
+E[X] = \sum_x x \cdot P(X = x)
+$$
+
+Sum each possible value times its probability.
+
+**Continuous random variable:**
+
+$$
+E[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx
+$$
+
+Integrate each value times its density.
+
+### Expectation as a Weighted Average
+
+Think of expectation as a weighted average where the weights are probabilities.
+
+**Example:** A stock can return -10%, 5%, or 20% with probabilities 0.2, 0.5, and 0.3.
+
+$$
+E[R] = (-0.10)(0.2) + (0.05)(0.5) + (0.20)(0.3)
+$$
+$$
+= -0.02 + 0.025 + 0.06 = 0.065 = 6.5\%
+$$
+
+The expected return is 6.5%, even though 6.5% isn't a possible outcome.
+
+### Linearity of Expectation
+
+The most important property of expectation:
+
+$$
+E[aX + bY] = aE[X] + bE[Y]
+$$
+
+This holds **always**, even if $X$ and $Y$ are dependent.
+
+**Why this matters:**
+
+Portfolio return is a linear combination of asset returns:
+
+$$
+R_p = \sum_{i=1}^n w_i R_i
+$$
+
+Therefore:
+
+$$
+E[R_p] = \sum_{i=1}^n w_i E[R_i]
+$$
+
+The expected portfolio return is the weighted average of expected asset returns. Simple and powerful.
+
+### Financial Interpretation: Expected Return
+
+When a trader says "this strategy has 8% expected return," they mean:
+
+- If you run this strategy many times (or continuously over time)
+- The average realized return converges to 8%
+- Individual outcomes vary, but 8% is the center
+
+Expected return is the first thing to estimate when evaluating any investment.
+
+---
+
+## 3. Variance and Standard Deviation
+
+### Measuring Dispersion Around the Mean
+
+Variance measures how spread out a random variable is around its expected value.
+
+$$
+\text{Var}(X) = E[(X - E[X])^2]
+$$
+
+This is the expected squared deviation from the mean.
+
+### Alternative Formula
+
+Using linearity of expectation:
+
+$$
+\text{Var}(X) = E[X^2] - (E[X])^2
+$$
+
+This form is often easier to compute.
+
+### Definition and Intuition
+
+**Why squared deviations?**
+
+- Squaring makes all deviations positive (negative deviations don't cancel positive ones)
+- Squaring penalizes large deviations more than small ones
+- Mathematical convenience (differentiable, connects to covariance)
+
+**Example calculation:**
+
+Let $X$ take values 2, 4, 6 with equal probability 1/3.
+
+$$
+E[X] = \frac{1}{3}(2 + 4 + 6) = 4
+$$
+
+$$
+E[X^2] = \frac{1}{3}(4 + 16 + 36) = \frac{56}{3} \approx 18.67
+$$
+
+$$
+\text{Var}(X) = 18.67 - 16 = 2.67
+$$
+
+### Why Variance Penalizes Large Deviations
+
+Because we square deviations:
+- A deviation of 1 contributes $1^2 = 1$
+- A deviation of 2 contributes $2^2 = 4$
+- A deviation of 3 contributes $3^2 = 9$
+
+Large deviations dominate the variance calculation. This matches financial intuition: a few extreme losses matter more than many small fluctuations.
+
+### Standard Deviation as Volatility
+
+**Standard deviation** is the square root of variance:
+
+$$
+\sigma_X = \sqrt{\text{Var}(X)}
+$$
+
+**Why use standard deviation?**
+- Same units as the original variable (if $X$ is in percent, $\sigma_X$ is in percent)
+- More interpretable than variance
+- Connects to the normal distribution (68-95-99.7 rule)
+
+In finance, standard deviation of returns is called **volatility**. A stock with 20% annual volatility has standard deviation 0.20 in its annual returns.
+
+---
+
+## 4. Properties of Expectation and Variance
+
+### Scaling and Shifting
+
+For constants $a$ and $b$:
+
+**Expectation:**
+$$
+E[aX + b] = aE[X] + b
+$$
+
+**Variance:**
+$$
+\text{Var}(aX + b) = a^2 \text{Var}(X)
+$$
+
+Note: Adding a constant shifts the distribution but doesn't change its spread. Multiplying scales both center and spread.
+
+**Financial application:** A 2x levered position doubles expected return AND doubles volatility (so variance quadruples).
+
+### Variance of Sums
+
+**Independent random variables:**
+$$
+\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y)
+$$
+
+Variances add when variables are independent.
+
+**Dependent random variables:**
+$$
+\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y)
+$$
+
+Covariance appears when variables are correlated.
+
+### Why Diversification Reduces Variance
+
+Consider a portfolio of $n$ identical, independent assets, each with variance $\sigma^2$.
+
+Equal weights: $w_i = 1/n$
+
+Portfolio variance:
+$$
+\text{Var}(R_p) = \sum_{i=1}^n \left(\frac{1}{n}\right)^2 \sigma^2 = \frac{n \sigma^2}{n^2} = \frac{\sigma^2}{n}
+$$
+
+As $n$ increases, portfolio variance decreases. This is diversification.
+
+**The catch:** Real assets aren't independent. Positive correlations limit diversification benefits. When correlations spike (market crashes), diversification fails precisely when you need it most.
+
+---
+
+## 5. Higher Moments
+
+### What Are Moments?
+
+The $k$-th moment of $X$ is $E[X^k]$.
+
+The $k$-th central moment is $E[(X - E[X])^k]$.
+
+**Key moments:**
+- 1st moment: Mean (center)
+- 2nd central moment: Variance (spread)
+- 3rd central moment: Related to skewness (asymmetry)
+- 4th central moment: Related to kurtosis (tail weight)
+
+### Skewness: Asymmetry of the Distribution
+
+**Skewness** measures how asymmetric a distribution is:
+
+$$
+\text{Skewness} = \frac{E[(X - \mu)^3]}{\sigma^3}
+$$
+
+Dividing by $\sigma^3$ makes it dimensionless.
+
+**Interpretation:**
+- Skewness = 0: Symmetric distribution
+- Skewness > 0: Right tail is longer (positive skew)
+- Skewness < 0: Left tail is longer (negative skew)
+
+**Financial returns typically have negative skew:** Large drops are more common than large rallies of the same size. Crashes are real; the market doesn't crash upward.
+
+### Kurtosis: Tail Heaviness
+
+**Kurtosis** measures how heavy the tails are:
+
+$$
+\text{Kurtosis} = \frac{E[(X - \mu)^4]}{\sigma^4}
+$$
+
+**Excess kurtosis** = Kurtosis - 3 (since normal distribution has kurtosis 3)
+
+**Interpretation:**
+- Excess kurtosis = 0: Normal-like tails
+- Excess kurtosis > 0: Heavier tails than normal (more extreme events)
+- Excess kurtosis < 0: Lighter tails than normal (rare)
+
+**Financial returns have positive excess kurtosis:** Extreme events (both positive and negative) happen more often than a normal distribution predicts. This is why risk models based on normality underestimate tail risk.
+
+### Why Higher Moments Matter in Financial Returns
+
+**The problem with mean-variance:**
+
+Mean and variance don't fully describe return distributions. Two distributions can have identical mean and variance but very different:
+- Probability of extreme losses (tail risk)
+- Asymmetry between gains and losses
+
+**Practical implications:**
+- VaR and Expected Shortfall depend on tail behavior, not just variance
+- Option prices embed information about skewness (implied volatility skew)
+- Risk management must account for fat tails (kurtosis)
+
+---
+
+## 6. Moments and Distribution Shape
+
+### How Moments Summarize Distributions
+
+Each moment captures one aspect of the distribution's shape:
+
+**Mean:** Center, location
+
+**Variance:** Spread, volatility
+
+**Skewness:** Asymmetry, direction of tail
+
+**Kurtosis:** Tail weight, extreme event frequency
+
+Together, the first four moments give a reasonable picture of most financial distributions.
+
+### What Moments Capture and What They Miss
+
+**Moments capture:**
+- Overall location and scale
+- Gross asymmetry
+- General tail behavior
+
+**Moments miss:**
+- Fine structure of the distribution
+- Multiple modes (bimodal distributions)
+- Specific tail probabilities
+- Dependence structure (for multivariate cases)
+
+### When Moments Are Sufficient
+
+**Normal distribution:** Completely specified by mean and variance. Higher moments are determined by these two.
+
+**General distributions:** Need more than two moments, but the first four often suffice for practical purposes.
+
+### When Moments Aren't Sufficient
+
+**Extreme value analysis:** Need to model the tail specifically, not just summarize it with kurtosis.
+
+**Option pricing:** The entire distribution matters, not just moments. This is why we use full models (Black-Scholes, stochastic volatility) rather than moment-based approximations.
+
+**Regime-switching:** Distributions that change character over time can't be summarized by fixed moments.
+
+---
+
+## 7. Worked Examples
+
+### Example 1: Computing Variance
+
+A trade returns 15% with probability 0.6 and -10% with probability 0.4.
+
+**Expected return:**
+$$
+E[R] = 0.15(0.6) + (-0.10)(0.4) = 0.09 - 0.04 = 0.05 = 5\%
+$$
+
+**Expected squared return:**
+$$
+E[R^2] = (0.15)^2(0.6) + (-0.10)^2(0.4) = 0.0135 + 0.004 = 0.0175
+$$
+
+**Variance:**
+$$
+\text{Var}(R) = 0.0175 - (0.05)^2 = 0.0175 - 0.0025 = 0.015
+$$
+
+**Standard deviation:**
+$$
+\sigma_R = \sqrt{0.015} \approx 0.122 = 12.2\%
+$$
+
+### Example 2: Portfolio Variance with Independence
+
+Two assets, each with expected return 8% and volatility 20%, are uncorrelated.
+
+Equal-weighted portfolio: $w_1 = w_2 = 0.5$
+
+**Portfolio expected return:**
+$$
+E[R_p] = 0.5(0.08) + 0.5(0.08) = 0.08 = 8\%
+$$
+
+**Portfolio variance (independent assets):**
+$$
+\text{Var}(R_p) = (0.5)^2(0.20)^2 + (0.5)^2(0.20)^2 = 0.01 + 0.01 = 0.02
+$$
+
+**Portfolio volatility:**
+$$
+\sigma_p = \sqrt{0.02} \approx 0.141 = 14.1\%
+$$
+
+Same expected return (8%), but lower volatility (14.1% vs 20%). This is diversification.
+
+### Example 3: Effect of Correlation
+
+Same setup, but now correlation is $\rho = 0.6$.
+
+$$
+\text{Cov}(R_1, R_2) = \rho \cdot \sigma_1 \cdot \sigma_2 = 0.6(0.20)(0.20) = 0.024
+$$
+
+**Portfolio variance:**
+$$
+\text{Var}(R_p) = 0.02 + 2(0.5)(0.5)(0.024) = 0.02 + 0.012 = 0.032
+$$
+
+**Portfolio volatility:**
+$$
+\sigma_p = \sqrt{0.032} \approx 0.179 = 17.9\%
+$$
+
+Correlation reduces diversification benefit. Volatility is now 17.9% instead of 14.1%.
+
+---
+
+## 8. Summary
+
+### Key Concepts
+
+**Expectation** is the probability-weighted average, the center of a distribution.
+
+**Variance** measures spread around the mean; standard deviation is its square root (volatility).
+
+**Skewness** measures asymmetry; financial returns are typically negatively skewed.
+
+**Kurtosis** measures tail weight; financial returns have excess kurtosis (fat tails).
+
+### Key Formulas
+
+**Expectation:**
+$$
+E[X] = \sum_x x \cdot P(X = x) \quad \text{or} \quad \int x \cdot f(x) \, dx
+$$
+
+**Variance:**
+$$
+\text{Var}(X) = E[X^2] - (E[X])^2
+$$
+
+**Standard deviation:**
+$$
+\sigma = \sqrt{\text{Var}(X)}
+$$
+
+**Linearity of expectation:**
+$$
+E[aX + bY] = aE[X] + bE[Y]
+$$
+
+**Variance scaling:**
+$$
+\text{Var}(aX) = a^2 \text{Var}(X)
+$$
+
+### Key Insights for Quants
+
+1. **Expectation and variance are the foundation** of portfolio theory
+2. **Linearity of expectation** makes portfolio math tractable
+3. **Diversification reduces variance** only when correlations are imperfect
+4. **Skewness and kurtosis matter** for tail risk and option pricing
+5. **Normal distribution assumptions underestimate** extreme events
+
+---
+
+## 9. What's Next?
+
+We've focused on single random variables. But financial assets don't exist in isolation. Returns are correlated, risks are shared, and portfolios combine multiple assets.
+
+**Next lesson: Joint Distributions, Covariance, and Correlation**
+
+You'll learn:
+- How to model multiple random variables together
+- Covariance and correlation as dependence measures
+- Why correlation is central to portfolio construction
+- The covariance matrix and its role in finance

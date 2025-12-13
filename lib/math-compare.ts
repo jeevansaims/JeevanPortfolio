@@ -63,6 +63,12 @@ function normalizeExpression(expr: string): string {
     .trim()
     // Remove spaces around operators
     .replace(/\s+/g, '')
+    // Normalize all bracket types to parentheses: {} [] -> ()
+    // This ensures e^{xy}, e^[xy], and e^(xy) are all treated the same
+    .replace(/\{/g, '(')
+    .replace(/\}/g, ')')
+    .replace(/\[/g, '(')
+    .replace(/\]/g, ')')
     // Convert e^ to exp() - handle both e^(...) and e^x formats
     // This matches: e^(expression), e^-number, e^-variable, e^number, e^variable
     .replace(/e\^(\([^)]+\)|-?[\d.]+|-?[a-z]\w*)/gi, (match, exponent) => {

@@ -1,0 +1,511 @@
+# Joint Distributions, Covariance, and Correlation
+
+## 1. Why Joint Behavior Matters
+
+### Most Financial Quantities Move Together
+
+So far, we've studied random variables one at a time. But financial assets don't exist in isolation:
+
+- Stocks in the same sector rise and fall together
+- Interest rates and bond prices move in opposite directions
+- Currencies of trading partners track each other
+- Credit spreads widen across issuers during stress
+
+To understand portfolio risk, we must understand how assets move *together*, not just how each moves individually.
+
+### Risk Emerges from Interaction, Not Isolation
+
+Consider two assets, each with 20% volatility. Is a 50-50 portfolio more or less risky than each individual asset?
+
+**It depends entirely on how they move together:**
+
+- If they move in perfect lockstep (correlation = 1): Portfolio volatility = 20%
+- If they move independently (correlation = 0): Portfolio volatility = 14.1%
+- If they move opposite (correlation = -1): Portfolio volatility = 0%
+
+The risk of a portfolio is not determined by the risks of its components alone. The *interactions* matter just as much, often more.
+
+### Motivation from Portfolios and Diversification
+
+**Diversification** is the only free lunch in finance. By combining assets that don't move perfectly together, you can reduce risk without sacrificing expected return.
+
+But diversification requires understanding joint behavior:
+- Which assets provide diversification benefits?
+- How much does correlation reduce portfolio variance?
+- When does diversification fail (crisis correlations)?
+
+This lesson gives you the tools to answer these questions quantitatively.
+
+---
+
+## 2. Joint Distributions
+
+### What a Joint Distribution Describes
+
+A **joint distribution** describes the probability behavior of two or more random variables simultaneously.
+
+For random variables $X$ and $Y$:
+- It tells us the probability of any combination of values
+- It captures how knowing $X$ affects what we expect for $Y$
+- It encodes the dependence structure between variables
+
+The joint distribution contains more information than the individual (marginal) distributions. Two pairs of random variables can have identical marginals but completely different joint behavior.
+
+### Discrete Joint Distributions
+
+For discrete random variables $X$ and $Y$, the **joint probability mass function** gives:
+
+$$
+p_{X,Y}(x, y) = P(X = x \text{ and } Y = y)
+$$
+
+**Properties:**
+- $p_{X,Y}(x, y) \geq 0$ for all $x, y$
+- $\sum_x \sum_y p_{X,Y}(x, y) = 1$
+
+**Example:** Two correlated binary events.
+
+Let $X$ = 1 if stock A is up, 0 otherwise. Let $Y$ = 1 if stock B is up, 0 otherwise.
+
+Joint PMF:
+
+$p_{X,Y}(0, 0) = 0.15$ (both down)
+
+$p_{X,Y}(0, 1) = 0.20$ (A down, B up)
+
+$p_{X,Y}(1, 0) = 0.15$ (A up, B down)
+
+$p_{X,Y}(1, 1) = 0.50$ (both up)
+
+This tells us more than just knowing each stock is up 65% and 70% of the time.
+
+### Continuous Joint Distributions
+
+For continuous random variables, the **joint probability density function** $f_{X,Y}(x, y)$ satisfies:
+
+$$
+P((X, Y) \in A) = \iint_A f_{X,Y}(x, y) \, dx \, dy
+$$
+
+**Properties:**
+- $f_{X,Y}(x, y) \geq 0$ for all $x, y$
+- $\int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f_{X,Y}(x, y) \, dx \, dy = 1$
+
+The density gives probability per unit area in the $(x, y)$ plane.
+
+### Visual Intuition in Two Dimensions
+
+Think of the joint density as a surface over the $(x, y)$ plane:
+- Height represents probability density
+- Volume under the surface over any region gives probability
+- Contours show combinations of equal likelihood
+
+**Bivariate normal:** The most important joint distribution. Contours are ellipses. The orientation and eccentricity of ellipses reflect correlation.
+
+- Correlation = 0: Circular contours (no preferred direction)
+- Positive correlation: Ellipses tilted toward upper-right
+- Negative correlation: Ellipses tilted toward upper-left
+
+### Financial Examples: Multi-Asset Returns
+
+**Two stock returns:** $R_A$ and $R_B$ might follow a bivariate normal with means 8% and 10%, volatilities 15% and 20%, and correlation 0.6.
+
+**Stock and bond:** Returns often negatively correlated. Flight to safety during equity selloffs.
+
+**Currency pairs:** EUR/USD and GBP/USD are positively correlated (both against USD). EUR/USD and USD/JPY are negatively correlated.
+
+---
+
+## 3. Marginal and Conditional Distributions
+
+### Extracting Marginals from Joint Distributions
+
+The **marginal distribution** of $X$ is the distribution of $X$ alone, ignoring $Y$.
+
+**Discrete case:**
+$$
+p_X(x) = \sum_y p_{X,Y}(x, y)
+$$
+
+Sum over all possible values of $Y$.
+
+**Continuous case:**
+$$
+f_X(x) = \int_{-\infty}^{\infty} f_{X,Y}(x, y) \, dy
+$$
+
+Integrate out $Y$.
+
+**Key insight:** The marginal distributions don't capture the dependence. Many different joint distributions can produce the same marginals.
+
+### Conditional Distributions Given Information
+
+The **conditional distribution** of $Y$ given $X = x$ describes $Y$ when we know $X$'s value.
+
+**Discrete:**
+$$
+p_{Y|X}(y|x) = \frac{p_{X,Y}(x, y)}{p_X(x)}
+$$
+
+**Continuous:**
+$$
+f_{Y|X}(y|x) = \frac{f_{X,Y}(x, y)}{f_X(x)}
+$$
+
+**Financial interpretation:** If the market returns 5% today, what's the distribution of my portfolio's return? This is conditional on market information.
+
+### How Conditioning Changes Dependence Structure
+
+Conditional distributions generally differ from marginal distributions. Knowing $X$ changes what we believe about $Y$.
+
+**Example:** Marginal distribution of stock B returns might be normal with mean 10% and volatility 20%.
+
+But conditional on market being down 10%, the distribution of stock B shifts: mean becomes negative, perhaps -8%, because the stock correlates with the market.
+
+This is why conditional analysis matters for risk:
+- Unconditional VaR uses the marginal distribution
+- Stress testing uses conditional distributions given adverse scenarios
+
+---
+
+## 4. Independence and Dependence
+
+### Formal Definition of Independence for Random Variables
+
+Random variables $X$ and $Y$ are **independent** if knowing one tells you nothing about the other.
+
+**Equivalent definitions:**
+
+$$
+f_{X,Y}(x, y) = f_X(x) \cdot f_Y(y) \quad \text{for all } x, y
+$$
+
+The joint density factors into the product of marginals.
+
+$$
+f_{Y|X}(y|x) = f_Y(y) \quad \text{for all } x, y
+$$
+
+The conditional distribution equals the marginal.
+
+$$
+P(X \in A, Y \in B) = P(X \in A) \cdot P(Y \in B) \quad \text{for all sets } A, B
+$$
+
+Joint probabilities multiply.
+
+### Why Zero Dependence Is Rare in Markets
+
+Financial assets are almost never independent:
+
+**Common factors:** All stocks are exposed to market risk, interest rates, economic growth.
+
+**Contagion:** Stress in one market spreads to others through investor behavior and funding.
+
+**Arbitrage links:** Related securities (stock vs. options, cash vs. futures) are mechanically linked.
+
+**Information spillovers:** News about one company affects competitors and suppliers.
+
+**Rule:** Never assume independence in finance without extraordinary justification.
+
+### Dependence Beyond Correlation
+
+Dependence can take forms that correlation doesn't capture:
+
+**Tail dependence:** Assets may be uncorrelated in normal times but crash together during crises. This is asymmetric dependence in the tails.
+
+**Nonlinear relationships:** $Y = X^2$ makes $Y$ completely dependent on $X$, but correlation can be zero.
+
+**Regime-dependent correlation:** Correlation might be 0.3 during expansions but 0.8 during recessions.
+
+**Copulas** are tools for modeling dependence structure separately from marginal distributions, but that's an advanced topic.
+
+---
+
+## 5. Covariance
+
+### Definition and Interpretation
+
+**Covariance** measures how two random variables move together:
+
+$$
+\text{Cov}(X, Y) = E[(X - E[X])(Y - E[Y])]
+$$
+
+Equivalently:
+
+$$
+\text{Cov}(X, Y) = E[XY] - E[X]E[Y]
+$$
+
+**Intuition:** Covariance is the expected value of the product of deviations from means.
+
+### Covariance as Joint Variability
+
+When $X$ is above its mean:
+- If $Y$ tends to be above its mean too: positive contribution to covariance
+- If $Y$ tends to be below its mean: negative contribution
+
+The covariance aggregates these tendencies across all outcomes.
+
+### Positive, Negative, and Zero Covariance
+
+**Positive covariance (Cov(X,Y) > 0):**
+- $X$ and $Y$ tend to move in the same direction
+- High $X$ associated with high $Y$
+- Example: Two tech stocks
+
+**Negative covariance (Cov(X,Y) < 0):**
+- $X$ and $Y$ tend to move in opposite directions
+- High $X$ associated with low $Y$
+- Example: Stock returns and bond returns during flight to safety
+
+**Zero covariance (Cov(X,Y) = 0):**
+- No *linear* relationship between $X$ and $Y$
+- Does NOT imply independence (nonlinear dependence possible)
+
+### Financial Meaning in Asset Co-Movements
+
+Covariance is central to portfolio theory:
+
+**Portfolio variance:**
+$$
+\text{Var}(w_1 R_1 + w_2 R_2) = w_1^2 \text{Var}(R_1) + w_2^2 \text{Var}(R_2) + 2w_1 w_2 \text{Cov}(R_1, R_2)
+$$
+
+The covariance term determines whether combining assets reduces or amplifies risk.
+
+**Key properties:**
+
+$\text{Cov}(X, X) = \text{Var}(X)$
+
+$\text{Cov}(X, Y) = \text{Cov}(Y, X)$
+
+$\text{Cov}(aX, bY) = ab \cdot \text{Cov}(X, Y)$
+
+$\text{Cov}(X + Z, Y) = \text{Cov}(X, Y) + \text{Cov}(Z, Y)$
+
+---
+
+## 6. Correlation
+
+### Normalized Covariance
+
+**Correlation** is covariance scaled to lie between -1 and 1:
+
+$$
+\rho_{X,Y} = \frac{\text{Cov}(X, Y)}{\sigma_X \sigma_Y}
+$$
+
+where $\sigma_X$ and $\sigma_Y$ are standard deviations.
+
+**Why normalize?** Covariance depends on the units and scales of $X$ and $Y$. Correlation is dimensionless and comparable across different variable pairs.
+
+### Interpreting Correlation Coefficients
+
+**Correlation = 1:** Perfect positive linear relationship. $Y = a + bX$ with $b > 0$.
+
+**Correlation = -1:** Perfect negative linear relationship. $Y = a + bX$ with $b < 0$.
+
+**Correlation = 0:** No linear relationship. Variables may still be dependent nonlinearly.
+
+**Rough interpretation:**
+
+$|\rho| > 0.7$: Strong linear relationship
+
+$0.3 < |\rho| < 0.7$: Moderate linear relationship
+
+$|\rho| < 0.3$: Weak linear relationship
+
+### Strengths and Limitations
+
+**Strengths:**
+- Easy to compute and interpret
+- Sufficient for linear relationships
+- Central to mean-variance portfolio theory
+- Works well for approximately normal data
+
+**Limitations:**
+
+**Only captures linear dependence:** Two variables can have correlation zero but be completely dependent (e.g., $Y = X^2$).
+
+**Sensitive to outliers:** A few extreme observations can dramatically change correlation.
+
+**Not robust to nonlinear transformations:** Correlation between $X$ and $Y$ differs from correlation between $X$ and $\log(Y)$.
+
+**Doesn't capture tail dependence:** Assets can have moderate correlation overall but crash together (high tail dependence).
+
+**Time-varying:** Correlations change across market regimes. Crisis correlations are typically higher than calm-period correlations.
+
+---
+
+## 7. The Covariance Matrix
+
+### Definition for Multiple Assets
+
+For $n$ random variables $X_1, X_2, \ldots, X_n$, the **covariance matrix** $\Sigma$ is an $n \times n$ matrix where:
+
+$$
+\Sigma_{ij} = \text{Cov}(X_i, X_j)
+$$
+
+Diagonal entries are variances: $\Sigma_{ii} = \text{Var}(X_i)$
+
+Off-diagonal entries are covariances between different variables.
+
+### Properties
+
+**Symmetric:** $\Sigma_{ij} = \Sigma_{ji}$
+
+**Positive semi-definite:** $w^T \Sigma w \geq 0$ for any weight vector $w$
+
+This means portfolio variance is always non-negative, as it should be.
+
+### Portfolio Variance Formula
+
+For a portfolio with weights $w = (w_1, \ldots, w_n)$:
+
+$$
+\text{Var}(R_p) = w^T \Sigma w = \sum_{i=1}^n \sum_{j=1}^n w_i w_j \Sigma_{ij}
+$$
+
+This compact formula shows how all pairwise covariances contribute to portfolio risk.
+
+---
+
+## 8. Worked Examples
+
+### Example 1: Computing Covariance
+
+Two assets have the following joint distribution of returns:
+
+$P(R_1 = 10\%, R_2 = 15\%) = 0.3$
+
+$P(R_1 = 10\%, R_2 = 5\%) = 0.2$
+
+$P(R_1 = -5\%, R_2 = 15\%) = 0.1$
+
+$P(R_1 = -5\%, R_2 = 5\%) = 0.4$
+
+**Marginal expectations:**
+
+$E[R_1] = 0.10(0.3 + 0.2) + (-0.05)(0.1 + 0.4) = 0.10(0.5) + (-0.05)(0.5) = 0.025 = 2.5\%$
+
+$E[R_2] = 0.15(0.3 + 0.1) + 0.05(0.2 + 0.4) = 0.15(0.4) + 0.05(0.6) = 0.09 = 9\%$
+
+**Expected product:**
+
+$E[R_1 R_2] = (0.10)(0.15)(0.3) + (0.10)(0.05)(0.2) + (-0.05)(0.15)(0.1) + (-0.05)(0.05)(0.4)$
+
+$= 0.0045 + 0.001 - 0.00075 - 0.001 = 0.00375$
+
+**Covariance:**
+
+$\text{Cov}(R_1, R_2) = E[R_1 R_2] - E[R_1]E[R_2] = 0.00375 - (0.025)(0.09) = 0.00375 - 0.00225 = 0.0015$
+
+Positive covariance: the returns tend to move together.
+
+### Example 2: Portfolio Variance with Correlation
+
+Asset A: expected return 8%, volatility 20%
+
+Asset B: expected return 12%, volatility 30%
+
+Correlation: $\rho = 0.4$
+
+Portfolio: 60% in A, 40% in B
+
+**Covariance:**
+
+$\text{Cov}(R_A, R_B) = \rho \cdot \sigma_A \cdot \sigma_B = 0.4 \times 0.20 \times 0.30 = 0.024$
+
+**Portfolio variance:**
+
+$\text{Var}(R_p) = w_A^2 \sigma_A^2 + w_B^2 \sigma_B^2 + 2 w_A w_B \text{Cov}(R_A, R_B)$
+
+$= (0.6)^2(0.20)^2 + (0.4)^2(0.30)^2 + 2(0.6)(0.4)(0.024)$
+
+$= 0.36(0.04) + 0.16(0.09) + 0.0115$
+
+$= 0.0144 + 0.0144 + 0.0115 = 0.0403$
+
+**Portfolio volatility:**
+
+$\sigma_p = \sqrt{0.0403} \approx 0.201 = 20.1\%$
+
+### Example 3: Diversification Benefit
+
+Same assets, but now correlation = 0:
+
+$\text{Var}(R_p) = 0.0144 + 0.0144 + 0 = 0.0288$
+
+$\sigma_p = \sqrt{0.0288} \approx 0.170 = 17.0\%$
+
+Lower correlation reduces portfolio volatility from 20.1% to 17.0%.
+
+If correlation = -0.5:
+
+$\text{Cov}(R_A, R_B) = -0.5 \times 0.20 \times 0.30 = -0.03$
+
+$\text{Var}(R_p) = 0.0144 + 0.0144 + 2(0.6)(0.4)(-0.03) = 0.0288 - 0.0144 = 0.0144$
+
+$\sigma_p = \sqrt{0.0144} = 0.12 = 12\%$
+
+Negative correlation provides even greater diversification.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Joint distribution** describes the probability behavior of multiple random variables together.
+
+**Marginal distribution** is the distribution of one variable, integrating out the others.
+
+**Conditional distribution** is the distribution given information about other variables.
+
+**Covariance** measures linear co-movement: $\text{Cov}(X,Y) = E[XY] - E[X]E[Y]$
+
+**Correlation** is standardized covariance: $\rho = \text{Cov}(X,Y) / (\sigma_X \sigma_Y)$
+
+**Covariance matrix** captures all pairwise covariances for multiple variables.
+
+### Key Formulas
+
+**Portfolio variance (two assets):**
+$$
+\text{Var}(R_p) = w_1^2 \sigma_1^2 + w_2^2 \sigma_2^2 + 2w_1 w_2 \rho \sigma_1 \sigma_2
+$$
+
+**Portfolio variance (matrix form):**
+$$
+\text{Var}(R_p) = w^T \Sigma w
+$$
+
+**Covariance from correlation:**
+$$
+\text{Cov}(X, Y) = \rho_{XY} \sigma_X \sigma_Y
+$$
+
+### Key Insights for Quants
+
+1. **Portfolio risk depends on correlations**, not just individual volatilities
+2. **Diversification reduces risk** when correlations are less than 1
+3. **Correlation only captures linear dependence**, not all dependence
+4. **Correlations are unstable**, especially during crises
+5. **The covariance matrix** is the central object in portfolio optimization
+
+---
+
+## 10. What's Next?
+
+We now understand how random variables behave individually and jointly. But what happens when we aggregate many random outcomes? What can we say about averages and sums?
+
+**Next lesson: Law of Large Numbers and Central Limit Theorem**
+
+You'll learn:
+- Why sample averages converge to expected values
+- The Central Limit Theorem and why normality appears everywhere
+- Applications to estimation and risk aggregation
+- Foundations of statistical inference in finance

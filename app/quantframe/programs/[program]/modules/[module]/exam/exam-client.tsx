@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { submitModuleExam } from '@/app/quantframe/actions/exam'
+import { submitModuleExam, saveExamProgress, resetExamProgress } from '@/app/quantframe/actions/exam'
 import { toast } from 'sonner'
 import {
   CheckCircle2,
@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   ArrowRight,
   ArrowLeft,
-  Trophy
+  Trophy,
+  RotateCcw
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { InlineMath, BlockMath } from 'react-katex'
@@ -30,6 +31,9 @@ interface ExamQuestion {
   answer: string
   order_index: number
   section_name: string
+  question_type: 'free_text' | 'multiple_choice'
+  options?: string[]
+  correct_option_index?: number
 }
 
 interface ExamClientProps {
@@ -37,6 +41,8 @@ interface ExamClientProps {
   questions: ExamQuestion[]
   attemptNumber: number
   passingScore: number
+  initialAnswers?: Record<string, string>
+  initialQuestionIndex?: number
 }
 
 // Helper function to render text with LaTeX
@@ -109,15 +115,24 @@ const renderLatex = (text: string) => {
   )
 }
 
-export function ExamClient({ examId, questions, attemptNumber, passingScore }: ExamClientProps) {
+export function ExamClient({
+  examId,
+  questions,
+  attemptNumber,
+  passingScore,
+  initialAnswers = {},
+  initialQuestionIndex = 0
+}: ExamClientProps) {
   const router = useRouter()
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(initialQuestionIndex)
+  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers)
   const [currentAnswer, setCurrentAnswer] = useState('')
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null)
   const [showHint, setShowHint] = useState(false)
   const [showSolution, setShowSolution] = useState(false)
   const [showSolutionWarning, setShowSolutionWarning] = useState(false)
   const [solutionViewedForQuestions, setSolutionViewedForQuestions] = useState<Set<string>>(new Set())
+  const [showSubmitWarning, setShowSubmitWarning] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [examComplete, setExamComplete] = useState(false)
   const [finalResults, setFinalResults] = useState<{
@@ -126,72 +141,196 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
     passed: boolean
     details: Record<string, boolean>
   } | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isResetting, setIsResetting] = useState(false)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentQuestion = questions[currentQuestionIndex]
   const isLastQuestion = currentQuestionIndex === questions.length - 1
   const hasSolutionBeenViewed = solutionViewedForQuestions.has(currentQuestion?.id)
+  const hasAnyAnswers = Object.keys(answers).length > 0
+
+  // Reset exam handler
+  const handleResetExam = async () => {
+    setIsResetting(true)
+    try {
+      await resetExamProgress({ examId })
+      // Reset all client state
+      setAnswers({})
+      setCurrentQuestionIndex(0)
+      setCurrentAnswer('')
+      setSelectedOptionIndex(null)
+      setSolutionViewedForQuestions(new Set())
+      toast.success('Exam progress reset')
+    } catch (error) {
+      console.error('Failed to reset exam:', error)
+      toast.error('Failed to reset exam')
+    } finally {
+      setIsResetting(false)
+    }
+  }
+
+  // Auto-save progress function
+  const saveProgress = useCallback(async (answersToSave: Record<string, string>, questionIndex: number) => {
+    if (examComplete) return
+
+    setIsSaving(true)
+    try {
+      await saveExamProgress({
+        examId,
+        answers: answersToSave,
+        currentQuestionIndex: questionIndex
+      })
+    } catch (error) {
+      console.error('Failed to save progress:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [examId, examComplete])
+
+  // Debounced auto-save when answers change
+  useEffect(() => {
+    if (Object.keys(answers).length === 0) return
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current)
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      saveProgress(answers, currentQuestionIndex)
+    }, 1000) // Save 1 second after last change
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
+    }
+  }, [answers, currentQuestionIndex, saveProgress])
+
+  // Save on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (Object.keys(answers).length > 0 && !examComplete) {
+        // Use sendBeacon for reliable save on page close
+        const data = JSON.stringify({
+          examId,
+          answers,
+          currentQuestionIndex
+        })
+        navigator.sendBeacon('/api/exam-progress', data)
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [answers, currentQuestionIndex, examId, examComplete])
 
   // Load saved answer when switching questions
   useEffect(() => {
-    setCurrentAnswer(answers[currentQuestion?.id] || '')
+    const savedAnswer = answers[currentQuestion?.id] || ''
+    setCurrentAnswer(savedAnswer)
+
+    // For multiple choice, restore the selected option index
+    if (currentQuestion?.question_type === 'multiple_choice' && savedAnswer) {
+      setSelectedOptionIndex(parseInt(savedAnswer))
+    } else {
+      setSelectedOptionIndex(null)
+    }
+
     setShowHint(false)
     setShowSolution(false)
-  }, [currentQuestionIndex, currentQuestion?.id, answers])
+  }, [currentQuestionIndex, currentQuestion?.id, currentQuestion?.question_type, answers])
 
   const handleSaveAnswer = () => {
-    if (!currentAnswer.trim()) {
-      toast.error('Please enter an answer')
-      return
+    let answerToSave = ''
+
+    // Handle multiple choice questions
+    if (currentQuestion.question_type === 'multiple_choice') {
+      if (selectedOptionIndex === null) {
+        toast.error('Please select an answer')
+        return
+      }
+      answerToSave = selectedOptionIndex.toString()
+    }
+    // Handle free text questions
+    else {
+      if (!currentAnswer.trim()) {
+        toast.error('Please enter an answer')
+        return
+      }
+      answerToSave = currentAnswer
     }
 
     // Save answer
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+    setAnswers(prev => ({ ...prev, [currentQuestion.id]: answerToSave }))
     toast.success('Answer saved')
   }
 
   const handleNextQuestion = () => {
     // Auto-save current answer if entered
-    if (currentAnswer.trim() && !answers[currentQuestion.id]) {
-      setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+    if (!answers[currentQuestion.id]) {
+      if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+        setAnswers(prev => ({ ...prev, [currentQuestion.id]: selectedOptionIndex.toString() }))
+      } else if (currentAnswer.trim()) {
+        setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+      }
     }
 
     if (isLastQuestion) {
-      // Check if all questions answered
-      const allAnswers = { ...answers }
-      if (currentAnswer.trim()) {
-        allAnswers[currentQuestion.id] = currentAnswer
-      }
-
-      const unanswered = questions.filter(q => !allAnswers[q.id]?.trim())
-      if (unanswered.length > 0) {
-        toast.error(`Please answer all questions. ${unanswered.length} remaining.`)
-        return
-      }
-
-      // Submit exam
-      handleExamSubmit(allAnswers)
+      // Show submit confirmation
+      setShowSubmitWarning(true)
     } else {
       setCurrentQuestionIndex(prev => prev + 1)
     }
   }
 
+  const handleSubmitExam = () => {
+    // Auto-save current answer if entered
+    const allAnswers = { ...answers }
+    if (!allAnswers[currentQuestion.id]) {
+      if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+        allAnswers[currentQuestion.id] = selectedOptionIndex.toString()
+      } else if (currentAnswer.trim()) {
+        allAnswers[currentQuestion.id] = currentAnswer
+      }
+    }
+
+    // Show submit confirmation
+    setShowSubmitWarning(true)
+  }
+
   const handlePreviousQuestion = () => {
     // Auto-save current answer
-    if (currentAnswer.trim()) {
-      setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+    if (!answers[currentQuestion.id]) {
+      if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+        setAnswers(prev => ({ ...prev, [currentQuestion.id]: selectedOptionIndex.toString() }))
+      } else if (currentAnswer.trim()) {
+        setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+      }
     }
 
     setCurrentQuestionIndex(prev => prev - 1)
   }
 
-  const handleExamSubmit = async (finalAnswers: Record<string, string>) => {
+  const handleConfirmSubmit = async () => {
+    setShowSubmitWarning(false)
     setSubmitting(true)
+
+    // Get all answers including current unsaved answer
+    const allAnswers = { ...answers }
+    if (!allAnswers[currentQuestion.id]) {
+      if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+        allAnswers[currentQuestion.id] = selectedOptionIndex.toString()
+      } else if (currentAnswer.trim()) {
+        allAnswers[currentQuestion.id] = currentAnswer
+      }
+    }
 
     try {
       const result = await submitModuleExam({
         examId,
         attemptNumber,
-        answers: finalAnswers
+        answers: allAnswers
       })
 
       if (result.error) {
@@ -308,7 +447,7 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
           {/* Action Buttons */}
           <div className="flex gap-4">
             <Button
-              onClick={() => router.refresh()}
+              onClick={() => window.location.reload()}
               size="lg"
               variant="outline"
               className="flex-1"
@@ -321,7 +460,8 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
     )
   }
 
-  const answeredCount = Object.keys(answers).filter(k => answers[k]?.trim()).length + (currentAnswer.trim() && !answers[currentQuestion?.id] ? 1 : 0)
+  const answeredCount = Object.keys(answers).filter(k => answers[k]).length +
+    ((currentQuestion?.question_type === 'multiple_choice' ? selectedOptionIndex !== null : currentAnswer.trim()) && !answers[currentQuestion?.id] ? 1 : 0)
 
   // Exam question page
   return (
@@ -329,30 +469,146 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
       {/* Progress Bar */}
       <div className="p-4 bg-zinc-900/50 border border-zinc-800 rounded-lg backdrop-blur-sm">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-zinc-400">
-            Exam Progress
-          </span>
-          <span className="text-sm font-semibold text-phthalo-400">
-            Question {currentQuestionIndex + 1}/{questions.length}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-zinc-400">
+              Exam Progress
+            </span>
+            {isSaving && (
+              <span className="text-xs text-zinc-500 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Saving...
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-phthalo-400">
+              {answeredCount}/{questions.length} answered
+            </span>
+            {hasAnyAnswers && (
+              <button
+                onClick={handleResetExam}
+                disabled={isResetting}
+                className="text-xs text-zinc-500 hover:text-red-400 flex items-center gap-1 transition-colors"
+              >
+                {isResetting ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3 h-3" />
+                )}
+                Reset
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="relative h-2 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="relative h-2 bg-zinc-800 rounded-full mb-4">
           <div
-            className="h-full bg-gradient-to-r from-phthalo-600 to-phthalo-500 rounded-full transition-all duration-500"
-            style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+            className="h-full bg-gradient-to-r from-phthalo-600 to-phthalo-500 rounded-full transition-all duration-500 overflow-hidden relative"
+            style={{ width: `${(answeredCount / questions.length) * 100}%` }}
           >
             <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer-slide"></div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-xs text-zinc-500">
-            {answeredCount}/{questions.length} answered
-          </span>
-          <span className="text-xs text-zinc-500">
-            Passing: {passingScore}%
-          </span>
+        {/* Question Navigator */}
+        <div className="flex items-center gap-4 mb-3">
+          <div className="flex gap-1.5 flex-1">
+            {questions.map((q, idx) => {
+            const isAnswered = answers[q.id]
+            const isCurrent = idx === currentQuestionIndex
+
+            // Determine section color based on section name
+            let sectionColor = 'border-zinc-700'
+            if (q.section_name?.includes('Section A')) {
+              sectionColor = 'border-blue-500/50'
+            } else if (q.section_name?.includes('Section B')) {
+              sectionColor = 'border-green-500/50'
+            } else if (q.section_name?.includes('Section C')) {
+              sectionColor = 'border-yellow-500/50'
+            } else if (q.section_name?.includes('Section D')) {
+              sectionColor = 'border-purple-500/50'
+            }
+
+            return (
+              <div key={q.id} className="flex flex-col items-center gap-0.5">
+                <button
+                  onClick={() => {
+                    // Auto-save current answer before switching
+                    if (!answers[currentQuestion.id]) {
+                      if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+                        setAnswers(prev => ({ ...prev, [currentQuestion.id]: selectedOptionIndex.toString() }))
+                      } else if (currentAnswer.trim()) {
+                        setAnswers(prev => ({ ...prev, [currentQuestion.id]: currentAnswer }))
+                      }
+                    }
+                    setCurrentQuestionIndex(idx)
+                  }}
+                  className={`
+                    w-7 h-7 rounded border-2 transition-all flex-shrink-0
+                    flex items-center justify-center text-xs font-semibold
+                    ${isCurrent
+                      ? 'bg-phthalo-500 border-phthalo-400 text-white scale-110'
+                      : isAnswered
+                      ? `bg-zinc-800 ${sectionColor} text-zinc-300 hover:bg-zinc-700`
+                      : `bg-zinc-900/50 ${sectionColor} text-zinc-500 hover:bg-zinc-800/50`
+                    }
+                  `}
+                  title={q.section_name}
+                >
+                  {idx + 1}
+                </button>
+                {isAnswered && (
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                )}
+              </div>
+            )
+          })}
+          </div>
+
+          <Button
+            onClick={handleSubmitExam}
+            size="sm"
+            className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 px-6"
+          >
+            Submit Exam
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-3">
+            {(() => {
+              // Extract unique sections in order they appear
+              const uniqueSections: string[] = []
+              questions.forEach(q => {
+                if (q.section_name && !uniqueSections.includes(q.section_name)) {
+                  uniqueSections.push(q.section_name)
+                }
+              })
+
+              const sectionColors = [
+                'border-blue-500/50',
+                'border-green-500/50',
+                'border-yellow-500/50',
+                'border-purple-500/50'
+              ]
+
+              return uniqueSections.map((section, idx) => {
+                // Extract short label from section name (e.g., "Section A - Vectors & Matrices" -> "Vectors & Matrices")
+                const label = section.includes(' - ') ? section.split(' - ')[1] : section
+                return (
+                  <div key={section} className="flex items-center gap-1">
+                    <div className={`w-3 h-3 rounded border-2 ${sectionColors[idx % sectionColors.length]} bg-zinc-800`}></div>
+                    <span className="text-zinc-500">{label}</span>
+                  </div>
+                )
+              })
+            })()}
+          </div>
+          <div className="flex items-center gap-3 text-zinc-500">
+            <span>Question {currentQuestionIndex + 1}/{questions.length}</span>
+            <span>•</span>
+            <span>Passing: {passingScore}%</span>
+          </div>
         </div>
       </div>
 
@@ -389,23 +645,58 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
         {/* Answer Input Section */}
         <div className="mb-8 p-6 bg-zinc-800/30 border border-zinc-700 rounded-lg">
           <h3 className="text-lg font-semibold mb-4 text-white">Your Answer</h3>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <input
-              type="text"
-              value={currentAnswer}
-              onChange={(e) => setCurrentAnswer(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSaveAnswer()}
-              placeholder="Enter your answer..."
-              className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-phthalo-500 focus:border-transparent"
-            />
-            <Button
-              onClick={handleSaveAnswer}
-              disabled={!currentAnswer.trim() || answers[currentQuestion.id] === currentAnswer}
-              className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50 px-8"
-            >
-              {answers[currentQuestion.id] ? 'Update' : 'Save'} Answer
-            </Button>
-          </div>
+
+          {/* Multiple Choice Options */}
+          {currentQuestion.question_type === 'multiple_choice' && currentQuestion.options && (
+            <div className="space-y-3">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = selectedOptionIndex === index
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedOptionIndex(index)}
+                    className={`w-full p-4 rounded-lg text-left transition-all border-2 ${
+                      isSelected
+                        ? 'border-phthalo-500 bg-phthalo-500/10 cursor-pointer'
+                        : 'border-zinc-700 bg-zinc-900/50 hover:border-zinc-600 hover:bg-zinc-900/70 cursor-pointer'
+                    }`}
+                  >
+                    <span className="text-zinc-300">{option}</span>
+                  </button>
+                )
+              })}
+
+              <Button
+                onClick={handleSaveAnswer}
+                disabled={selectedOptionIndex === null || answers[currentQuestion.id] === selectedOptionIndex?.toString()}
+                className="w-full bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50"
+              >
+                {answers[currentQuestion.id] ? 'Update' : 'Save'} Answer
+              </Button>
+            </div>
+          )}
+
+          {/* Free Text Input */}
+          {currentQuestion.question_type === 'free_text' && (
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="text"
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveAnswer()}
+                placeholder="Enter your answer..."
+                className="flex-1 px-4 py-3 bg-zinc-900 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-phthalo-500 focus:border-transparent"
+              />
+              <Button
+                onClick={handleSaveAnswer}
+                disabled={!currentAnswer.trim() || answers[currentQuestion.id] === currentAnswer}
+                className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900 disabled:opacity-50 px-8"
+              >
+                {answers[currentQuestion.id] ? 'Update' : 'Save'} Answer
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Hint Section */}
@@ -463,7 +754,7 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
             onClick={handlePreviousQuestion}
             variant="outline"
             size="lg"
-            className="flex-1"
+            className="flex-1 bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-500"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Previous
@@ -531,6 +822,86 @@ export function ExamClient({ examId, questions, attemptNumber, passingScore }: E
           </div>
         </>
       )}
+
+      {/* Submit Confirmation Modal */}
+      {showSubmitWarning && (() => {
+        // Calculate unanswered count
+        const allAnswers = { ...answers }
+        if (!allAnswers[currentQuestion.id]) {
+          if (currentQuestion.question_type === 'multiple_choice' && selectedOptionIndex !== null) {
+            allAnswers[currentQuestion.id] = selectedOptionIndex.toString()
+          } else if (currentAnswer.trim()) {
+            allAnswers[currentQuestion.id] = currentAnswer
+          }
+        }
+        const unansweredCount = questions.filter(q => !allAnswers[q.id]).length
+
+        return (
+          <>
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-in fade-in duration-200"
+              onClick={() => setShowSubmitWarning(false)}
+            />
+            <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none">
+              <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl pointer-events-auto animate-in zoom-in-95 duration-200">
+                <div className="p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className={`w-12 h-12 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                      unansweredCount > 0
+                        ? 'bg-yellow-500/10 border-yellow-500/20'
+                        : 'bg-green-500/10 border-green-500/20'
+                    }`}>
+                      {unansweredCount > 0 ? (
+                        <AlertTriangle className="w-6 h-6 text-yellow-400" />
+                      ) : (
+                        <CheckCircle2 className="w-6 h-6 text-green-400" />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">Submit Exam?</h3>
+                      <p className="text-zinc-400 text-sm">
+                        {unansweredCount > 0 ? (
+                          <>
+                            You have <span className="font-semibold text-yellow-400">{unansweredCount} unanswered question{unansweredCount !== 1 ? 's' : ''}</span>.
+                            Are you sure you want to submit?
+                          </>
+                        ) : (
+                          'Are you sure you want to submit your exam?'
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => setShowSubmitWarning(false)}
+                      variant="outline"
+                      className="flex-1 bg-zinc-800/50 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-500"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleConfirmSubmit}
+                      disabled={submitting}
+                      className="flex-1 bg-phthalo-600 hover:bg-phthalo-700 text-white"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        'Submit Exam'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }
+

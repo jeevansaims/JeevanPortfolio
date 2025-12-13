@@ -1,0 +1,501 @@
+# Matrices & Matrix Multiplication
+
+## 1. What a Matrix Represents
+
+A **matrix** is a rectangular array of numbers organized into rows and columns. But it's much more than a table, a matrix represents a **linear transformation** that maps vectors to new vectors.
+
+### Three Ways to Think About Matrices
+
+**1. As organized data:**
+
+A matrix stores related numbers in a structured format:
+
+- Covariance matrix: pairwise relationships between assets
+- Return matrix: time series of multiple assets
+- Factor loading matrix: how assets respond to factors
+
+**2. As a linear transformation:**
+
+A matrix $A$ transforms input vector $\mathbf{x}$ into output vector $A\mathbf{x}$:
+
+- Rotation, scaling, projection, reflection
+- Changing coordinates from one basis to another
+
+**3. As a system of equations:**
+
+Each row of $A\mathbf{x} = \mathbf{b}$ represents one linear equation.
+
+### Why Quants Use Matrices
+
+**Portfolio mathematics:**
+
+- Portfolio variance: $\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w}$
+- Factor model: $\mathbf{r} = B\mathbf{f} + \boldsymbol{\epsilon}$
+- Optimization: solve $A\mathbf{w} = \mathbf{b}$ for optimal weights
+
+**Risk management:**
+
+- Covariance matrices capture all pairwise correlations
+- PCA decomposes risk into independent factors
+- Stress testing applies transformation matrices to portfolios
+
+**Data analysis:**
+
+- Returns data organized as matrix (assets × time)
+- Regression coefficients in matrix form
+- Machine learning models use matrix operations extensively
+
+---
+
+## 2. Matrix Notation and Basic Structure
+
+### Dimensions and Entries
+
+An $m \times n$ matrix has $m$ rows and $n$ columns:
+
+$$
+A = \begin{pmatrix}
+a_{11} & a_{12} & \cdots & a_{1n} \\
+a_{21} & a_{22} & \cdots & a_{2n} \\
+\vdots & \vdots & \ddots & \vdots \\
+a_{m1} & a_{m2} & \cdots & a_{mn}
+\end{pmatrix}
+$$
+
+**Entry notation:** $a_{ij}$ is the element in row $i$, column $j$.
+
+**Example:** A $2 \times 3$ matrix:
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix}
+$$
+
+Here $a_{12} = 2$ and $a_{23} = 6$.
+
+### Square Matrices
+
+A **square matrix** has equal rows and columns ($n \times n$). These are especially important because:
+
+- Covariance matrices are square
+- Transformations that preserve dimension are square
+- Only square matrices can have inverses
+
+### Special Matrices
+
+**Zero matrix:** All entries are 0.
+
+$$
+O = \begin{pmatrix} 0 & 0 \\ 0 & 0 \end{pmatrix}
+$$
+
+**Identity matrix:** 1s on diagonal, 0s elsewhere. Leaves vectors unchanged.
+
+$$
+I = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix}
+$$
+
+Property: $I\mathbf{x} = \mathbf{x}$ for any vector $\mathbf{x}$.
+
+**Diagonal matrix:** Non-zero entries only on the main diagonal.
+
+$$
+D = \begin{pmatrix} d_1 & 0 & 0 \\ 0 & d_2 & 0 \\ 0 & 0 & d_3 \end{pmatrix}
+$$
+
+Diagonal matrices scale each component independently: $(D\mathbf{x})_i = d_i x_i$.
+
+**Symmetric matrix:** $A = A^T$ (equals its transpose). Covariance matrices are always symmetric.
+
+---
+
+## 3. Matrix Multiplication: The Core Idea
+
+### Definition: Row-by-Column Products
+
+For matrices $A$ (size $m \times n$) and $B$ (size $n \times p$), the product $C = AB$ has size $m \times p$:
+
+$$
+c_{ij} = \sum_{k=1}^n a_{ik} b_{kj} = (\text{row } i \text{ of } A) \cdot (\text{column } j \text{ of } B)
+$$
+
+**The inner dimensions must match:** $A$ has $n$ columns, $B$ has $n$ rows.
+
+### Example Calculation
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}, \quad B = \begin{pmatrix} 5 & 6 \\ 7 & 8 \end{pmatrix}
+$$
+
+**Computing $AB$:**
+
+- $c_{11} = 1 \cdot 5 + 2 \cdot 7 = 5 + 14 = 19$
+- $c_{12} = 1 \cdot 6 + 2 \cdot 8 = 6 + 16 = 22$
+- $c_{21} = 3 \cdot 5 + 4 \cdot 7 = 15 + 28 = 43$
+- $c_{22} = 3 \cdot 6 + 4 \cdot 8 = 18 + 32 = 50$
+
+$$
+AB = \begin{pmatrix} 19 & 22 \\ 43 & 50 \end{pmatrix}
+$$
+
+### Geometric Meaning: Sequential Transformations
+
+Matrix multiplication represents **applying transformations in sequence**.
+
+If $A$ rotates vectors and $B$ scales vectors, then $AB$ first scales, then rotates (read right to left!).
+
+**Why right to left?** Because $(AB)\mathbf{x} = A(B\mathbf{x})$. First $B$ acts on $\mathbf{x}$, then $A$ acts on the result.
+
+### Why Order Matters
+
+**Matrix multiplication is NOT commutative:** $AB \neq BA$ in general.
+
+**Example:** Rotate then scale ≠ Scale then rotate
+
+This matters in finance when operations must be performed in a specific sequence (e.g., hedge then rebalance vs. rebalance then hedge).
+
+---
+
+## 4. Multiplying Matrices and Vectors
+
+### Matrix-Vector Multiplication
+
+For matrix $A$ (size $m \times n$) and vector $\mathbf{x}$ (size $n \times 1$):
+
+$$
+A\mathbf{x} = \begin{pmatrix} \text{row 1} \cdot \mathbf{x} \\ \text{row 2} \cdot \mathbf{x} \\ \vdots \\ \text{row } m \cdot \mathbf{x} \end{pmatrix}
+$$
+
+Result is an $m \times 1$ vector.
+
+### Example
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}, \quad \mathbf{x} = \begin{pmatrix} 5 \\ 6 \end{pmatrix}
+$$
+
+$$
+A\mathbf{x} = \begin{pmatrix} 1 \cdot 5 + 2 \cdot 6 \\ 3 \cdot 5 + 4 \cdot 6 \end{pmatrix} = \begin{pmatrix} 17 \\ 39 \end{pmatrix}
+$$
+
+### Two Viewpoints
+
+**Row viewpoint:** Each output component is a dot product of a row with the input.
+
+$$
+(A\mathbf{x})_i = \text{row}_i(A) \cdot \mathbf{x}
+$$
+
+**Column viewpoint:** The output is a **linear combination of columns** of $A$, weighted by entries of $\mathbf{x}$.
+
+$$
+A\mathbf{x} = x_1 \mathbf{a}_1 + x_2 \mathbf{a}_2 + \cdots + x_n \mathbf{a}_n
+$$
+
+where $\mathbf{a}_j$ is column $j$ of $A$.
+
+### Financial Interpretations
+
+**Factor model returns:**
+
+$$
+\mathbf{r} = B\mathbf{f}
+$$
+
+- $B$ is the factor loading matrix (assets × factors)
+- $\mathbf{f}$ is the factor return vector
+- $\mathbf{r}$ is the asset return vector
+
+Each asset return is a linear combination of factor returns.
+
+**Portfolio returns across scenarios:**
+
+If $R$ is a returns matrix (scenarios × assets) and $\mathbf{w}$ is weights:
+
+$$
+R\mathbf{w} = \text{portfolio return in each scenario}
+$$
+
+---
+
+## 5. Composition of Linear Transformations
+
+### Transformations in Sequence
+
+If $A$ and $B$ are linear transformations:
+
+- $B\mathbf{x}$ applies $B$ to $\mathbf{x}$
+- $A(B\mathbf{x})$ then applies $A$ to the result
+- The combined transformation is $(AB)\mathbf{x}$
+
+**Key insight:** $AB$ is the matrix that does both transformations at once.
+
+### Example: Scale Then Rotate
+
+**Scaling matrix** (double x, triple y):
+
+$$
+S = \begin{pmatrix} 2 & 0 \\ 0 & 3 \end{pmatrix}
+$$
+
+**90° rotation matrix:**
+
+$$
+R = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}
+$$
+
+**Rotate after scaling:** $RS$
+
+$$
+RS = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} \begin{pmatrix} 2 & 0 \\ 0 & 3 \end{pmatrix} = \begin{pmatrix} 0 & -3 \\ 2 & 0 \end{pmatrix}
+$$
+
+**Scale after rotating:** $SR$
+
+$$
+SR = \begin{pmatrix} 2 & 0 \\ 0 & 3 \end{pmatrix} \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix} = \begin{pmatrix} 0 & -2 \\ 3 & 0 \end{pmatrix}
+$$
+
+Notice: $RS \neq SR$. **Order matters.**
+
+### Non-Commutativity in Finance
+
+**Example:** Rebalancing and hedging
+
+- Rebalance then hedge: adjust weights, then add hedge
+- Hedge then rebalance: add hedge first, then adjust combined portfolio
+
+These produce different final portfolios.
+
+---
+
+## 6. Matrix Algebra Essentials
+
+### Properties of Matrix Multiplication
+
+**Associative:** $(AB)C = A(BC)$
+
+You can group multiplications however you like (but don't change order).
+
+**Distributive:** $A(B + C) = AB + AC$
+
+**NOT commutative:** $AB \neq BA$ (in general)
+
+### The Transpose
+
+The **transpose** $A^T$ swaps rows and columns:
+
+$$
+(A^T)_{ij} = A_{ji}
+$$
+
+**Example:**
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix} \quad \Rightarrow \quad A^T = \begin{pmatrix} 1 & 4 \\ 2 & 5 \\ 3 & 6 \end{pmatrix}
+$$
+
+**Key properties:**
+
+- $(A^T)^T = A$
+- $(AB)^T = B^T A^T$ (order reverses!)
+- $(A + B)^T = A^T + B^T$
+
+### The Matrix Inverse
+
+For a square matrix $A$, the **inverse** $A^{-1}$ satisfies:
+
+$$
+AA^{-1} = A^{-1}A = I
+$$
+
+**Not all matrices are invertible.** A matrix is invertible if and only if:
+
+- It's square
+- Its determinant is non-zero
+- Its columns are linearly independent
+
+**Financial application:** Solving for optimal weights.
+
+If $A\mathbf{w} = \mathbf{b}$, then $\mathbf{w} = A^{-1}\mathbf{b}$.
+
+### 2×2 Inverse Formula
+
+For a $2 \times 2$ matrix:
+
+$$
+A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}
+$$
+
+$$
+A^{-1} = \frac{1}{ad - bc} \begin{pmatrix} d & -b \\ -c & a \end{pmatrix}
+$$
+
+The quantity $\det(A) = ad - bc$ is the **determinant**. If $\det(A) = 0$, the matrix is not invertible.
+
+---
+
+## 7. Portfolio Variance: The Key Formula
+
+### Matrix Form of Portfolio Variance
+
+For portfolio weights $\mathbf{w}$ and covariance matrix $\Sigma$:
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+This single formula computes variance accounting for all correlations.
+
+### Understanding the Formula
+
+The covariance matrix $\Sigma$ has:
+
+- Variances $\sigma_i^2$ on the diagonal
+- Covariances $\sigma_{ij}$ off the diagonal
+
+$$
+\Sigma = \begin{pmatrix} \sigma_1^2 & \sigma_{12} & \sigma_{13} \\ \sigma_{12} & \sigma_2^2 & \sigma_{23} \\ \sigma_{13} & \sigma_{23} & \sigma_3^2 \end{pmatrix}
+$$
+
+### Example Calculation
+
+Two assets with:
+
+- $\sigma_1^2 = 0.04$, $\sigma_2^2 = 0.09$
+- $\sigma_{12} = 0.02$
+
+Weights: $\mathbf{w} = (0.6, 0.4)$
+
+$$
+\Sigma = \begin{pmatrix} 0.04 & 0.02 \\ 0.02 & 0.09 \end{pmatrix}
+$$
+
+**Step 1:** Compute $\Sigma \mathbf{w}$
+
+$$
+\Sigma \mathbf{w} = \begin{pmatrix} 0.04 \cdot 0.6 + 0.02 \cdot 0.4 \\ 0.02 \cdot 0.6 + 0.09 \cdot 0.4 \end{pmatrix} = \begin{pmatrix} 0.032 \\ 0.048 \end{pmatrix}
+$$
+
+**Step 2:** Compute $\mathbf{w}^T (\Sigma \mathbf{w})$
+
+$$
+\sigma_p^2 = 0.6 \cdot 0.032 + 0.4 \cdot 0.048 = 0.0192 + 0.0192 = 0.0384
+$$
+
+Portfolio standard deviation: $\sigma_p = \sqrt{0.0384} \approx 19.6\%$
+
+---
+
+## 8. Worked Examples
+
+### Example 1: Factor Model
+
+**Setup:**
+
+- 3 assets, 2 factors
+- Factor loading matrix $B$ (3×2)
+- Factor returns $\mathbf{f}$ (2×1)
+
+$$
+B = \begin{pmatrix} 1.2 & 0.5 \\ 0.8 & -0.3 \\ 1.0 & 0.2 \end{pmatrix}, \quad \mathbf{f} = \begin{pmatrix} 0.02 \\ 0.01 \end{pmatrix}
+$$
+
+**Compute asset returns** $\mathbf{r} = B\mathbf{f}$:
+
+$$
+\mathbf{r} = \begin{pmatrix} 1.2 \cdot 0.02 + 0.5 \cdot 0.01 \\ 0.8 \cdot 0.02 + (-0.3) \cdot 0.01 \\ 1.0 \cdot 0.02 + 0.2 \cdot 0.01 \end{pmatrix} = \begin{pmatrix} 0.029 \\ 0.013 \\ 0.022 \end{pmatrix}
+$$
+
+Asset returns are 2.9%, 1.3%, and 2.2%.
+
+### Example 2: Solving for Weights
+
+**Problem:** Find weights satisfying $A\mathbf{w} = \mathbf{b}$
+
+$$
+A = \begin{pmatrix} 1 & 1 \\ 2 & 3 \end{pmatrix}, \quad \mathbf{b} = \begin{pmatrix} 1 \\ 0.08 \end{pmatrix}
+$$
+
+(First equation: weights sum to 1. Second equation: expected return = 8%.)
+
+**Step 1:** Compute $A^{-1}$
+
+$\det(A) = 1 \cdot 3 - 1 \cdot 2 = 1$
+
+$$
+A^{-1} = \begin{pmatrix} 3 & -1 \\ -2 & 1 \end{pmatrix}
+$$
+
+**Step 2:** Compute $\mathbf{w} = A^{-1}\mathbf{b}$
+
+$$
+\mathbf{w} = \begin{pmatrix} 3 & -1 \\ -2 & 1 \end{pmatrix} \begin{pmatrix} 1 \\ 0.08 \end{pmatrix} = \begin{pmatrix} 2.92 \\ -1.92 \end{pmatrix}
+$$
+
+This is a levered long-short portfolio: 292% long asset 1, 192% short asset 2.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Matrices** are rectangular arrays that represent:
+
+- Data organization (returns, covariances)
+- Linear transformations (rotations, scaling)
+- Systems of equations
+
+**Matrix-vector multiplication** $A\mathbf{x}$:
+
+- Transforms vectors
+- Computes factor model returns
+- Row view: dot products
+- Column view: linear combinations
+
+**Matrix-matrix multiplication** $AB$:
+
+- Composes transformations
+- Order matters: $AB \neq BA$
+- Inner dimensions must match
+
+**Special matrices:**
+
+- Identity $I$: leaves vectors unchanged
+- Inverse $A^{-1}$: undoes the transformation
+- Transpose $A^T$: swaps rows and columns
+
+### Key Formulas
+
+**Portfolio variance:**
+
+$$
+\sigma_p^2 = \mathbf{w}^T \Sigma \mathbf{w}
+$$
+
+**Factor model:**
+
+$$
+\mathbf{r} = B\mathbf{f}
+$$
+
+**Solving linear systems:**
+
+$$
+A\mathbf{w} = \mathbf{b} \quad \Rightarrow \quad \mathbf{w} = A^{-1}\mathbf{b}
+$$
+
+---
+
+## 10. What's Next?
+
+We've seen that matrix-vector multiplication produces outputs that are linear combinations of columns. But which vectors can we actually reach?
+
+**Next lesson: Row & Column Spaces**
+
+You'll learn:
+
+- The column space: all possible outputs of $A\mathbf{x}$
+- The row space: what features $A$ extracts
+- The null space: vectors mapped to zero
+- Why these spaces determine what's possible in linear systems

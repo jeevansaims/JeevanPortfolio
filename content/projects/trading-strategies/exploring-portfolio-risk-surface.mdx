@@ -1,0 +1,1203 @@
+# Exploring a Portfolio Risk Surface
+
+In this project, you'll analyze a portfolio whose value depends on **two asset prices simultaneously**. Your task is not to optimize or predict—it's to **understand** how the portfolio behaves locally, how it reacts to combined market movements, and when linear intuition fails.
+
+This is pure analysis, not decision-making. You're building the geometric intuition that underpins all of quantitative risk management.
+
+---
+
+## Section 0: The Mathematical Object
+
+You are given a portfolio value function:
+
+$$V(S_1, S_2) = w_1 S_1 + w_2 S_2 + \phi(S_1, S_2)$$
+
+where:
+- $S_1, S_2$ are asset prices (e.g., two stocks in your portfolio)
+- $w_1 = 100, w_2 = 80$ are fixed position sizes (number of shares held)
+- $\phi(S_1, S_2) = 50 \sin\left(\frac{S_1}{20}\right) \cos\left(\frac{S_2}{20}\right)$ is a nonlinear interaction term
+
+**You are not told why the function looks this way.** In practice, nonlinear terms arise from:
+- Derivatives (options) in the portfolio
+- Correlation effects between assets
+- Nonlinear funding costs or margin requirements
+
+For this project, simply accept: **this is the model. Your job is to analyze it.**
+
+<TextResponse
+  id="recall-0-1"
+  question="Why is this portfolio value function NOT just a plane (linear surface)? What makes it curved?"
+  keywords="Nonlinear:nonlinear,curved,non-linear|Phi term:phi,interaction,sin,cos|Not constant:changes,varies,depends|Second derivative:curvature,second,hessian"
+  minKeywords={2}
+  referenceAnswer="The portfolio value function is curved because of the nonlinear interaction term φ(S₁, S₂). The linear part (w₁S₁ + w₂S₂) would give a plane, but the sine-cosine term adds curvature that varies across the surface. This means the sensitivities (partial derivatives) themselves change depending on where you are."
+  placeholder="What makes this function different from a simple weighted sum?"
+  maxLength={400}
+  label="Recall"
+/>
+
+---
+
+## Section 1: Seeing the Surface
+
+A function of two variables $V(S_1, S_2)$ is not a curve—it's a **surface** living in 3D space. Every point $(S_1, S_2)$ in the plane maps to a height $V$, the portfolio value at those prices.
+
+### 1.1 Building Intuition
+
+Before we compute anything, let's think geometrically.
+
+<Quiz
+  id="quiz-1-1"
+  question="If you walk in the $S_1$ direction while holding $S_2$ fixed, what are you tracing out?"
+  options={[
+    "A point",
+    "A curve (cross-section of the surface)",
+    "Another surface",
+    "A contour line"
+  ]}
+  correct={1}
+  explanation="When you fix S₂ and vary S₁, you trace out a curve—specifically, a cross-section of the surface. This curve shows how V changes with S₁ alone. The slope of this curve at any point is the partial derivative ∂V/∂S₁."
+/>
+
+### 1.2 Implementing the Portfolio Function
+
+Let's implement this function in Python and visualize it.
+
+<CodeExercise
+  id="code-1-2"
+  starterCode={`import numpy as np
+
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    """
+    Compute portfolio value V(S1, S2) = w1*S1 + w2*S2 + phi(S1, S2)
+
+    The interaction term phi captures nonlinear effects from
+    derivatives or correlation dynamics.
+
+    Args:
+        s1: Asset 1 price (scalar or array)
+        s2: Asset 2 price (scalar or array)
+        w1: Position in asset 1 (default 100 shares)
+        w2: Position in asset 2 (default 80 shares)
+        k: Strength of nonlinear interaction (default 50)
+
+    Returns:
+        Portfolio value V
+    """
+    # Linear component: weighted sum of asset prices
+    linear_part = w1 * s1 + w2 * s2
+
+    # Nonlinear interaction term
+    # TODO: Implement phi = k * sin(s1/20) * cos(s2/20)
+    phi = 0  # Replace this
+
+    return linear_part + phi`}
+  solution={`import numpy as np
+
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    """
+    Compute portfolio value V(S1, S2) = w1*S1 + w2*S2 + phi(S1, S2)
+    """
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi`}
+  hint="Use np.sin() and np.cos(). Remember to divide by 20 inside each trig function."
+  tests={[
+    {
+      "input": [100, 100],
+      "expected": 17986.4,
+      "tolerance": 0.5,
+      "description": "V(100, 100) with default parameters"
+    },
+    {
+      "input": [120, 80],
+      "expected": 18409.13,
+      "tolerance": 0.5,
+      "description": "V(120, 80) - shifted point"
+    },
+    {
+      "input": [100, 100, 50, 50, 0],
+      "expected": 10000.0,
+      "tolerance": 0.01,
+      "description": "Pure linear case (k=0)"
+    }
+  ]}
+/>
+
+### 1.3 Evaluating on a Grid
+
+To visualize a surface, we evaluate the function on a **grid** of $(S_1, S_2)$ values.
+
+<CodeExercise
+  id="code-1-3"
+  starterCode={`import numpy as np
+
+def create_evaluation_grid(s1_center, s2_center, range_size=40, num_points=50):
+    """
+    Create a grid of (S1, S2) values for surface evaluation.
+
+    Args:
+        s1_center: Center value for S1 axis
+        s2_center: Center value for S2 axis
+        range_size: How far to extend from center in each direction
+        num_points: Number of points along each axis
+
+    Returns:
+        Tuple of (S1_grid, S2_grid, V_grid) where:
+        - S1_grid, S2_grid are 2D arrays of coordinates
+        - V_grid is the portfolio value at each point
+    """
+    # Create 1D arrays for each axis
+    s1_values = np.linspace(s1_center - range_size, s1_center + range_size, num_points)
+    s2_values = np.linspace(s2_center - range_size, s2_center + range_size, num_points)
+
+    # Create 2D meshgrid
+    # TODO: Use np.meshgrid to create S1_grid and S2_grid
+    S1_grid = None  # Replace
+    S2_grid = None  # Replace
+
+    # Evaluate portfolio value at each grid point
+    # TODO: Call portfolio_value on the grids
+    V_grid = None  # Replace
+
+    return S1_grid, S2_grid, V_grid
+
+# Portfolio value function (needed for evaluation)
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+# Test: create grid centered at (100, 100)
+S1, S2, V = create_evaluation_grid(100, 100)
+print(f"Grid shape: {V.shape}")
+print(f"V range: [{V.min():.0f}, {V.max():.0f}]")`}
+  solution={`import numpy as np
+
+def create_evaluation_grid(s1_center, s2_center, range_size=40, num_points=50):
+    """
+    Create a grid of (S1, S2) values for surface evaluation.
+    """
+    s1_values = np.linspace(s1_center - range_size, s1_center + range_size, num_points)
+    s2_values = np.linspace(s2_center - range_size, s2_center + range_size, num_points)
+
+    S1_grid, S2_grid = np.meshgrid(s1_values, s2_values)
+    V_grid = portfolio_value(S1_grid, S2_grid)
+
+    return S1_grid, S2_grid, V_grid
+
+# Portfolio value function (needed for evaluation)
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+S1, S2, V = create_evaluation_grid(100, 100)
+print(f"Grid shape: {V.shape}")
+print(f"V range: [{V.min():.0f}, {V.max():.0f}]")`}
+  hint="np.meshgrid(x, y) returns two 2D arrays. The first varies along columns, the second along rows. Your portfolio_value function should work element-wise on arrays."
+  tests={[]}
+/>
+
+<SurfaceVisualization
+  requiredBlockId="code-1-3"
+  title="Portfolio Value Heatmap"
+  description="This heatmap shows V(S₁, S₂) across a range of asset prices. Brighter regions have higher portfolio value. Notice the subtle waviness from the nonlinear term."
+  type="heatmap"
+  w1={100}
+  w2={80}
+  s1Center={100}
+  s2Center={100}
+  range={40}
+/>
+
+### 1.4 Understanding Contour Lines
+
+A **contour line** connects all points $(S_1, S_2)$ where the portfolio has the same value.
+
+<TextResponse
+  id="recall-1-4"
+  question="What does a contour line V(S₁, S₂) = $18,000 represent in practical terms?"
+  keywords="Same value:same,equal,constant,iso|Combinations:combinations,pairs,all|Tradeoff:tradeoff,substitute,offset|Price changes:prices,changes,move"
+  minKeywords={2}
+  referenceAnswer="A contour line at V = $18,000 represents all combinations of (S₁, S₂) that give exactly $18,000 portfolio value. It shows the tradeoff: if S₁ increases, S₂ must decrease (or vice versa) to stay on the same contour. These are the price scenarios that leave your wealth unchanged."
+  placeholder="What do all points on this line have in common?"
+  maxLength={400}
+  label="Recall"
+/>
+
+<Quiz
+  id="quiz-1-5"
+  question="If contour lines are straight parallel lines, what does that tell you about the function?"
+  options={[
+    "The function is nonlinear",
+    "The function is linear (a plane)",
+    "The function has saddle points",
+    "The function is undefined"
+  ]}
+  correct={1}
+  explanation="Straight, parallel contour lines indicate a linear function (plane). The contours of V = w₁S₁ + w₂S₂ + c are lines of the form w₁S₁ + w₂S₂ = constant. When the nonlinear φ term is added, the contours become curved, which is what we see in our portfolio."
+/>
+
+<Checkpoint
+  id="checkpoint-1"
+  title="Checkpoint 1: Surface Fundamentals"
+  requiredBlockIds={["recall-0-1", "quiz-1-1", "code-1-2", "code-1-3", "recall-1-4", "quiz-1-5"]}
+  minRequired={5}
+  lockedMessage="Complete at least 5 of the 6 tasks above to unlock Section 2."
+>
+
+**Review:**
+
+Before moving on, make sure you understand:
+- A function of two variables defines a surface, not a curve
+- Cross-sections (fixing one variable) give you curves
+- Contour lines show constant-value combinations
+- Nonlinear terms make contours curved
+
+</Checkpoint>
+
+---
+
+<GatedSection checkpointId="checkpoint-1" lockedTitle="Section 2: Local Behavior at a Point">
+
+## Section 2: Local Behavior at a Point
+
+Now we zoom in. Pick a specific market state:
+
+$$(S_1^*, S_2^*) = (100, 100)$$
+
+At this exact point, both assets trade at \$100. Our portfolio value here is approximately \$18,044.
+
+**The question:** How does $V$ change if we nudge prices slightly from this point?
+
+### 2.1 What "Local" Means
+
+<TextResponse
+  id="recall-2-1"
+  question="In calculus, what does 'local behavior' mean? Why do we care about it?"
+  keywords="Small changes:small,nearby,neighborhood,close|Approximation:approximate,estimate,predict|Derivative:derivative,slope,rate|Tangent:tangent,linear,first-order"
+  minKeywords={2}
+  referenceAnswer="Local behavior describes how a function changes for small perturbations around a point. We care because: (1) real market moves are often small, (2) derivatives give us linear approximations valid locally, (3) we can predict portfolio changes without recomputing the full function. The partial derivatives at a point tell us the instantaneous rates of change."
+  placeholder="Why focus on a single point rather than the whole surface?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 2.2 Computing Partial Derivatives
+
+The partial derivative $\frac{\partial V}{\partial S_1}$ measures how $V$ changes when **only $S_1$ changes**, holding $S_2$ fixed.
+
+For our function $V = w_1 S_1 + w_2 S_2 + k \sin(S_1/20) \cos(S_2/20)$:
+
+$$\frac{\partial V}{\partial S_1} = w_1 + \frac{k}{20} \cos\left(\frac{S_1}{20}\right) \cos\left(\frac{S_2}{20}\right)$$
+
+$$\frac{\partial V}{\partial S_2} = w_2 - \frac{k}{20} \sin\left(\frac{S_1}{20}\right) \sin\left(\frac{S_2}{20}\right)$$
+
+<CodeExercise
+  id="code-2-2"
+  starterCode={`import numpy as np
+
+def compute_partial_derivatives(s1, s2, w1=100, w2=80, k=50):
+    """
+    Compute partial derivatives of V at point (s1, s2).
+
+    ∂V/∂S₁ = w₁ + (k/20) * cos(s1/20) * cos(s2/20)
+    ∂V/∂S₂ = w₂ - (k/20) * sin(s1/20) * sin(s2/20)
+
+    Args:
+        s1, s2: Point at which to evaluate
+        w1, w2, k: Portfolio parameters
+
+    Returns:
+        Tuple (dV_dS1, dV_dS2) - the partial derivatives
+    """
+    # TODO: Implement the partial derivatives
+    dV_dS1 = 0  # Replace with actual formula
+    dV_dS2 = 0  # Replace with actual formula
+
+    return dV_dS1, dV_dS2
+
+# Test at (100, 100)
+dV1, dV2 = compute_partial_derivatives(100, 100)
+print(f"∂V/∂S₁ at (100,100) = {dV1:.4f}")
+print(f"∂V/∂S₂ at (100,100) = {dV2:.4f}")`}
+  solution={`import numpy as np
+
+def compute_partial_derivatives(s1, s2, w1=100, w2=80, k=50):
+    """
+    Compute partial derivatives of V at point (s1, s2).
+    """
+    dV_dS1 = w1 + (k / 20) * np.cos(s1 / 20) * np.cos(s2 / 20)
+    dV_dS2 = w2 - (k / 20) * np.sin(s1 / 20) * np.sin(s2 / 20)
+
+    return dV_dS1, dV_dS2
+
+dV1, dV2 = compute_partial_derivatives(100, 100)
+print(f"∂V/∂S₁ at (100,100) = {dV1:.4f}")
+print(f"∂V/∂S₂ at (100,100) = {dV2:.4f}")`}
+  hint="For ∂V/∂S₁: differentiate w₁S₁ to get w₁, and differentiate k*sin(S₁/20)*cos(S₂/20) using the chain rule to get (k/20)*cos(S₁/20)*cos(S₂/20)."
+  tests={[
+    {
+      "input": [100, 100],
+      "expected": [100.20, 77.70],
+      "tolerance": 0.1,
+      "description": "Partials at (100, 100)"
+    },
+    {
+      "input": [0, 0, 100, 80, 50],
+      "expected": [102.5, 80.0],
+      "tolerance": 0.01,
+      "description": "Partials at origin"
+    }
+  ]}
+/>
+
+<SurfaceVisualization
+  requiredBlockId="code-2-2"
+  title="Cross-Sections Through (100, 100)"
+  description="These curves show how V changes along each axis independently. The slopes at S₁=100 and S₂=100 are the partial derivatives you just computed."
+  type="cross-section"
+  w1={100}
+  w2={80}
+  s1Center={100}
+  s2Center={100}
+  range={40}
+/>
+
+### 2.3 Interpreting the Partials
+
+<Quiz
+  id="quiz-2-3"
+  question="At (100, 100), you computed ∂V/∂S₁ ≈ 100.20. What does this number mean?"
+  options={[
+    "The portfolio is worth $100.20",
+    "Asset 1's price will increase by $100.20",
+    "A $1 increase in S₁ increases V by approximately $100.20",
+    "The optimal position in asset 1 is 100.20 shares"
+  ]}
+  correct={2}
+  explanation="The partial derivative ∂V/∂S₁ ≈ 100.20 means that if S₁ increases by $1 (while S₂ stays fixed), the portfolio value increases by approximately $100.20. This is slightly more than w₁ = 100 because of the nonlinear φ term's contribution at this specific point."
+/>
+
+<NumericInput
+  id="numeric-2-4"
+  question="If S₁ increases from $100 to $102 while S₂ stays at $100, approximately how much does V change? (Use the partial derivative)"
+  correctAnswer={200.40}
+  tolerance={1}
+  units="dollars"
+  explanation="ΔV ≈ (∂V/∂S₁) × ΔS₁ = 100.20 × 2 = $200.40. This is a first-order (linear) approximation. The actual change would be slightly different due to curvature."
+  hint="Multiply the partial derivative by the change in S₁."
+/>
+
+<Quiz
+  id="quiz-2-5"
+  question="Are the sensitivities ∂V/∂S₁ and ∂V/∂S₂ symmetric (equal) at (100, 100)?"
+  options={[
+    "Yes, they must be equal for any portfolio",
+    "No, because w₁ ≠ w₂ and the φ term affects them differently",
+    "Yes, because both assets have the same price",
+    "Cannot determine without more information"
+  ]}
+  correct={1}
+  explanation="The partials are NOT symmetric: ∂V/∂S₁ ≈ 100.20 while ∂V/∂S₂ ≈ 77.70. This difference comes from (1) different position sizes w₁ = 100 vs w₂ = 80, and (2) the φ term contributes differently to each partial. Even at equal prices, the portfolio's sensitivity to each asset differs."
+/>
+
+<Checkpoint
+  id="checkpoint-2"
+  title="Checkpoint 2: Partial Derivatives"
+  requiredBlockIds={["recall-2-1", "code-2-2", "quiz-2-3", "numeric-2-4", "quiz-2-5"]}
+  minRequired={4}
+  lockedMessage="Complete at least 4 of the 5 tasks above to unlock Section 3."
+>
+
+**Key Insight:**
+
+Partial derivatives give you **axis-aligned sensitivities**:
+- $\frac{\partial V}{\partial S_1}$ = sensitivity to Asset 1 alone
+- $\frac{\partial V}{\partial S_2}$ = sensitivity to Asset 2 alone
+
+But markets don't move one asset at a time...
+
+</Checkpoint>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-2" lockedTitle="Section 3: Combined Market Moves">
+
+## Section 3: Combined Market Moves
+
+Markets move together. When the Fed announces a rate decision, **both** assets in your portfolio might move simultaneously. The partial derivatives alone can't tell you what happens.
+
+### 3.1 Directions in the Plane
+
+A **direction** in the $(S_1, S_2)$ plane is specified by a vector $\mathbf{u} = (u_1, u_2)$.
+
+For example:
+- $\mathbf{u} = (1, 0)$ means "move only in the $S_1$ direction" (east)
+- $\mathbf{u} = (0, 1)$ means "move only in the $S_2$ direction" (north)
+- $\mathbf{u} = (1, 1)$ means "move diagonally—both assets increase equally"
+- $\mathbf{u} = (1, -1)$ means "Asset 1 up, Asset 2 down" (a spread trade)
+
+<TextResponse
+  id="recall-3-1"
+  question="Why are partial derivatives insufficient for understanding combined market moves?"
+  keywords="One direction:one,single,axis,alone|Simultaneous:simultaneous,together,both,combined|Interaction:interaction,combined,joint|Directional:directional,arbitrary,any"
+  minKeywords={2}
+  referenceAnswer="Partial derivatives only measure sensitivity along the coordinate axes (S₁ alone or S₂ alone). Real market moves are rarely axis-aligned—both assets typically move together. To understand how V changes in an arbitrary direction, we need the directional derivative, which combines both partials using the dot product with the direction vector."
+  placeholder="What can't partial derivatives tell you?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 3.2 The Directional Derivative
+
+For a unit vector $\mathbf{u} = (u_1, u_2)$, the **directional derivative** is:
+
+$$D_{\mathbf{u}} V = \nabla V \cdot \mathbf{u} = \frac{\partial V}{\partial S_1} u_1 + \frac{\partial V}{\partial S_2} u_2$$
+
+This tells you the rate of change of $V$ when you move in direction $\mathbf{u}$.
+
+<CodeExercise
+  id="code-3-2"
+  starterCode={`import numpy as np
+
+def directional_derivative(s1, s2, direction, w1=100, w2=80, k=50):
+    """
+    Compute the directional derivative of V in a given direction.
+
+    D_u V = (∂V/∂S₁) * u₁ + (∂V/∂S₂) * u₂
+
+    where u = direction / ||direction|| is the unit vector.
+
+    Args:
+        s1, s2: Point at which to evaluate
+        direction: Tuple (d1, d2) specifying the direction
+        w1, w2, k: Portfolio parameters
+
+    Returns:
+        The directional derivative (scalar)
+    """
+    d1, d2 = direction
+
+    # Normalize to unit vector
+    magnitude = np.sqrt(d1**2 + d2**2)
+    u1 = d1 / magnitude
+    u2 = d2 / magnitude
+
+    # Get partial derivatives (use your function from earlier)
+    # TODO: Compute the partials at (s1, s2)
+    dV_dS1 = 0  # Replace
+    dV_dS2 = 0  # Replace
+
+    # Compute directional derivative
+    # TODO: Take dot product of gradient with unit vector
+    D_u_V = 0  # Replace
+
+    return D_u_V
+
+# Test at (100, 100) in direction (1, 1)
+result = directional_derivative(100, 100, (1, 1))
+print(f"D_u V in direction (1,1) = {result:.4f}")`}
+  solution={`import numpy as np
+
+def directional_derivative(s1, s2, direction, w1=100, w2=80, k=50):
+    """
+    Compute the directional derivative of V in a given direction.
+    """
+    d1, d2 = direction
+
+    magnitude = np.sqrt(d1**2 + d2**2)
+    u1 = d1 / magnitude
+    u2 = d2 / magnitude
+
+    dV_dS1 = w1 + (k / 20) * np.cos(s1 / 20) * np.cos(s2 / 20)
+    dV_dS2 = w2 - (k / 20) * np.sin(s1 / 20) * np.sin(s2 / 20)
+
+    D_u_V = dV_dS1 * u1 + dV_dS2 * u2
+
+    return D_u_V
+
+result = directional_derivative(100, 100, (1, 1))
+print(f"D_u V in direction (1,1) = {result:.4f}")`}
+  hint="First normalize the direction vector (divide by its magnitude). Then compute the dot product: gradient · unit_vector."
+  tests={[
+    {
+      "input": [100, 100, [1, 0]],
+      "expected": 100.20,
+      "tolerance": 0.1,
+      "description": "Direction (1,0) should give ∂V/∂S₁"
+    },
+    {
+      "input": [100, 100, [0, 1]],
+      "expected": 77.70,
+      "tolerance": 0.1,
+      "description": "Direction (0,1) should give ∂V/∂S₂"
+    },
+    {
+      "input": [100, 100, [1, 1]],
+      "expected": 125.80,
+      "tolerance": 0.5,
+      "description": "Direction (1,1) - both assets up"
+    }
+  ]}
+/>
+
+### 3.3 Exploring Different Directions
+
+Now let's compare how $V$ changes in various market scenarios.
+
+<CodeExercise
+  id="code-3-3"
+  starterCode={`import numpy as np
+
+def analyze_directions(s1, s2):
+    """
+    Analyze portfolio sensitivity in multiple directions.
+
+    Returns a list of (direction_name, direction_vector, D_u_V, interpretation)
+    """
+    directions = [
+        ("East (S₁ up only)", (1, 0)),
+        ("North (S₂ up only)", (0, 1)),
+        ("Northeast (both up)", (1, 1)),
+        ("Northwest (S₁ down, S₂ up)", (-1, 1)),
+        ("Gradient direction", None),  # Will compute
+    ]
+
+    # First get the gradient to find its direction
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1 / 20) * np.cos(s2 / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1 / 20) * np.sin(s2 / 20)
+
+    # The gradient direction (steepest ascent)
+    grad_mag = np.sqrt(dV_dS1**2 + dV_dS2**2)
+
+    results = []
+
+    for name, direction in directions:
+        if direction is None:
+            # Use gradient direction
+            direction = (dV_dS1, dV_dS2)
+
+        d1, d2 = direction
+        mag = np.sqrt(d1**2 + d2**2)
+        u1, u2 = d1/mag, d2/mag
+
+        D_u_V = dV_dS1 * u1 + dV_dS2 * u2
+
+        results.append({
+            'name': name,
+            'direction': f"({d1:.2f}, {d2:.2f})",
+            'unit': f"({u1:.3f}, {u2:.3f})",
+            'D_u_V': D_u_V
+        })
+
+    return results
+
+# Analyze at (100, 100)
+results = analyze_directions(100, 100)
+for r in results:
+    print(f"{r['name']}: D_u V = {r['D_u_V']:.2f}")`}
+  solution={`import numpy as np
+
+def analyze_directions(s1, s2):
+    """
+    Analyze portfolio sensitivity in multiple directions.
+    """
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1 / 20) * np.cos(s2 / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1 / 20) * np.sin(s2 / 20)
+
+    grad_mag = np.sqrt(dV_dS1**2 + dV_dS2**2)
+
+    directions = [
+        ("East (S₁ up only)", (1, 0)),
+        ("North (S₂ up only)", (0, 1)),
+        ("Northeast (both up)", (1, 1)),
+        ("Northwest (S₁ down, S₂ up)", (-1, 1)),
+        ("Gradient direction", (dV_dS1, dV_dS2)),
+    ]
+
+    results = []
+
+    for name, direction in directions:
+        d1, d2 = direction
+        mag = np.sqrt(d1**2 + d2**2)
+        u1, u2 = d1/mag, d2/mag
+
+        D_u_V = dV_dS1 * u1 + dV_dS2 * u2
+
+        results.append({
+            'name': name,
+            'direction': f"({d1:.2f}, {d2:.2f})",
+            'unit': f"({u1:.3f}, {u2:.3f})",
+            'D_u_V': D_u_V
+        })
+
+    return results
+
+results = analyze_directions(100, 100)
+for r in results:
+    print(f"{r['name']}: D_u V = {r['D_u_V']:.2f}")`}
+  hint="This code is mostly complete. Run it to see the directional derivatives in different directions."
+  tests={[]}
+/>
+
+<GradientVisualization
+  requiredBlockId="code-3-3"
+  title="Gradient and Directional Derivatives"
+  gradX={100.20}
+  gradY={77.70}
+  centerX={100}
+  centerY={100}
+  showDirectional={true}
+  directions={[[1, 0], [0, 1], [1, 1], [-1, 1]]}
+/>
+
+### 3.4 Maximum and Minimum Sensitivity
+
+<Quiz
+  id="quiz-3-4"
+  question="Which direction gives the MAXIMUM rate of change of V?"
+  options={[
+    "The direction (1, 0) along the S₁ axis",
+    "The direction (1, 1) diagonal",
+    "The gradient direction ∇V",
+    "The direction perpendicular to ∇V"
+  ]}
+  correct={2}
+  explanation="The gradient ∇V points in the direction of steepest ascent. Its magnitude ||∇V|| equals the maximum directional derivative. At (100, 100), the gradient is approximately (100.20, 77.70), and moving in this direction gives D_u V ≈ 126.8—larger than any other direction."
+/>
+
+<Quiz
+  id="quiz-3-5"
+  question="In which direction is the portfolio value approximately UNCHANGED (D_u V ≈ 0)?"
+  options={[
+    "The gradient direction",
+    "The direction perpendicular to the gradient",
+    "The direction (1, 1)",
+    "No such direction exists"
+  ]}
+  correct={1}
+  explanation="Moving perpendicular to the gradient means staying on a contour line—the portfolio value doesn't change! At (100, 100), the gradient is (100.20, 77.70). The perpendicular direction is proportional to (-77.70, 100.20). Moving this way traces out a constant-V curve."
+/>
+
+<Checkpoint
+  id="checkpoint-3"
+  title="Checkpoint 3: Directional Derivatives"
+  requiredBlockIds={["recall-3-1", "code-3-2", "code-3-3", "quiz-3-4", "quiz-3-5"]}
+  minRequired={4}
+  lockedMessage="Complete at least 4 of the 5 tasks above to unlock Section 4."
+>
+
+**Key Insights:**
+
+- The **gradient** $\nabla V = (\frac{\partial V}{\partial S_1}, \frac{\partial V}{\partial S_2})$ packages all first-order information
+- Moving **along** the gradient maximizes the rate of change
+- Moving **perpendicular** to the gradient keeps $V$ constant (contour direction)
+- Partial derivatives are just directional derivatives along the axes
+
+</Checkpoint>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-3" lockedTitle="Section 4: Curvature and the Hessian">
+
+## Section 4: Curvature and the Hessian
+
+So far we've analyzed **first-order** behavior: how $V$ changes for small moves. But the gradient itself changes as you move across the surface.
+
+**Second-order** information tells us about **curvature**—how fast the sensitivity changes.
+
+### 4.1 Why Curvature Matters
+
+<TextResponse
+  id="recall-4-1"
+  question="Why isn't first-order (linear) information enough? When does curvature become important?"
+  keywords="Large moves:large,bigger,significant|Approximation error:error,inaccurate,fails|Nonlinear:nonlinear,curved,bending|Second derivative:second,curvature,hessian"
+  minKeywords={2}
+  referenceAnswer="First-order (linear) approximations assume the gradient is constant, but it's not—it changes as you move. For large moves, the linear approximation accumulates error. Curvature (second derivatives) tells us how fast the gradient changes. High curvature means the linear approximation fails quickly. This is why options traders care about gamma (curvature of option price) and bond traders care about convexity."
+  placeholder="When does the linear approximation break down?"
+  maxLength={400}
+  label="Recall"
+/>
+
+### 4.2 Computing the Hessian
+
+The **Hessian matrix** contains all second partial derivatives:
+
+$$H = \begin{pmatrix} \frac{\partial^2 V}{\partial S_1^2} & \frac{\partial^2 V}{\partial S_1 \partial S_2} \\ \frac{\partial^2 V}{\partial S_2 \partial S_1} & \frac{\partial^2 V}{\partial S_2^2} \end{pmatrix}$$
+
+For our portfolio:
+
+$$\frac{\partial^2 V}{\partial S_1^2} = -\frac{k}{400} \sin\left(\frac{S_1}{20}\right) \cos\left(\frac{S_2}{20}\right)$$
+
+$$\frac{\partial^2 V}{\partial S_2^2} = -\frac{k}{400} \sin\left(\frac{S_1}{20}\right) \cos\left(\frac{S_2}{20}\right)$$
+
+$$\frac{\partial^2 V}{\partial S_1 \partial S_2} = -\frac{k}{400} \cos\left(\frac{S_1}{20}\right) \sin\left(\frac{S_2}{20}\right)$$
+
+<CodeExercise
+  id="code-4-2"
+  starterCode={`import numpy as np
+
+def compute_hessian(s1, s2, k=50):
+    """
+    Compute the Hessian matrix of V at point (s1, s2).
+
+    Returns:
+        2x2 numpy array representing the Hessian
+    """
+    # Second partial derivatives
+    # Note: the linear terms w1*S1 + w2*S2 contribute 0 to second derivatives
+
+    # TODO: Compute each entry
+    h11 = 0  # ∂²V/∂S₁²
+    h22 = 0  # ∂²V/∂S₂²
+    h12 = 0  # ∂²V/∂S₁∂S₂
+
+    H = np.array([[h11, h12],
+                  [h12, h22]])
+
+    return H
+
+# Compute at (100, 100)
+H = compute_hessian(100, 100)
+print("Hessian at (100, 100):")
+print(H)`}
+  solution={`import numpy as np
+
+def compute_hessian(s1, s2, k=50):
+    """
+    Compute the Hessian matrix of V at point (s1, s2).
+    """
+    h11 = -(k / 400) * np.sin(s1 / 20) * np.cos(s2 / 20)
+    h22 = -(k / 400) * np.sin(s1 / 20) * np.cos(s2 / 20)
+    h12 = -(k / 400) * np.cos(s1 / 20) * np.sin(s2 / 20)
+
+    H = np.array([[h11, h12],
+                  [h12, h22]])
+
+    return H
+
+H = compute_hessian(100, 100)
+print("Hessian at (100, 100):")
+print(H)`}
+  hint="Differentiate the partial derivatives you computed earlier. For h11, differentiate ∂V/∂S₁ with respect to S₁ again."
+  tests={[
+    {
+      "input": [100, 100],
+      "expected": [[0.034, 0.034], [0.034, 0.034]],
+      "tolerance": 0.01,
+      "description": "Hessian at (100, 100)"
+    }
+  ]}
+/>
+
+### 4.3 Eigenvalue Analysis
+
+The **eigenvalues** of the Hessian tell us the principal curvatures.
+
+<CodeExercise
+  id="code-4-3"
+  starterCode={`import numpy as np
+
+def analyze_hessian(H):
+    """
+    Compute eigenvalues and eigenvectors of the Hessian.
+
+    Returns:
+        eigenvalues: array of eigenvalues (sorted by magnitude, descending)
+        eigenvectors: corresponding eigenvectors (as columns)
+    """
+    # TODO: Use np.linalg.eig or np.linalg.eigh (for symmetric matrices)
+    eigenvalues, eigenvectors = None, None  # Replace
+
+    # Sort by eigenvalue magnitude (largest first)
+    idx = np.argsort(np.abs(eigenvalues))[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+
+    return eigenvalues, eigenvectors
+
+# Analyze the Hessian at (100, 100)
+H = np.array([[0.034, 0.034], [0.034, 0.034]])
+eigenvalues, eigenvectors = analyze_hessian(H)
+print(f"Eigenvalues: λ₁ = {eigenvalues[0]:.4f}, λ₂ = {eigenvalues[1]:.4f}")
+print(f"Eigenvector 1: {eigenvectors[:, 0]}")
+print(f"Eigenvector 2: {eigenvectors[:, 1]}")`}
+  solution={`import numpy as np
+
+def analyze_hessian(H):
+    """
+    Compute eigenvalues and eigenvectors of the Hessian.
+    """
+    eigenvalues, eigenvectors = np.linalg.eigh(H)
+
+    idx = np.argsort(np.abs(eigenvalues))[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+
+    return eigenvalues, eigenvectors
+
+H = np.array([[0.034, 0.034], [0.034, 0.034]])
+eigenvalues, eigenvectors = analyze_hessian(H)
+print(f"Eigenvalues: λ₁ = {eigenvalues[0]:.4f}, λ₂ = {eigenvalues[1]:.4f}")
+print(f"Eigenvector 1: {eigenvectors[:, 0]}")
+print(f"Eigenvector 2: {eigenvectors[:, 1]}")`}
+  hint="Use np.linalg.eigh() for symmetric matrices (Hessians are always symmetric). It returns eigenvalues and eigenvectors as columns."
+  tests={[]}
+/>
+
+<HessianVisualization
+  requiredBlockId="code-4-3"
+  title="Hessian Analysis at (100, 100)"
+  h11={0.034}
+  h12={0.034}
+  h22={0.034}
+/>
+
+### 4.4 Interpreting the Eigenvalues
+
+<Quiz
+  id="quiz-4-4"
+  question="At (100, 100), the Hessian has eigenvalues λ₁ ≈ 0.068 and λ₂ ≈ 0. What does this tell you geometrically?"
+  options={[
+    "The surface curves upward in one direction but is flat in another (like a trough)",
+    "The surface curves downward in all directions (like an inverted bowl)",
+    "The surface is a saddle (up in some directions, down in others)",
+    "The surface is flat everywhere (no curvature)"
+  ]}
+  correct={0}
+  explanation="One positive eigenvalue (0.068) and one zero eigenvalue means the Hessian is positive semidefinite. Geometrically, the surface curves UPWARD in one principal direction but has NO curvature (is flat) in the perpendicular direction—like a parabolic trough or cylinder. This happens because h11 = h12 = h22 at this point."
+/>
+
+<Quiz
+  id="quiz-4-5"
+  question="If one eigenvalue were positive and one negative, what would the surface look like?"
+  options={[
+    "A bowl (minimum)",
+    "An inverted bowl (maximum)",
+    "A saddle (curves up in one direction, down in another)",
+    "A flat plane"
+  ]}
+  correct={2}
+  explanation="Mixed-sign eigenvalues indicate a saddle point. The surface curves upward along one eigenvector direction (positive eigenvalue) and downward along the other (negative eigenvalue). This is geometrically like a horse saddle or a Pringles chip."
+/>
+
+<NumericInput
+  id="numeric-4-6"
+  question="The eigenvalue λ = 0.068 corresponds to the direction of maximum curvature. If you move 10 units in this direction, roughly how much does the quadratic term (½ × curvature × distance²) contribute to ΔV?"
+  correctAnswer={3.4}
+  tolerance={0.5}
+  units="dollars"
+  explanation="The quadratic contribution is ½ × λ × d² = ½ × 0.068 × 10² = ½ × 0.068 × 100 = 3.4. This means the second-order correction adds $3.40 to the linear prediction, showing the surface curves upward."
+  hint="Use the formula: quadratic term = ½ × eigenvalue × (distance)²"
+/>
+
+<Checkpoint
+  id="checkpoint-4"
+  title="Checkpoint 4: Curvature Analysis"
+  requiredBlockIds={["recall-4-1", "code-4-2", "code-4-3", "quiz-4-4", "quiz-4-5", "numeric-4-6"]}
+  minRequired={5}
+  lockedMessage="Complete at least 5 of the 6 tasks above to unlock Section 5."
+>
+
+**Key Insights:**
+
+- The **Hessian** captures all second-order curvature information
+- **Eigenvalues** give principal curvatures; **eigenvectors** give principal directions
+- At (100, 100): λ₁ ≈ 0.068 (positive), λ₂ ≈ 0 (zero) → surface curves upward in one direction, flat in another
+- Both eigenvalues negative → inverted bowl (local max)
+- Both eigenvalues positive → bowl (local min)
+- Mixed signs → saddle point
+- Zero eigenvalue → no curvature in that direction (cylindrical)
+
+</Checkpoint>
+
+</GatedSection>
+
+---
+
+<GatedSection checkpointId="checkpoint-4" lockedTitle="Section 5: Taylor Approximation">
+
+## Section 5: Approximating the Surface
+
+You can't recompute the full surface every time markets move. In practice, you need **local approximations** that are fast to evaluate.
+
+### 5.1 First-Order (Linear) Approximation
+
+The **tangent plane** at $(S_1^*, S_2^*)$ approximates the surface:
+
+$$V(S_1, S_2) \approx V(S_1^*, S_2^*) + \frac{\partial V}{\partial S_1}(S_1 - S_1^*) + \frac{\partial V}{\partial S_2}(S_2 - S_2^*)$$
+
+This is the **first-order Taylor expansion**—it uses only the gradient.
+
+<CodeExercise
+  id="code-5-1"
+  starterCode={`import numpy as np
+
+# Portfolio value function
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+def first_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    """
+    Compute first-order (linear) Taylor approximation of V.
+
+    V ≈ V* + ∂V/∂S₁(S₁ - S₁*) + ∂V/∂S₂(S₂ - S₂*)
+
+    Args:
+        s1, s2: Point at which to approximate
+        s1_star, s2_star: Expansion point
+
+    Returns:
+        Approximate portfolio value
+    """
+    # Value at expansion point
+    V_star = portfolio_value(s1_star, s2_star)
+
+    # Gradient at expansion point
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+
+    # Displacements
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+
+    # TODO: Compute linear approximation
+    V_approx = 0  # Replace
+
+    return V_approx
+
+# Test: approximate V at (105, 98)
+s1_test, s2_test = 105, 98
+V_true = portfolio_value(s1_test, s2_test)
+V_approx = first_order_approximation(s1_test, s2_test)
+print(f"True V(105, 98) = {V_true:.2f}")
+print(f"Linear approx  = {V_approx:.2f}")
+print(f"Error = {V_true - V_approx:.2f}")`}
+  solution={`import numpy as np
+
+# Portfolio value function
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+def first_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    """
+    Compute first-order (linear) Taylor approximation of V.
+    """
+    V_star = portfolio_value(s1_star, s2_star)
+
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+
+    V_approx = V_star + dV_dS1 * delta_s1 + dV_dS2 * delta_s2
+
+    return V_approx
+
+s1_test, s2_test = 105, 98
+V_true = portfolio_value(s1_test, s2_test)
+V_approx = first_order_approximation(s1_test, s2_test)
+print(f"True V(105, 98) = {V_true:.2f}")
+print(f"Linear approx  = {V_approx:.2f}")
+print(f"Error = {V_true - V_approx:.2f}")`}
+  hint="V_approx = V_star + gradient · displacement = V_star + dV_dS1 * delta_s1 + dV_dS2 * delta_s2"
+  tests={[
+    {
+      "input": [100, 100],
+      "expected": 17986.4,
+      "tolerance": 0.5,
+      "description": "At expansion point, approx should equal true value"
+    },
+    {
+      "input": [105, 98],
+      "expected": 18332.0,
+      "tolerance": 1,
+      "description": "Approximation at (105, 98)"
+    }
+  ]}
+/>
+
+### 5.2 Second-Order (Quadratic) Approximation
+
+Adding the Hessian term improves accuracy:
+
+$$V \approx V^* + \nabla V^T \Delta\mathbf{S} + \frac{1}{2} \Delta\mathbf{S}^T H \Delta\mathbf{S}$$
+
+<CodeExercise
+  id="code-5-2"
+  starterCode={`import numpy as np
+
+# Portfolio value function
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+# First order approximation (from previous exercise)
+def first_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    V_star = portfolio_value(s1_star, s2_star)
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+    return V_star + dV_dS1 * delta_s1 + dV_dS2 * delta_s2
+
+def second_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    """
+    Compute second-order (quadratic) Taylor approximation of V.
+
+    Includes the Hessian correction term.
+    """
+    V_star = portfolio_value(s1_star, s2_star)
+
+    # Gradient
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+
+    # Hessian
+    h11 = -(50 / 400) * np.sin(s1_star / 20) * np.cos(s2_star / 20)
+    h22 = -(50 / 400) * np.sin(s1_star / 20) * np.cos(s2_star / 20)
+    h12 = -(50 / 400) * np.cos(s1_star / 20) * np.sin(s2_star / 20)
+
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+
+    # First order
+    linear_term = dV_dS1 * delta_s1 + dV_dS2 * delta_s2
+
+    # Second order: (1/2) * [h11*d1² + 2*h12*d1*d2 + h22*d2²]
+    # TODO: Compute the quadratic term
+    quadratic_term = 0  # Replace
+
+    return V_star + linear_term + quadratic_term
+
+# Compare approximations
+s1_test, s2_test = 110, 95
+V_true = portfolio_value(s1_test, s2_test)
+V_linear = first_order_approximation(s1_test, s2_test)
+V_quadratic = second_order_approximation(s1_test, s2_test)
+
+print(f"True V(110, 95)     = {V_true:.2f}")
+print(f"Linear approx       = {V_linear:.2f} (error: {abs(V_true - V_linear):.2f})")
+print(f"Quadratic approx    = {V_quadratic:.2f} (error: {abs(V_true - V_quadratic):.2f})")`}
+  solution={`import numpy as np
+
+# Portfolio value function
+def portfolio_value(s1, s2, w1=100, w2=80, k=50):
+    linear_part = w1 * s1 + w2 * s2
+    phi = k * np.sin(s1 / 20) * np.cos(s2 / 20)
+    return linear_part + phi
+
+# First order approximation (from previous exercise)
+def first_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    V_star = portfolio_value(s1_star, s2_star)
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+    return V_star + dV_dS1 * delta_s1 + dV_dS2 * delta_s2
+
+def second_order_approximation(s1, s2, s1_star=100, s2_star=100):
+    """
+    Compute second-order (quadratic) Taylor approximation of V.
+    """
+    V_star = portfolio_value(s1_star, s2_star)
+
+    dV_dS1 = 100 + (50 / 20) * np.cos(s1_star / 20) * np.cos(s2_star / 20)
+    dV_dS2 = 80 - (50 / 20) * np.sin(s1_star / 20) * np.sin(s2_star / 20)
+
+    h11 = -(50 / 400) * np.sin(s1_star / 20) * np.cos(s2_star / 20)
+    h22 = -(50 / 400) * np.sin(s1_star / 20) * np.cos(s2_star / 20)
+    h12 = -(50 / 400) * np.cos(s1_star / 20) * np.sin(s2_star / 20)
+
+    delta_s1 = s1 - s1_star
+    delta_s2 = s2 - s2_star
+
+    linear_term = dV_dS1 * delta_s1 + dV_dS2 * delta_s2
+    quadratic_term = 0.5 * (h11 * delta_s1**2 + 2 * h12 * delta_s1 * delta_s2 + h22 * delta_s2**2)
+
+    return V_star + linear_term + quadratic_term
+
+s1_test, s2_test = 110, 95
+V_true = portfolio_value(s1_test, s2_test)
+V_linear = first_order_approximation(s1_test, s2_test)
+V_quadratic = second_order_approximation(s1_test, s2_test)
+
+print(f"True V(110, 95)     = {V_true:.2f}")
+print(f"Linear approx       = {V_linear:.2f} (error: {abs(V_true - V_linear):.2f})")
+print(f"Quadratic approx    = {V_quadratic:.2f} (error: {abs(V_true - V_quadratic):.2f})")`}
+  hint="The quadratic term is (1/2) × (h11×Δs1² + 2×h12×Δs1×Δs2 + h22×Δs2²). This is the quadratic form ½ΔS'HΔS expanded."
+  tests={[
+    {
+      "input": [100, 100],
+      "expected": 17986.4,
+      "tolerance": 0.5,
+      "description": "At expansion point"
+    },
+    {
+      "input": [110, 95],
+      "expected": 18600.3,
+      "tolerance": 5,
+      "description": "Should be closer to true value than linear"
+    }
+  ]}
+/>
+
+### 5.3 When Linear Fails
+
+<Quiz
+  id="quiz-5-3"
+  question="For what kind of moves does the linear approximation work well?"
+  options={[
+    "Large moves in any direction",
+    "Small moves near the expansion point",
+    "Moves along contour lines only",
+    "Moves perpendicular to the gradient only"
+  ]}
+  correct={1}
+  explanation="The linear (first-order) approximation works well for SMALL moves near the expansion point. The error grows as |ΔS|² (quadratically with distance). For large moves, curvature effects accumulate and the linear prediction becomes unreliable."
+/>
+
+<TextResponse
+  id="synthesis-5"
+  question="Summarize what you learned: What are the three levels of approximation (zeroth, first, second order), and when would you use each in practice?"
+  referenceAnswer="Zeroth order uses only V*—just the current value, ignoring all changes. First order adds the gradient (delta), giving linear sensitivity to price changes. This is fast and sufficient for small moves or when curvature is low. Second order adds the Hessian (gamma/curvature), capturing how sensitivity itself changes. Use this for larger moves or highly curved instruments like options. Each level trades computation cost for accuracy."
+  selfCheck="Mentions zeroth order (constant)|Mentions first order (gradient/delta)|Mentions second order (Hessian/gamma)|Discusses when to use each|Mentions trade-off between accuracy and simplicity"
+  placeholder="Describe the three levels and when each is appropriate..."
+  maxLength={600}
+  isSynthesis={true}
+/>
+
+</GatedSection>
+
+---
+
+## Project Complete!
+
+Congratulations! You've explored a portfolio risk surface using the full toolkit of multivariable calculus:
+
+**What You Analyzed:**
+- **Surfaces vs. curves**: Understanding functions of two variables geometrically
+- **Partial derivatives**: Axis-aligned sensitivities
+- **Gradient**: Direction of steepest change, combining all first-order info
+- **Directional derivatives**: Sensitivity in any direction
+- **Hessian**: Curvature and how sensitivity changes
+- **Taylor expansions**: Local approximations of increasing accuracy
+
+**Key Takeaways:**
+- The gradient tells you **which way** and **how fast** the surface rises
+- The Hessian tells you **how it curves**—when linear intuition fails
+- Linear approximations work for small moves; add curvature for larger ones
+- These concepts directly map to Delta, Gamma, and risk management
+
+**Next Steps:** In the Linear Algebra module, you'll learn to work with these tools computationally—matrix operations, eigendecomposition, and covariance matrices that underpin modern portfolio theory.

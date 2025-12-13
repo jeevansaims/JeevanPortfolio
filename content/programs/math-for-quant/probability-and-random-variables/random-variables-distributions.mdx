@@ -1,0 +1,526 @@
+# Random Variables and Distributions
+
+## 1. Why Random Variables Matter
+
+### Turning Uncertainty into Numbers
+
+So far, we've worked with events: "stock goes up," "bond defaults," "VIX spikes." But finance deals with *quantities*: returns of 2.3%, prices of 142.50 dollars, losses of 1.2 million dollars.
+
+**Random variables** bridge this gap. They turn abstract outcomes into numbers we can compute with.
+
+### Why Quants Model Outcomes Numerically
+
+Numbers let us:
+- Calculate expected profits and losses
+- Measure risk with standard deviation and VaR
+- Optimize portfolios mathematically
+- Price derivatives using expectations
+- Backtest strategies with historical data
+
+Without random variables, we couldn't do quantitative finance. We'd be stuck with qualitative statements like "probably profitable" instead of "expected return of 8% with 15% volatility."
+
+### From Events to Measurable Quantities
+
+**Event-based thinking:** "What's the probability the stock goes up?"
+
+**Random variable thinking:** "What's the distribution of the stock's return?"
+
+The second question is richer. It tells us not just whether something happens, but *how much* and *how likely* each amount is.
+
+---
+
+## 2. What a Random Variable Is
+
+### Definition and Intuition
+
+A **random variable** $X$ is a function that assigns a number to each outcome in the sample space:
+
+$$
+X: \Omega \to \mathbb{R}
+$$
+
+For every possible outcome $\omega$, the random variable produces a real number $X(\omega)$.
+
+**Intuition:** Think of a random variable as a measurement you make after the random experiment occurs. The experiment determines the outcome; the random variable tells you what number corresponds to that outcome.
+
+### Random Variables as Functions of Outcomes
+
+**Example:** Rolling a die.
+
+Sample space: $\Omega = \{1, 2, 3, 4, 5, 6\}$
+
+Define random variable $X$ = "payout in dollars" where you win 10 dollars if you roll 6, otherwise 0.
+
+Then:
+- $X(1) = 0$, $X(2) = 0$, ..., $X(5) = 0$
+- $X(6) = 10$
+
+The random variable converts outcomes into payoffs.
+
+### Discrete vs. Continuous Random Variables
+
+**Discrete:** Takes countable values (finite or countably infinite).
+
+Examples:
+- Number of trades executed: 0, 1, 2, 3, ...
+- Number of defaults in a portfolio: 0, 1, 2, ..., n
+- Binary outcome: 0 or 1
+
+**Continuous:** Takes any value in an interval (uncountably many possibilities).
+
+Examples:
+- Stock return: any real number
+- Stock price: any positive real number
+- Time until default: any positive real number
+
+The distinction matters because we use different mathematical tools for each.
+
+### Financial Examples
+
+**Stock return** (continuous):
+$$
+R = \frac{S_1 - S_0}{S_0}
+$$
+This can be any real number (though typically between -1 and some upper bound).
+
+**Portfolio P&L** (continuous):
+$$
+PnL = \sum_{i=1}^n w_i \cdot S_i \cdot r_i
+$$
+
+**Number of winning trades** (discrete):
+If you make 100 trades, the number of winners can be 0, 1, 2, ..., or 100.
+
+**Default indicator** (discrete):
+
+$D = 1$ if default occurs, $D = 0$ otherwise.
+
+---
+
+## 3. Distributions
+
+### What a Distribution Describes
+
+A **probability distribution** completely describes the randomness of a random variable. It tells you:
+- What values are possible
+- How likely each value (or range of values) is
+
+Two random variables with the same distribution are statistically indistinguishable, even if they represent different real-world quantities.
+
+### Probability Mass Function (PMF)
+
+For **discrete** random variables, the PMF gives the probability of each specific value:
+
+$$
+p_X(x) = P(X = x)
+$$
+
+**Properties:**
+- $p_X(x) \geq 0$ for all $x$
+- All probabilities sum to 1: $\sum_x p_X(x) = 1$
+
+**Example:** Fair coin flip where $X = 1$ for heads, $X = 0$ for tails.
+
+$p_X(0) = 0.5$, $p_X(1) = 0.5$
+
+### Probability Density Function (PDF)
+
+For **continuous** random variables, we can't assign probability to individual points (there are infinitely many). Instead, we use a density function $f_X(x)$.
+
+The probability that $X$ falls in an interval is the area under the density curve:
+
+$$
+P(a \leq X \leq b) = \int_a^b f_X(x) \, dx
+$$
+
+**Properties:**
+- $f_X(x) \geq 0$ for all $x$
+- $\int_{-\infty}^{\infty} f_X(x) \, dx = 1$
+
+**Important:** For continuous random variables, $P(X = x) = 0$ for any specific value $x$. Probability is only meaningful for intervals.
+
+### Cumulative Distribution Function (CDF)
+
+The CDF works for both discrete and continuous random variables:
+
+$$
+F_X(x) = P(X \leq x)
+$$
+
+It gives the probability that $X$ is at most $x$.
+
+**Properties:**
+- $F_X$ is non-decreasing
+- $\lim_{x \to -\infty} F_X(x) = 0$
+- $\lim_{x \to \infty} F_X(x) = 1$
+- For continuous $X$: $F_X'(x) = f_X(x)$
+
+**Useful identity:**
+$$
+P(a < X \leq b) = F_X(b) - F_X(a)
+$$
+
+### How Distributions Encode Uncertainty
+
+The distribution captures everything probabilistic about a random variable:
+- **Center:** Where values tend to cluster
+- **Spread:** How variable the outcomes are
+- **Shape:** Symmetric? Skewed? Heavy-tailed?
+
+Different financial quantities have characteristic distributions. Understanding these distributions is essential for risk management and pricing.
+
+---
+
+## 4. Common Distributions in Finance
+
+### Bernoulli Distribution
+
+Models binary outcomes: success (1) or failure (0).
+
+$$
+P(X = 1) = p, \quad P(X = 0) = 1 - p
+$$
+
+**Financial uses:**
+- Default indicator (default vs. no default)
+- Trade outcome (win vs. lose)
+- Binary event (Fed hikes vs. doesn't hike)
+
+**Key statistics:**
+- Mean: $E[X] = p$
+- Variance: $\text{Var}(X) = p(1-p)$
+
+### Binomial Distribution
+
+Sum of $n$ independent Bernoulli trials.
+
+$$
+P(X = k) = \binom{n}{k} p^k (1-p)^{n-k}
+$$
+
+**Financial uses:**
+- Number of defaults in a portfolio of $n$ independent bonds
+- Number of winning trades out of $n$ trades
+- Number of days with positive returns in a month
+
+**Key statistics:**
+- Mean: $E[X] = np$
+- Variance: $\text{Var}(X) = np(1-p)$
+
+### Normal (Gaussian) Distribution
+
+The most important distribution in statistics and finance.
+
+$$
+f_X(x) = \frac{1}{\sigma\sqrt{2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+$$
+
+Notation: $X \sim N(\mu, \sigma^2)$
+
+**Why it appears everywhere:**
+
+The **Central Limit Theorem** says that sums of many independent random variables tend toward normality. Since returns are influenced by many factors, they're often approximately normal.
+
+**Financial uses:**
+- Modeling daily returns (approximation)
+- Risk calculations (VaR, volatility)
+- Option pricing (Black-Scholes assumes log-returns are normal)
+
+**Key statistics:**
+- Mean: $\mu$
+- Variance: $\sigma^2$
+- 68% of values within 1 standard deviation of mean
+- 95% within 2 standard deviations
+- 99.7% within 3 standard deviations
+
+### Lognormal Distribution
+
+If $\log(X) \sim N(\mu, \sigma^2)$, then $X$ is lognormal.
+
+**Financial uses:**
+- Stock prices (prices are positive, returns are roughly normal)
+- Asset values
+- Option payoffs
+
+**Why lognormal for prices:**
+- Prices can't be negative
+- Percentage changes (returns) are roughly normal
+- Compounding returns leads to lognormal prices
+
+If $S_t = S_0 e^{r_t}$ where $r_t \sim N(\mu, \sigma^2)$, then $S_t$ is lognormal.
+
+### When Distributional Assumptions Are Reasonable
+
+**Normal distribution limitations:**
+- Real returns have fatter tails than normal (more extreme events)
+- Returns often show slight skewness
+- Volatility clusters (GARCH effects)
+
+**Rule of thumb:**
+- Normal is a good first approximation for many purposes
+- For risk management (especially tail risk), be skeptical of normality
+- Use empirical distributions or fat-tailed models for critical applications
+
+---
+
+## 5. Visualizing Distributions
+
+### Histograms and Density Curves
+
+**Histogram:** Bar chart showing frequency of values in bins. Approximates the distribution from data.
+
+**Density curve:** Smooth curve representing the PDF. Shows theoretical distribution.
+
+Comparing histograms to theoretical densities reveals how well a model fits reality.
+
+### Interpreting Skewness and Spread Visually
+
+**Symmetric distribution:** Histogram looks the same on both sides of center. Normal distribution is symmetric.
+
+**Right-skewed (positive skew):** Long tail to the right. Stock returns often show slight negative skew (crashes are larger than rallies).
+
+**Left-skewed (negative skew):** Long tail to the left.
+
+**Wide spread:** Histogram is broad, values vary widely. High volatility.
+
+**Narrow spread:** Histogram is concentrated. Low volatility.
+
+### Empirical vs. Theoretical Distributions
+
+**Empirical distribution:** What we observe in data. Histograms, sample statistics.
+
+**Theoretical distribution:** Mathematical model we assume. Normal, lognormal, etc.
+
+**The gap matters:** If empirical data doesn't match the theoretical model, our calculations may be wrong. Always check model assumptions against data.
+
+---
+
+## 6. Transformations of Random Variables
+
+### Scaling and Shifting
+
+If $Y = aX + b$ where $a$ and $b$ are constants:
+
+**Mean transforms linearly:**
+$$
+E[Y] = aE[X] + b
+$$
+
+**Variance scales by $a^2$:**
+$$
+\text{Var}(Y) = a^2 \text{Var}(X)
+$$
+
+**Standard deviation scales by $|a|$:**
+$$
+\sigma_Y = |a| \sigma_X
+$$
+
+**Financial application:** If returns have mean 8% and volatility 20%, a 2x levered position has mean 16% and volatility 40%.
+
+### Standardization
+
+To standardize a random variable (convert to mean 0, variance 1):
+
+$$
+Z = \frac{X - \mu}{\sigma}
+$$
+
+If $X \sim N(\mu, \sigma^2)$, then $Z \sim N(0, 1)$ (standard normal).
+
+This lets us use standard normal tables for any normal distribution.
+
+### Simple Nonlinear Transformations
+
+**Squaring:** If $X$ can be negative, $X^2$ is always non-negative. Changes the distribution shape.
+
+**Exponential:** If $X$ is normal, $e^X$ is lognormal. This is how we get lognormal prices from normal returns.
+
+**Logarithm:** If $X$ is lognormal, $\log(X)$ is normal. Log-returns convert price levels to returns.
+
+---
+
+## 7. Key Statistics: Mean, Variance, and Beyond
+
+### Expected Value (Mean)
+
+The expected value is the probability-weighted average:
+
+**Discrete:**
+$$
+E[X] = \sum_x x \cdot p_X(x)
+$$
+
+**Continuous:**
+$$
+E[X] = \int_{-\infty}^{\infty} x \cdot f_X(x) \, dx
+$$
+
+**Financial interpretation:** The long-run average outcome if you repeated the random experiment many times.
+
+### Variance and Standard Deviation
+
+**Variance** measures spread around the mean:
+
+$$
+\text{Var}(X) = E[(X - E[X])^2] = E[X^2] - (E[X])^2
+$$
+
+**Standard deviation** is the square root of variance:
+
+$$
+\sigma_X = \sqrt{\text{Var}(X)}
+$$
+
+**Financial interpretation:** Volatility. How much outcomes typically deviate from the average.
+
+### Properties of Expectation
+
+**Linearity (always holds):**
+$$
+E[aX + bY] = aE[X] + bE[Y]
+$$
+
+This works even if $X$ and $Y$ are dependent.
+
+**For independent random variables:**
+$$
+E[XY] = E[X] \cdot E[Y]
+$$
+
+### Properties of Variance
+
+**Scaling:**
+$$
+\text{Var}(aX) = a^2 \text{Var}(X)
+$$
+
+**Sum of independent random variables:**
+$$
+\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y)
+$$
+
+**Sum of dependent random variables:**
+$$
+\text{Var}(X + Y) = \text{Var}(X) + \text{Var}(Y) + 2\text{Cov}(X, Y)
+$$
+
+---
+
+## 8. Worked Examples
+
+### Example 1: Bernoulli Trade Outcome
+
+A trade has 60% chance of making 100 dollars and 40% chance of losing 80 dollars.
+
+Let $X$ = profit. Then:
+- $P(X = 100) = 0.6$
+- $P(X = -80) = 0.4$
+
+**Expected profit:**
+$$
+E[X] = 100(0.6) + (-80)(0.4) = 60 - 32 = 28
+$$
+
+**Variance:**
+$$
+E[X^2] = 100^2(0.6) + (-80)^2(0.4) = 6000 + 2560 = 8560
+$$
+$$
+\text{Var}(X) = 8560 - 28^2 = 8560 - 784 = 7776
+$$
+
+**Standard deviation:**
+$$
+\sigma_X = \sqrt{7776} \approx 88.2
+$$
+
+### Example 2: Portfolio of Independent Bets
+
+You make 100 independent trades, each with the statistics from Example 1.
+
+**Total P&L:** $S = X_1 + X_2 + \cdots + X_{100}$
+
+**Expected total:**
+$$
+E[S] = 100 \times 28 = 2800
+$$
+
+**Variance of total (independence):**
+$$
+\text{Var}(S) = 100 \times 7776 = 777600
+$$
+
+**Standard deviation:**
+$$
+\sigma_S = \sqrt{777600} \approx 882
+$$
+
+### Example 3: Standardizing Returns
+
+A stock has mean return $\mu = 0.08$ (8%) and volatility $\sigma = 0.20$ (20%).
+
+What's the probability of a return below -12%?
+
+**Standardize:**
+$$
+Z = \frac{-0.12 - 0.08}{0.20} = \frac{-0.20}{0.20} = -1.0
+$$
+
+**Using standard normal:** $P(Z < -1) \approx 0.159$
+
+About 16% chance of returns below -12%.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Random variable:** A function mapping outcomes to numbers, allowing quantitative analysis of uncertainty.
+
+**Distribution:** Complete description of a random variable's probabilities (PMF for discrete, PDF for continuous).
+
+**CDF:** Cumulative probability function, $F_X(x) = P(X \leq x)$.
+
+**Expected value:** Probability-weighted average, measures center.
+
+**Variance/Standard deviation:** Measures spread, interpreted as volatility in finance.
+
+### Key Distributions
+
+- **Bernoulli:** Binary outcomes
+- **Binomial:** Count of successes in $n$ trials
+- **Normal:** Bell curve, central to finance
+- **Lognormal:** For positive quantities like prices
+
+### Key Formulas
+
+**Expectation (linearity):**
+$$
+E[aX + b] = aE[X] + b
+$$
+
+**Variance (scaling):**
+$$
+\text{Var}(aX) = a^2 \text{Var}(X)
+$$
+
+**Standardization:**
+$$
+Z = \frac{X - \mu}{\sigma}
+$$
+
+---
+
+## 10. What's Next?
+
+We've defined random variables and their distributions. But we need to measure the center and spread more precisely, and understand higher moments that capture skewness and tail behavior.
+
+**Next lesson: Expectation, Variance, and Moments**
+
+You'll learn:
+- Deeper understanding of expectation and its properties
+- Why variance matters for risk
+- Skewness and kurtosis for tail risk
+- Moment generating functions

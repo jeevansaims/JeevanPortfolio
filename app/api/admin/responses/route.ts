@@ -15,10 +15,20 @@ export async function GET() {
 
   try {
     console.log('Querying Supabase...')
+
+    // First get the count
+    const { count } = await supabase
+      .from('quiz_responses')
+      .select('*', { count: 'exact', head: true })
+
+    console.log('Total count:', count)
+
+    // Fetch all records using range (0 to count)
     const { data, error } = await supabase
       .from('quiz_responses')
       .select('*')
       .order('created_at', { ascending: false })
+      .range(0, count || 10000)
 
     console.log('Supabase response:', { data, error })
     console.log('Number of records:', data?.length || 0)

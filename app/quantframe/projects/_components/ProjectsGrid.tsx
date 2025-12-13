@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Clock, TrendingUp, CheckCircle2, PlayCircle } from 'lucide-react';
-import { Project, Difficulty } from '@/lib/projects/types';
+import { Clock, TrendingUp, CheckCircle2, PlayCircle, Tag, FolderOpen } from 'lucide-react';
+import { ProjectMetadata, Difficulty, PROJECT_CATEGORIES } from '@/lib/projects/types';
 
-interface ProjectWithProgress extends Project {
+interface ProjectWithProgress extends ProjectMetadata {
   completedBlocks: number;
-  totalBlocks: number;
-  interactiveBlocks: number;
+  isCompleted: boolean;
 }
 
 interface ProjectsGridProps {
@@ -30,50 +29,80 @@ const filterButtons: { label: string; value: Difficulty | 'all' }[] = [
 ];
 
 export function ProjectsGrid({ projects, isLoggedIn }: ProjectsGridProps) {
-  const [difficultyFilter, setDifficultyFilter] = useState<Difficulty | 'all'>(
-    'all'
-  );
+  const [difficultyFilter, setDifficultyFilter] = useState<Difficulty | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
 
-  // Filter projects by difficulty
-  const filteredProjects =
-    difficultyFilter === 'all'
-      ? projects
-      : projects.filter((p) => p.difficulty === difficultyFilter);
+  // Get unique categories from projects
+  const categories = [...new Set(projects.map((p) => p.category))];
+
+  // Filter projects
+  const filteredProjects = projects.filter((p) => {
+    if (difficultyFilter !== 'all' && p.difficulty !== difficultyFilter) return false;
+    if (categoryFilter !== 'all' && p.category !== categoryFilter) return false;
+    return true;
+  });
 
   return (
     <div>
       {/* Filters */}
-      <div className="mb-8 flex flex-wrap gap-3">
-        {filterButtons.map((btn) => (
-          <button
-            key={btn.value}
-            onClick={() => setDifficultyFilter(btn.value)}
-            className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-              difficultyFilter === btn.value
-                ? 'bg-phthalo-500/20 border-2 border-phthalo-500 text-phthalo-300'
-                : 'bg-white/5 border-2 border-white/10 text-zinc-400 hover:bg-white/10 hover:border-white/20'
-            }`}
-          >
-            {btn.label}
-          </button>
-        ))}
+      <div className="mb-8 space-y-4">
+        {/* Difficulty Filter */}
+        <div className="flex flex-wrap gap-3">
+          {filterButtons.map((btn) => (
+            <button
+              key={btn.value}
+              onClick={() => setDifficultyFilter(btn.value)}
+              className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                difficultyFilter === btn.value
+                  ? 'bg-phthalo-500/20 border-2 border-phthalo-500 text-phthalo-300'
+                  : 'bg-white/5 border-2 border-white/10 text-zinc-400 hover:bg-white/10 hover:border-white/20'
+              }`}
+            >
+              {btn.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Category Filter (only show if multiple categories) */}
+        {categories.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setCategoryFilter('all')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                categoryFilter === 'all'
+                  ? 'bg-zinc-700 text-white'
+                  : 'bg-zinc-800/50 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+              }`}
+            >
+              <FolderOpen className="w-3 h-3 inline mr-1" />
+              All Categories
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setCategoryFilter(cat)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  categoryFilter === cat
+                    ? 'bg-zinc-700 text-white'
+                    : 'bg-zinc-800/50 text-zinc-500 hover:bg-zinc-800 hover:text-zinc-300'
+                }`}
+              >
+                {PROJECT_CATEGORIES[cat as keyof typeof PROJECT_CATEGORIES]?.name || cat}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Projects Grid */}
       {filteredProjects.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-xl text-zinc-400">
-            No projects found for this difficulty level.
-          </p>
+          <p className="text-xl text-zinc-400">No projects found for this filter.</p>
+          <p className="text-sm text-zinc-500 mt-2">Try adjusting your filters above.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => {
-            // Calculate percentage based on interactive blocks only
-            const completionPercentage =
-              project.interactiveBlocks > 0
-                ? Math.round((project.completedBlocks / project.interactiveBlocks) * 100)
-                : 0;
             const isStarted = project.completedBlocks > 0;
 
             return (
@@ -83,16 +112,17 @@ export function ProjectsGrid({ projects, isLoggedIn }: ProjectsGridProps) {
                 className="group block"
               >
                 <div className="h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 hover:border-phthalo-500/40 transition-all duration-300">
-                  {/* Difficulty Badge */}
+                  {/* Difficulty Badge & Category */}
                   <div className="flex items-center justify-between mb-4">
                     <span
                       className={`px-3 py-1 rounded-full border text-xs font-semibold uppercase tracking-wide ${difficultyColors[project.difficulty]}`}
                     >
                       {project.difficulty}
                     </span>
-                    {isLoggedIn && isStarted && (
-                      <span className="text-xs font-medium text-phthalo-400">
-                        {completionPercentage}% Complete
+                    {project.isCompleted && (
+                      <span className="flex items-center gap-1 text-xs font-medium text-green-400">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Completed
                       </span>
                     )}
                   </div>
@@ -107,13 +137,17 @@ export function ProjectsGrid({ projects, isLoggedIn }: ProjectsGridProps) {
                     {project.description}
                   </p>
 
-                  {/* Progress Bar */}
-                  {isLoggedIn && isStarted && (
+                  {/* Progress Bar (if started but not completed) */}
+                  {isLoggedIn && isStarted && !project.isCompleted && (
                     <div className="mb-4">
+                      <div className="flex justify-between text-xs text-zinc-500 mb-1">
+                        <span>Progress</span>
+                        <span>{project.completedBlocks} blocks completed</span>
+                      </div>
                       <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-gradient-to-r from-phthalo-500 to-phthalo-400 transition-all duration-500"
-                          style={{ width: `${completionPercentage}%` }}
+                          style={{ width: `${Math.min(project.completedBlocks * 20, 100)}%` }}
                         />
                       </div>
                     </div>
@@ -124,14 +158,17 @@ export function ProjectsGrid({ projects, isLoggedIn }: ProjectsGridProps) {
                     <div className="flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" />
                       <span>
-                        {project.estimatedTimeMinutes < 60
-                          ? `${project.estimatedTimeMinutes}min`
-                          : `${Math.floor(project.estimatedTimeMinutes / 60)}h ${project.estimatedTimeMinutes % 60}m`}
+                        {project.estimatedMinutes < 60
+                          ? `${project.estimatedMinutes}min`
+                          : `${Math.floor(project.estimatedMinutes / 60)}h ${project.estimatedMinutes % 60}m`}
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <TrendingUp className="w-3.5 h-3.5" />
-                      <span>{project.interactiveBlocks} Tasks</span>
+                      <Tag className="w-3.5 h-3.5" />
+                      <span>
+                        {PROJECT_CATEGORIES[project.category as keyof typeof PROJECT_CATEGORIES]
+                          ?.name || project.category}
+                      </span>
                     </div>
                   </div>
 
@@ -151,9 +188,14 @@ export function ProjectsGrid({ projects, isLoggedIn }: ProjectsGridProps) {
 
                   {/* CTA Button */}
                   <div className="flex items-center gap-2 text-phthalo-400 font-medium text-sm group-hover:text-phthalo-300 transition-colors">
-                    {isStarted ? (
+                    {project.isCompleted ? (
                       <>
                         <CheckCircle2 className="w-4 h-4" />
+                        <span>Review Project</span>
+                      </>
+                    ) : isStarted ? (
+                      <>
+                        <TrendingUp className="w-4 h-4" />
                         <span>Continue Project</span>
                       </>
                     ) : (

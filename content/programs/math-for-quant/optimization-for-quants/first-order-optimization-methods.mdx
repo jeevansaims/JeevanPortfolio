@@ -1,0 +1,453 @@
+# First-Order Optimization Methods
+
+## 1. Why First-Order Methods Matter
+
+### When Analytical Solutions Do Not Exist
+
+In textbooks, optimization problems often have clean closed-form solutions. Set the derivative to zero, solve for $x$, done.
+
+Reality is different:
+
+**Complex objectives:** Portfolio optimization with transaction costs, risk constraints, and non-linear utility functions rarely yields to algebra.
+
+**High dimensions:** With thousands of assets, closed-form solutions become intractable even when they theoretically exist.
+
+**Non-linear models:** Calibrating option pricing models, fitting neural networks, or estimating regime-switching parameters requires numerical methods.
+
+When you can't solve $\nabla f(x) = 0$ analytically, you need algorithms that find solutions iteratively.
+
+### Optimization Through Iteration
+
+**The iterative approach:** Start with an initial guess, repeatedly improve it, stop when good enough.
+
+$$
+x_0 \to x_1 \to x_2 \to \cdots \to x^*
+$$
+
+Each step should bring you closer to the optimum. The question is: which direction should you move?
+
+**First-order methods** answer this by using gradient information. The gradient tells you the local slope of the function, which indicates which way is "downhill."
+
+### Why Gradients Drive Modern Quant Optimization
+
+The gradient is the workhorse of numerical optimization because:
+
+**Cheap to compute:** For most functions, computing the gradient costs roughly the same as evaluating the function itself (via automatic differentiation).
+
+**Always available:** Any smooth function has a gradient. No special structure required.
+
+**Locally reliable:** The gradient gives accurate direction information near the current point.
+
+**Scalable:** Gradient methods work in thousands or millions of dimensions. They power everything from portfolio optimization to deep learning in finance.
+
+---
+
+## 2. The Gradient as a Direction of Change
+
+### Gradient as Local Slope Information
+
+For a function $f: \mathbb{R}^n \to \mathbb{R}$, the gradient at point $x$ is the vector of partial derivatives:
+
+$$
+\nabla f(x) = \begin{pmatrix} \frac{\partial f}{\partial x_1} \\ \frac{\partial f}{\partial x_2} \\ \vdots \\ \frac{\partial f}{\partial x_n} \end{pmatrix}
+$$
+
+Each component tells you how fast $f$ changes when you move along that coordinate direction.
+
+**One dimension:** The derivative $f'(x)$ tells you the slope. Positive means $f$ is increasing, negative means decreasing.
+
+**Multiple dimensions:** The gradient tells you the slope in every direction simultaneously, packaged as a vector.
+
+### Direction of Steepest Ascent and Descent
+
+**Key theorem:** The gradient points in the direction of steepest ascent.
+
+If you stand at point $x$ and want to increase $f$ as fast as possible, walk in the direction $\nabla f(x)$.
+
+**Corollary:** The negative gradient points in the direction of steepest descent.
+
+If you want to decrease $f$ as fast as possible (minimize), walk in direction $-\nabla f(x)$.
+
+**Mathematical statement:** For any unit vector $d$ with $\|d\| = 1$:
+
+$$
+\nabla f(x)^T d \leq \|\nabla f(x)\|
+$$
+
+Equality holds when $d = \nabla f(x) / \|\nabla f(x)\|$, the normalized gradient direction.
+
+### Geometric Intuition in Multiple Dimensions
+
+**Level sets:** In 2D, level sets are curves where $f(x, y) = c$ (constant). In 3D, they're surfaces.
+
+**Gradient perpendicular to level sets:** The gradient at any point is perpendicular to the level set passing through that point. It points toward higher values of $f$.
+
+**Visualization:** Imagine a topographic map. Level sets are contour lines. The gradient points uphill, perpendicular to the contours. The steeper the terrain, the longer the gradient vector.
+
+**Why this matters:** When minimizing, you want to move toward lower contours. The negative gradient always points in that direction.
+
+### Link Back to Multivariable Calculus
+
+The gradient connects directly to concepts from calculus:
+
+**Directional derivative:** The rate of change of $f$ in direction $d$ is:
+
+$$
+D_d f(x) = \nabla f(x)^T d
+$$
+
+**Linear approximation:** Near $x$, the function behaves like:
+
+$$
+f(x + \Delta x) \approx f(x) + \nabla f(x)^T \Delta x
+$$
+
+This first-order Taylor expansion is why gradient methods are called "first-order" methods. They use only the linear (first derivative) approximation to the function.
+
+---
+
+## 3. Gradient Descent Algorithm
+
+### Core Idea and Update Rule
+
+**Gradient descent** is the simplest first-order optimization method. The idea is straightforward: move in the direction that decreases the function most rapidly.
+
+**Update rule:**
+
+$$
+x_{k+1} = x_k - \alpha \nabla f(x_k)
+$$
+
+where:
+
+- $x_k$ is the current point (iteration $k$)
+- $\nabla f(x_k)$ is the gradient at the current point
+- $\alpha > 0$ is the step size (how far to move)
+- $x_{k+1}$ is the new point
+
+**In words:** Take the current position, compute the gradient, step in the opposite direction.
+
+### Minimization vs Maximization
+
+**For minimization:** Use $x_{k+1} = x_k - \alpha \nabla f(x_k)$ (subtract the gradient)
+
+**For maximization:** Use $x_{k+1} = x_k + \alpha \nabla f(x_k)$ (add the gradient)
+
+This is called **gradient ascent**.
+
+**Convention:** Optimization theory typically focuses on minimization. To maximize $f$, you can minimize $-f$.
+
+**In finance:**
+
+- Minimize: variance, tracking error, transaction costs, calibration error
+- Maximize: return, Sharpe ratio, utility, likelihood
+
+### Interpreting Each Step Geometrically
+
+Each gradient descent step can be visualized as:
+
+1. **Evaluate slope:** At current position, compute which direction is steepest downhill
+2. **Take a step:** Move some distance in that direction
+3. **Repeat:** From the new position, recompute the steepest direction and step again
+
+**Level set view:** You're walking perpendicular to contour lines, always heading toward lower values.
+
+**Surface view:** If $f$ is a 2D surface in 3D space, you're rolling downhill like a ball.
+
+**Valley analogy:** Imagine standing on a hillside in fog (you can only see locally). The gradient tells you the steepest downhill direction from where you stand. You take a step, reassess, repeat.
+
+### Why Gradient Descent Is Simple but Powerful
+
+**Simplicity:**
+
+- Only requires gradient computation
+- One line update rule
+- Easy to implement and debug
+- Works for any differentiable function
+
+**Power:**
+
+- Scales to millions of variables
+- Guaranteed progress (for small enough step size)
+- Foundation for more advanced methods
+- Works for both convex and non-convex problems
+
+**Limitations (to be addressed later):**
+
+- May converge slowly
+- Can get stuck in local minima (non-convex case)
+- Step size choice is critical
+- Doesn't use curvature information
+
+---
+
+## 4. Step Size and Learning Rate
+
+### Fixed Step Size Intuition
+
+The **step size** $\alpha$ (also called **learning rate**) controls how far you move each iteration.
+
+**Fixed step size:** Use the same $\alpha$ every iteration.
+
+$$
+x_{k+1} = x_k - \alpha \nabla f(x_k)
+$$
+
+**Intuition:** If the gradient is your direction, the step size is your pace. Should you sprint or walk carefully?
+
+**Trade-off:** Larger steps mean faster potential progress but higher risk of overshooting. Smaller steps are safer but slower.
+
+### Why Step Size Controls Stability and Speed
+
+**Stability:** The gradient only gives reliable direction information locally. Far from the current point, the linear approximation breaks down.
+
+If $\alpha$ is too large, you step beyond the region where the gradient is accurate. The function might increase instead of decrease.
+
+**Speed:** Each iteration has computational cost (gradient evaluation). You want to make as much progress as possible per iteration.
+
+If $\alpha$ is too small, you make tiny steps and waste computation. Convergence takes many iterations.
+
+**The balance:** Find the largest step size that still guarantees progress.
+
+### Overshooting and Slow Convergence
+
+**Overshooting (step size too large):**
+
+Consider minimizing $f(x) = x^2$. The gradient is $\nabla f(x) = 2x$.
+
+At $x_0 = 1$ with $\alpha = 1.5$:
+
+$$
+x_1 = 1 - 1.5 \times 2 = -2
+$$
+
+We jumped past the minimum at $x = 0$ and landed farther away than we started.
+
+At $x_1 = -2$:
+
+$$
+x_2 = -2 - 1.5 \times (-4) = 4
+$$
+
+Now we're even farther. The algorithm diverges.
+
+**Slow convergence (step size too small):**
+
+Same function, $x_0 = 1$, $\alpha = 0.01$:
+
+$$
+x_1 = 1 - 0.01 \times 2 = 0.98
+$$
+
+After 100 iterations, we're still at $x_{100} \approx 0.13$. Progress is painfully slow.
+
+**Sweet spot:** For $f(x) = x^2$, step size $\alpha = 0.5$ gives $x_1 = 0$ in one step. The optimal step size depends on the function's curvature.
+
+### Basic Intuition for Line Search
+
+**Problem:** How do we choose a good step size without knowing the optimal one in advance?
+
+**Line search:** At each iteration, search along the gradient direction for a good step size.
+
+**Exact line search:** Find $\alpha$ that minimizes $f(x_k - \alpha \nabla f(x_k))$. Optimal but expensive.
+
+**Backtracking line search:** Start with a large $\alpha$, reduce it until sufficient decrease is achieved.
+
+**Armijo condition:** Accept $\alpha$ if:
+
+$$
+f(x_k - \alpha \nabla f(x_k)) \leq f(x_k) - c \alpha \|\nabla f(x_k)\|^2
+$$
+
+This ensures each step makes reasonable progress. The constant $c \in (0, 1)$ is typically small (like 0.0001).
+
+**Practical note:** Line search adds cost per iteration but often reduces total iterations needed. The trade-off depends on how expensive gradient and function evaluations are.
+
+---
+
+## 5. Convergence Behavior
+
+### What Convergence Means
+
+**Convergence:** The sequence $x_0, x_1, x_2, \ldots$ approaches a limit point $x^*$.
+
+$$
+\lim_{k \to \infty} x_k = x^*
+$$
+
+For gradient descent, we want the limit to be an optimum (minimum).
+
+**Stationary point:** A point where $\nabla f(x^*) = 0$. At stationary points, the gradient is zero, so gradient descent would stop.
+
+**Types of stationary points:**
+
+- Local minimum: $f(x^*) \leq f(x)$ for nearby $x$
+- Local maximum: $f(x^*) \geq f(x)$ for nearby $x$
+- Saddle point: Neither (minimum in some directions, maximum in others)
+
+Gradient descent converges to stationary points. For convex functions, all stationary points are global minima. For non-convex functions, you might find local minima or saddle points.
+
+### When Gradient Descent Converges
+
+**Sufficient conditions for convergence:**
+
+1. **Differentiability:** $f$ must have a gradient everywhere
+2. **Bounded below:** $f$ must have a minimum (can't decrease forever)
+3. **Appropriate step size:** Not too large (prevents divergence)
+
+**For convex functions with Lipschitz gradient:** If $\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|$ for some constant $L$, then step size $\alpha < 2/L$ guarantees convergence.
+
+**Convergence rate:** How fast does $f(x_k) - f(x^*)$ shrink?
+
+For convex functions: $O(1/k)$ convergence. To halve the error, double the iterations.
+
+For strongly convex functions: Linear convergence (error shrinks by a constant factor each iteration). Much faster.
+
+### Role of Smoothness and Curvature
+
+**Smoothness:** How "nice" is the function?
+
+- Smooth functions have gradients that don't change abruptly
+- The Lipschitz constant $L$ measures how fast the gradient can change
+- Smoother functions (smaller $L$) allow larger step sizes
+
+**Curvature:** How much does the function bend?
+
+- High curvature (sharp bends) requires smaller steps
+- Low curvature (gentle slopes) allows larger steps
+- Curvature varies across the domain
+
+**The key quantity:** The condition number $\kappa = L/\mu$, where $L$ is the maximum curvature and $\mu$ is the minimum curvature.
+
+High condition number means the function is "ill-conditioned": curved sharply in some directions, nearly flat in others.
+
+### Why Poorly Scaled Problems Cause Trouble
+
+**Poorly scaled problems** have variables on very different scales or highly correlated variables.
+
+**Example:** Minimize $f(x, y) = x^2 + 100y^2$.
+
+The $y$ direction has 100x the curvature of the $x$ direction. Level sets are elongated ellipses.
+
+**What happens:** The gradient points nearly perpendicular to the direction of the minimum. Gradient descent zigzags, making slow progress.
+
+**Condition number:** $\kappa = 100$. This predicts slow convergence.
+
+**In finance:** Portfolio optimization with highly correlated assets creates ill-conditioned problems. The covariance matrix has eigenvalues spanning several orders of magnitude.
+
+**Solutions:**
+
+- Preconditioning (rescale variables)
+- Use second-order methods (which account for curvature)
+- Use momentum (dampens oscillations)
+
+---
+
+## 6. Stopping Criteria
+
+### Gradient Norm Based Stopping
+
+**Criterion:** Stop when $\|\nabla f(x_k)\| < \epsilon$ for some tolerance $\epsilon$.
+
+**Rationale:** At an optimum, the gradient is zero. A small gradient indicates you're close to an optimum.
+
+**Example:** $\epsilon = 10^{-6}$ means stop when the gradient magnitude is below one millionth.
+
+**Pros:** Directly measures proximity to a stationary point.
+
+**Cons:** The gradient can be small far from the optimum if the function is nearly flat.
+
+### Function Value Changes
+
+**Criterion:** Stop when $|f(x_{k+1}) - f(x_k)| < \epsilon$ or $|f(x_{k+1}) - f(x_k)| / |f(x_k)| < \epsilon$.
+
+**Rationale:** If the function value isn't changing much, you've probably converged.
+
+**Pros:** Easy to compute, intuitive interpretation.
+
+**Cons:** Function can plateau at non-optimal points. May stop prematurely.
+
+**Parameter change variant:** Stop when $\|x_{k+1} - x_k\| < \epsilon$. The iterates themselves aren't moving.
+
+### Practical Stopping in Numerical Algorithms
+
+**Combine multiple criteria:**
+
+$$
+\text{Stop if } \|\nabla f(x_k)\| < \epsilon_g \text{ OR } |f(x_{k+1}) - f(x_k)| < \epsilon_f \text{ OR } k > k_{max}
+$$
+
+**Maximum iterations:** Always include a maximum iteration count to prevent infinite loops.
+
+**Relative tolerances:** Use relative tolerances (like $|f_{k+1} - f_k| / |f_k|$) when function values vary widely in magnitude.
+
+**Practical values:**
+
+- Gradient tolerance: $10^{-6}$ to $10^{-8}$ for high precision
+- Function tolerance: $10^{-6}$ to $10^{-10}$
+- Maximum iterations: 1000 to 100000 depending on problem size
+
+**Monitoring convergence:** Track $f(x_k)$ and $\|\nabla f(x_k)\|$ over iterations. Plot them to diagnose problems:
+
+- Oscillating: Step size too large
+- Flat but not converged: Step size too small or saddle point
+- Steady decrease: Healthy convergence
+
+---
+
+## 7. Summary
+
+### Key Concepts
+
+**First-order methods** use gradient information to iteratively find optima when closed-form solutions don't exist.
+
+**The gradient** points in the direction of steepest ascent; its negative points toward steepest descent.
+
+**Gradient descent** updates: $x_{k+1} = x_k - \alpha \nabla f(x_k)$.
+
+**Step size** controls the trade-off between speed and stability.
+
+**Convergence** depends on function properties: smoothness, convexity, and conditioning.
+
+### Key Formulas
+
+**Gradient descent update:**
+
+$$
+x_{k+1} = x_k - \alpha \nabla f(x_k)
+$$
+
+**Directional derivative:**
+
+$$
+D_d f(x) = \nabla f(x)^T d
+$$
+
+**First-order approximation:**
+
+$$
+f(x + \Delta x) \approx f(x) + \nabla f(x)^T \Delta x
+$$
+
+### Key Insights for Quants
+
+1. **Gradients are the foundation** of numerical optimization in finance
+2. **Step size is the critical tuning parameter** for gradient descent
+3. **Ill-conditioned problems** (high correlation, different scales) converge slowly
+4. **Convexity determines** whether you find global or local optima
+5. **Practical algorithms** combine gradient descent with step size selection and stopping criteria
+
+---
+
+## 8. What's Next?
+
+Gradient descent finds stationary points, but are they global optima? For some functions, every stationary point is a global minimum. These special functions are called convex.
+
+**Next lesson: Convexity and Global Optimality**
+
+You'll learn:
+
+- What makes a function convex
+- Why convexity guarantees global optimality
+- How to recognize convex problems in finance
+- The central role of convexity in portfolio optimization

@@ -1,0 +1,462 @@
+# Vectors & Linear Combinations
+
+## 1. Why Vectors Are Fundamental to Quant Finance
+
+Every quantitative finance problem involves **multiple variables** working together:
+
+- A portfolio has weights across $n$ assets
+- Returns arrive as collections of numbers
+- Risk factors span multiple dimensions
+- Trading signals combine many indicators
+
+**Vectors give us the language to describe and manipulate these collections systematically.**
+
+### The Core Insight
+
+A **vector** is not just a list of numbers, it's a complete description of a **point in space** or a **direction with magnitude**. In finance:
+
+- Portfolio weights define a point in "weight space"
+- Asset returns define a point in "return space"
+- Moving from one portfolio to another is a vector operation
+
+**Linear algebra is the mathematics of vectors. Master vectors, and you have the foundation for everything else.**
+
+---
+
+## 2. What is a Vector?
+
+A vector in $\mathbb{R}^n$ is an ordered list of $n$ real numbers:
+
+$$
+\mathbf{v} = \begin{pmatrix} v_1 \\ v_2 \\ \vdots \\ v_n \end{pmatrix}
+$$
+
+**Key properties:**
+
+- **Dimension:** The number of entries ($n$)
+- **Components:** Individual values $v_1, v_2, \ldots, v_n$
+- **Notation:** Bold lowercase letters ($\mathbf{v}$, $\mathbf{w}$, $\mathbf{r}$)
+
+### Finance Examples
+
+**Portfolio weights** for 3 assets:
+
+$$
+\mathbf{w} = \begin{pmatrix} 0.50 \\ 0.30 \\ 0.20 \end{pmatrix}
+$$
+
+This means: 50% in asset 1, 30% in asset 2, 20% in asset 3.
+
+**Asset returns** over one period:
+
+$$
+\mathbf{r} = \begin{pmatrix} 0.08 \\ -0.02 \\ 0.05 \end{pmatrix}
+$$
+
+Asset 1 returned 8%, asset 2 lost 2%, asset 3 gained 5%.
+
+**Factor exposures** (betas):
+
+$$
+\boldsymbol{\beta} = \begin{pmatrix} 1.2 \\ 0.8 \\ -0.3 \end{pmatrix}
+$$
+
+Exposures to market, size, and momentum factors.
+
+---
+
+## 3. Vector Operations
+
+### Scalar Multiplication
+
+Multiplying a vector by a scalar $c$ scales every component:
+
+$$
+c\mathbf{v} = \begin{pmatrix} cv_1 \\ cv_2 \\ \vdots \\ cv_n \end{pmatrix}
+$$
+
+**Financial interpretation: Leverage**
+
+If $\mathbf{w}$ represents portfolio weights, then $2\mathbf{w}$ represents a 2x levered portfolio:
+
+$$
+\mathbf{w} = \begin{pmatrix} 0.5 \\ 0.5 \end{pmatrix} \quad \Rightarrow \quad 2\mathbf{w} = \begin{pmatrix} 1.0 \\ 1.0 \end{pmatrix}
+$$
+
+The levered portfolio has 100% in each asset (200% total exposure, requiring 100% borrowing).
+
+**Negative scalars** reverse positions:
+
+$$
+-1 \times \mathbf{w} = \begin{pmatrix} -0.5 \\ -0.5 \end{pmatrix}
+$$
+
+This represents shorting both assets.
+
+### Vector Addition
+
+Adding two vectors combines their components:
+
+$$
+\mathbf{u} + \mathbf{v} = \begin{pmatrix} u_1 + v_1 \\ u_2 + v_2 \\ \vdots \\ u_n + v_n \end{pmatrix}
+$$
+
+**Financial interpretation: Combining portfolios**
+
+If two funds have weight vectors $\mathbf{w}_A$ and $\mathbf{w}_B$, combining them equally gives:
+
+$$
+\mathbf{w}_{\text{combined}} = 0.5\mathbf{w}_A + 0.5\mathbf{w}_B
+$$
+
+**Example:**
+
+$$
+\mathbf{w}_A = \begin{pmatrix} 0.6 \\ 0.4 \end{pmatrix}, \quad \mathbf{w}_B = \begin{pmatrix} 0.2 \\ 0.8 \end{pmatrix}
+$$
+
+$$
+\mathbf{w}_{\text{combined}} = 0.5 \begin{pmatrix} 0.6 \\ 0.4 \end{pmatrix} + 0.5 \begin{pmatrix} 0.2 \\ 0.8 \end{pmatrix} = \begin{pmatrix} 0.4 \\ 0.6 \end{pmatrix}
+$$
+
+### Vector Subtraction
+
+$$
+\mathbf{u} - \mathbf{v} = \begin{pmatrix} u_1 - v_1 \\ u_2 - v_2 \\ \vdots \\ u_n - v_n \end{pmatrix}
+$$
+
+**Financial interpretation: Long-short portfolios**
+
+A long-short portfolio goes long $\mathbf{w}_{\text{long}}$ and short $\mathbf{w}_{\text{short}}$:
+
+$$
+\mathbf{w}_{\text{L/S}} = \mathbf{w}_{\text{long}} - \mathbf{w}_{\text{short}}
+$$
+
+---
+
+## 4. Linear Combinations: The Central Concept
+
+A **linear combination** of vectors $\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_k$ is:
+
+$$
+c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \cdots + c_k \mathbf{v}_k
+$$
+
+where $c_1, c_2, \ldots, c_k$ are scalars (the **coefficients**).
+
+### Why Linear Combinations Matter
+
+**Almost everything in finance is a linear combination:**
+
+- Portfolio return = linear combination of asset returns
+- Factor model = linear combination of factor returns
+- Hedged portfolio = linear combination of original portfolio and hedge
+- Benchmark-relative return = portfolio return minus benchmark return
+
+### Portfolio Return Formula
+
+For a portfolio with weights $\mathbf{w} = (w_1, w_2, \ldots, w_n)$ and asset returns $\mathbf{r} = (r_1, r_2, \ldots, r_n)$:
+
+$$
+R_p = w_1 r_1 + w_2 r_2 + \cdots + w_n r_n = \sum_{i=1}^n w_i r_i
+$$
+
+The portfolio return is a **linear combination** of asset returns with weights as coefficients.
+
+### Factor Model
+
+A factor model expresses asset return as a linear combination of factor returns:
+
+$$
+r_i = \alpha_i + \beta_{i,1} f_1 + \beta_{i,2} f_2 + \cdots + \beta_{i,k} f_k + \epsilon_i
+$$
+
+The systematic part ($\beta_{i,1} f_1 + \beta_{i,2} f_2 + \cdots$) is a linear combination of factors.
+
+---
+
+## 5. The Dot Product (Inner Product)
+
+The **dot product** of two vectors is:
+
+$$
+\mathbf{u} \cdot \mathbf{v} = u_1 v_1 + u_2 v_2 + \cdots + u_n v_n = \sum_{i=1}^n u_i v_i
+$$
+
+**Alternative notation:** $\mathbf{u}^T \mathbf{v}$ or $\langle \mathbf{u}, \mathbf{v} \rangle$
+
+### The Dot Product Computes Portfolio Return
+
+$$
+R_p = \mathbf{w} \cdot \mathbf{r} = \sum_{i=1}^n w_i r_i
+$$
+
+This single formula is used thousands of times daily in finance.
+
+### Example Calculation
+
+Portfolio weights: $\mathbf{w} = (0.4, 0.35, 0.25)$
+
+Asset returns: $\mathbf{r} = (0.12, 0.05, -0.03)$
+
+$$
+R_p = 0.4 \times 0.12 + 0.35 \times 0.05 + 0.25 \times (-0.03)
+$$
+
+$$
+R_p = 0.048 + 0.0175 - 0.0075 = 0.058 = 5.8\%
+$$
+
+### Geometric Interpretation
+
+The dot product relates to the **angle** between vectors:
+
+$$
+\mathbf{u} \cdot \mathbf{v} = \|\mathbf{u}\| \|\mathbf{v}\| \cos\theta
+$$
+
+**Key cases:**
+
+- $\mathbf{u} \cdot \mathbf{v} = 0$: Vectors are **orthogonal** (perpendicular, $\theta = 90°$)
+- $\mathbf{u} \cdot \mathbf{v} > 0$: Vectors point in similar directions ($\theta < 90°$)
+- $\mathbf{u} \cdot \mathbf{v} < 0$: Vectors point in opposite directions ($\theta > 90°$)
+
+**Financial interpretation:** Orthogonal return streams are uncorrelated, valuable for diversification.
+
+---
+
+## 6. Vector Norms: Measuring Size
+
+The **Euclidean norm** (or length) of a vector is:
+
+$$
+\|\mathbf{v}\| = \sqrt{v_1^2 + v_2^2 + \cdots + v_n^2} = \sqrt{\sum_{i=1}^n v_i^2}
+$$
+
+### Financial Interpretations
+
+**Portfolio concentration:**
+
+For weights $\mathbf{w}$, the squared norm $\|\mathbf{w}\|^2 = \sum w_i^2$ measures concentration.
+
+- Equal-weighted portfolio: $\mathbf{w} = (0.25, 0.25, 0.25, 0.25)$ → $\|\mathbf{w}\|^2 = 0.25$
+- Concentrated portfolio: $\mathbf{w} = (0.7, 0.1, 0.1, 0.1)$ → $\|\mathbf{w}\|^2 = 0.52$
+
+Higher norm-squared = more concentrated.
+
+**Tracking error:**
+
+If $\mathbf{w}_p$ is portfolio weights and $\mathbf{w}_b$ is benchmark weights:
+
+$$
+\text{Active weights} = \mathbf{w}_p - \mathbf{w}_b
+$$
+
+The norm of active weights measures how different the portfolio is from the benchmark.
+
+### Unit Vectors
+
+A **unit vector** has norm 1:
+
+$$
+\|\hat{\mathbf{v}}\| = 1
+$$
+
+To normalize any vector:
+
+$$
+\hat{\mathbf{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|}
+$$
+
+Unit vectors represent **directions** without magnitude.
+
+---
+
+## 7. Special Vectors in Finance
+
+### The Ones Vector
+
+$$
+\mathbf{1} = \begin{pmatrix} 1 \\ 1 \\ \vdots \\ 1 \end{pmatrix}
+$$
+
+**Uses:**
+
+- Budget constraint: $\mathbf{1}^T \mathbf{w} = \sum w_i = 1$ (weights sum to 1)
+- Equal-weighted portfolio: $\mathbf{w} = \frac{1}{n} \mathbf{1}$
+- Sum of returns: $\mathbf{1}^T \mathbf{r} = \sum r_i$
+
+### The Zero Vector
+
+$$
+\mathbf{0} = \begin{pmatrix} 0 \\ 0 \\ \vdots \\ 0 \end{pmatrix}
+$$
+
+**Uses:**
+
+- No position (flat portfolio)
+- Dollar-neutral constraint: $\mathbf{1}^T \mathbf{w} = 0$ (equal long and short)
+
+### Standard Basis Vectors
+
+In $\mathbb{R}^3$:
+
+$$
+\mathbf{e}_1 = \begin{pmatrix} 1 \\ 0 \\ 0 \end{pmatrix}, \quad \mathbf{e}_2 = \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}, \quad \mathbf{e}_3 = \begin{pmatrix} 0 \\ 0 \\ 1 \end{pmatrix}
+$$
+
+**Financial interpretation:** $\mathbf{e}_i$ represents 100% allocation to asset $i$.
+
+Any portfolio is a linear combination of basis vectors:
+
+$$
+\mathbf{w} = w_1 \mathbf{e}_1 + w_2 \mathbf{e}_2 + w_3 \mathbf{e}_3
+$$
+
+---
+
+## 8. Worked Examples
+
+### Example 1: Computing Portfolio Return
+
+**Given:**
+
+- Weights: $\mathbf{w} = (0.5, 0.3, 0.2)$
+- Returns: $\mathbf{r} = (0.10, 0.04, -0.02)$
+
+**Compute portfolio return:**
+
+$$
+R_p = \mathbf{w} \cdot \mathbf{r} = 0.5(0.10) + 0.3(0.04) + 0.2(-0.02)
+$$
+
+$$
+R_p = 0.05 + 0.012 - 0.004 = 0.058 = 5.8\%
+$$
+
+### Example 2: Rebalancing as Vector Operation
+
+**Current portfolio:** $\mathbf{w}_{\text{current}} = (0.55, 0.25, 0.20)$
+
+**Target portfolio:** $\mathbf{w}_{\text{target}} = (0.40, 0.35, 0.25)$
+
+**Trade required:**
+
+$$
+\mathbf{w}_{\text{trade}} = \mathbf{w}_{\text{target}} - \mathbf{w}_{\text{current}} = (-0.15, 0.10, 0.05)
+$$
+
+Sell 15% of asset 1, buy 10% of asset 2, buy 5% of asset 3.
+
+### Example 3: Levered Portfolio
+
+**Unlevered weights:** $\mathbf{w} = (0.6, 0.4)$ with expected return 8%
+
+**2x levered weights:** $2\mathbf{w} = (1.2, 0.8)$
+
+Total weight: $1.2 + 0.8 = 2.0$ (100% borrowing required)
+
+Expected return: $2 \times 8\% = 16\%$ (ignoring borrowing costs)
+
+### Example 4: Dollar-Neutral Portfolio
+
+**Long positions:** $\mathbf{w}_L = (0.3, 0.2, 0)$ (50% total long)
+
+**Short positions:** $\mathbf{w}_S = (0, 0.2, 0.3)$ (50% total short)
+
+**Dollar-neutral portfolio:**
+
+$$
+\mathbf{w} = \mathbf{w}_L - \mathbf{w}_S = (0.3, 0, -0.3)
+$$
+
+Check: $0.3 + 0 + (-0.3) = 0$ ✓ (dollar-neutral)
+
+---
+
+## 9. The Span of Vectors
+
+The **span** of vectors $\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_k$ is the set of all possible linear combinations:
+
+$$
+\text{span}(\mathbf{v}_1, \ldots, \mathbf{v}_k) = \{c_1\mathbf{v}_1 + \cdots + c_k\mathbf{v}_k : c_i \in \mathbb{R}\}
+$$
+
+### Financial Interpretation: Replicable Returns
+
+If $\mathbf{r}_1, \mathbf{r}_2, \mathbf{r}_3$ are return vectors of three assets:
+
+$$
+\text{span}(\mathbf{r}_1, \mathbf{r}_2, \mathbf{r}_3)
+$$
+
+is the set of all return patterns achievable by combining these assets.
+
+**Key question:** Can we replicate a target return $\mathbf{r}_{\text{target}}$ using available assets?
+
+Answer: Yes, if and only if $\mathbf{r}_{\text{target}} \in \text{span}(\mathbf{r}_1, \mathbf{r}_2, \mathbf{r}_3)$.
+
+This is the foundation of **replication** and **hedging**.
+
+---
+
+## 10. Summary
+
+### Key Concepts
+
+**Vectors** are ordered lists of numbers representing:
+
+- Portfolio weights
+- Asset returns
+- Factor exposures
+- Any financial quantity with multiple components
+
+**Operations:**
+
+- **Scalar multiplication:** Leverage/scaling
+- **Addition/subtraction:** Combining portfolios, long-short positions
+- **Dot product:** Portfolio return calculation
+- **Norm:** Size/concentration measurement
+
+**Linear combinations** are the foundation of:
+
+- Portfolio construction
+- Factor models
+- Hedging and replication
+
+### Key Formulas
+
+**Portfolio return:**
+
+$$
+R_p = \mathbf{w} \cdot \mathbf{r} = \sum_{i=1}^n w_i r_i
+$$
+
+**Budget constraint:**
+
+$$
+\mathbf{1}^T \mathbf{w} = 1
+$$
+
+**Vector norm:**
+
+$$
+\|\mathbf{v}\| = \sqrt{\sum_{i=1}^n v_i^2}
+$$
+
+---
+
+## 11. What's Next?
+
+Vectors describe individual positions. To work with **relationships between multiple vectors**, covariances, transformations, systems of equations, we need **matrices**.
+
+**Next lesson: Matrices & Matrix Multiplication**
+
+You'll learn:
+
+- How matrices organize and transform vectors
+- Matrix-vector multiplication for portfolio calculations
+- Matrix-matrix multiplication for combining transformations
+- The covariance matrix (your first finance matrix)
+- Solving systems of linear equations

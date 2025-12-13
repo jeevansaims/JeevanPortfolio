@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, BookOpen, Clock, CheckCircle2 } from 'lucide-react'
+import { BookOpen, Clock, CheckCircle2, Lock, Award, AlertCircle } from 'lucide-react'
 
 interface Module {
   id: string
@@ -23,7 +23,9 @@ const difficultyColors = {
   advanced: 'bg-red-500/10 text-red-400 border-red-500/20'
 }
 
-export default async function ProgramPage({ params }: { params: { program: string } }) {
+export default async function ProgramPage({ params }: { params: Promise<{ program: string }> }) {
+  const { program: programSlug } = await params
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -31,7 +33,7 @@ export default async function ProgramPage({ params }: { params: { program: strin
   const { data: program } = await supabase
     .from('programs')
     .select('*')
-    .eq('slug', params.program)
+    .eq('slug', programSlug)
     .eq('is_published', true)
     .single()
 
@@ -47,7 +49,7 @@ export default async function ProgramPage({ params }: { params: { program: strin
     .eq('is_published', true)
     .order('order_index')
 
-  // For each module, get lesson count and user progress
+  // For each module, get lesson count, user progress, and exam status
   const modulesWithProgress = await Promise.all(
     (modules || []).map(async (module) => {
       // Get total lessons
@@ -79,28 +81,40 @@ export default async function ProgramPage({ params }: { params: { program: strin
         }
       }
 
+      // Check if module has an exam
+      const { data: exam } = await supabase
+        .from('module_exams')
+        .select('id')
+        .eq('module_id', module.id)
+        .eq('is_published', true)
+        .single()
+
+      // Check if user passed the exam
+      let examPassed = false
+      if (user && exam) {
+        const { data: attempts } = await supabase
+          .from('user_module_exam_attempts')
+          .select('passed')
+          .eq('user_id', user.id)
+          .eq('exam_id', exam.id)
+          .eq('passed', true)
+          .limit(1)
+
+        examPassed = (attempts && attempts.length > 0) || false
+      }
+
       return {
         ...module,
         totalLessons: totalLessons || 0,
-        completedLessons
+        completedLessons,
+        hasExam: !!exam,
+        examPassed
       }
     })
   )
 
   return (
     <div className="min-h-screen">
-      {/* Back Button */}
-      <div className="border-b border-zinc-800 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <Link href="/quantframe/programs">
-            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Programs
-            </Button>
-          </Link>
-        </div>
-      </div>
-
       {/* Program Hero */}
       <div className="relative overflow-hidden bg-gradient-to-b from-zinc-900 to-black border-b border-zinc-800">
         <div className="absolute inset-0 overflow-hidden">
@@ -109,6 +123,15 @@ export default async function ProgramPage({ params }: { params: { program: strin
         </div>
 
         <div className="relative max-w-7xl mx-auto px-6 py-16">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-zinc-500 mb-4">
+            <Link href="/quantframe/programs" className="hover:text-white transition-colors">
+              Programs
+            </Link>
+            <span>/</span>
+            <span className="text-zinc-400">{program.title}</span>
+          </div>
+
           <div className="flex items-center gap-3 mb-4">
             <Badge variant="outline" className={difficultyColors[program.level as keyof typeof difficultyColors]}>
               {program.level}
@@ -144,13 +167,21 @@ export default async function ProgramPage({ params }: { params: { program: strin
                 ? Math.round((module.completedLessons / module.totalLessons) * 100)
                 : 0
 
+              // Check if module is locked (need to pass previous module's exam)
+              const isLocked = index > 0 && !modulesWithProgress[index - 1].examPassed
+              const allLessonsCompleted = module.completedLessons === module.totalLessons && module.totalLessons > 0
+
               return (
                 <Card key={module.id} className="bg-zinc-900/50 border-zinc-800 backdrop-blur-sm hover:border-phthalo-500/50 transition-all duration-300">
                   <div className="p-6">
                     <div className="flex items-start gap-6">
                       {/* Module Number */}
-                      <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-phthalo-500 to-phthalo-700 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-white">{index + 1}</span>
+                      <div className={`flex-shrink-0 w-16 h-16 rounded-lg ${isLocked ? 'bg-zinc-800' : 'bg-gradient-to-br from-phthalo-500 to-phthalo-700'} flex items-center justify-center`}>
+                        {isLocked ? (
+                          <Lock className="w-6 h-6 text-zinc-600" />
+                        ) : (
+                          <span className="text-2xl font-bold text-white">{index + 1}</span>
+                        )}
                       </div>
 
                       {/* Module Content */}
@@ -167,15 +198,25 @@ export default async function ProgramPage({ params }: { params: { program: strin
                             )}
                           </div>
 
-                          <Link href={`/quantframe/programs/${params.program}/modules/${module.slug}`}>
-                            <Button className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900">
-                              View Module
-                            </Button>
-                          </Link>
+                          {isLocked ? (
+                            <div className="flex flex-col items-end gap-1">
+                              <Button disabled className="bg-zinc-800 text-zinc-500 cursor-not-allowed">
+                                <Lock className="w-4 h-4 mr-2" />
+                                Locked
+                              </Button>
+                              <p className="text-xs text-zinc-600 text-right">Complete previous exam</p>
+                            </div>
+                          ) : (
+                            <Link href={`/quantframe/programs/${programSlug}/modules/${module.slug}`}>
+                              <Button className="bg-gradient-to-r from-phthalo-600 to-phthalo-800 hover:from-phthalo-700 hover:to-phthalo-900">
+                                View Module
+                              </Button>
+                            </Link>
+                          )}
                         </div>
 
                         {/* Meta Info */}
-                        <div className="flex items-center gap-6 text-sm text-zinc-500 mb-4">
+                        <div className="flex items-center gap-6 text-sm text-zinc-500 mb-4 flex-wrap">
                           {module.estimated_hours && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-4 h-4" />
@@ -191,6 +232,28 @@ export default async function ProgramPage({ params }: { params: { program: strin
                               <CheckCircle2 className="w-4 h-4" />
                               {module.completedLessons}/{module.totalLessons} completed
                             </span>
+                          )}
+
+                          {/* Exam Status */}
+                          {user && module.hasExam && (
+                            <>
+                              {module.examPassed ? (
+                                <span className="flex items-center gap-1 text-phthalo-400">
+                                  <Award className="w-4 h-4" />
+                                  Exam Passed
+                                </span>
+                              ) : allLessonsCompleted ? (
+                                <span className="flex items-center gap-1 text-yellow-400">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Exam Available
+                                </span>
+                              ) : (
+                                <span className="flex items-center gap-1 text-zinc-600">
+                                  <AlertCircle className="w-4 h-4" />
+                                  Exam Locked
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
 

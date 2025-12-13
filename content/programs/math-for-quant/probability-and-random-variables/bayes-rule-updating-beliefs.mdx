@@ -1,0 +1,412 @@
+# Bayes' Rule and Updating Beliefs
+
+## 1. Why Bayes' Rule Matters
+
+### Markets as Information Aggregation Mechanisms
+
+Financial markets are fundamentally machines for processing information. Every trade, every price movement, every signal represents someone updating their beliefs based on new data.
+
+**The key question:** How should a rational agent update beliefs when new information arrives?
+
+Bayes' Rule provides the answer. It's not just a formula; it's a framework for thinking about learning, inference, and rational decision-making under uncertainty.
+
+### Beliefs Changing as New Data Arrives
+
+Consider a portfolio manager who believes there's a 30% chance of recession. Then:
+- Unemployment rises unexpectedly
+- Yield curve inverts
+- Corporate earnings disappoint
+
+After each piece of evidence, the recession probability should update. But how exactly?
+
+**Without Bayes:** Ad-hoc adjustments, inconsistent reasoning, potentially irrational conclusions.
+
+**With Bayes:** Systematic, logically consistent updating that correctly weighs prior beliefs against new evidence.
+
+### Bayes as a Rule for Rational Updating
+
+Bayes' Rule isn't just one way to update beliefs. Under certain axioms of rationality, it's the *only* way that's logically consistent.
+
+If you don't update according to Bayes:
+- You can be exploited by a clever adversary (Dutch book arguments)
+- Your beliefs will be internally inconsistent
+- You'll systematically misweight evidence
+
+**For quants:** Bayesian thinking underlies regime detection, signal processing, model calibration, and portfolio optimization.
+
+---
+
+## 2. Bayes' Rule from Conditional Probability
+
+### Derivation
+
+Start with the definition of conditional probability:
+
+$$
+P(A|B) = \frac{P(A \cap B)}{P(B)}
+$$
+
+We can also write:
+
+$$
+P(B|A) = \frac{P(A \cap B)}{P(A)}
+$$
+
+Solving the second equation for $P(A \cap B)$:
+
+$$
+P(A \cap B) = P(B|A) \cdot P(A)
+$$
+
+Substituting into the first:
+
+$$
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}
+$$
+
+This is **Bayes' Rule**.
+
+### The Components: Prior, Likelihood, and Posterior
+
+Each term has a specific interpretation:
+
+**Prior $P(A)$:** Your belief about $A$ before observing any evidence. This encodes what you knew (or believed) before the data arrived.
+
+**Likelihood $P(B|A)$:** The probability of observing the evidence $B$ if hypothesis $A$ is true. This measures how compatible the data is with the hypothesis.
+
+**Evidence $P(B)$:** The total probability of observing $B$ under all hypotheses. This serves as a normalizing constant.
+
+**Posterior $P(A|B)$:** Your updated belief about $A$ after observing evidence $B$. This is what you're solving for.
+
+### Intuition Behind the Formula
+
+Bayes' Rule says:
+
+$$
+\text{Posterior} = \frac{\text{Likelihood} \times \text{Prior}}{\text{Evidence}}
+$$
+
+**Translation:** Your updated belief equals how likely the evidence is under your hypothesis, times your prior belief, normalized to be a valid probability.
+
+The posterior balances two forces:
+1. **Prior:** What you believed before
+2. **Likelihood:** What the data suggests
+
+Strong priors require strong evidence to overcome. Weak priors shift easily.
+
+---
+
+## 3. Interpreting Priors and Posteriors
+
+### What a Prior Represents
+
+The prior $P(A)$ encodes your state of knowledge before seeing the current evidence. It can come from:
+
+**Historical data:** "Over the past 50 years, recessions occurred 15% of the time."
+
+**Expert judgment:** "Based on current conditions, I believe there's a 25% chance of default."
+
+**Uninformative priors:** "I have no idea, so I'll assign equal probability to all outcomes."
+
+**Key point:** The prior is not arbitrary. It should reflect genuine beliefs or historical frequencies. Garbage priors lead to garbage posteriors.
+
+### How Data Shifts Beliefs
+
+The posterior combines prior and evidence:
+
+**When evidence favors $A$:** The likelihood $P(B|A)$ is high relative to $P(B|A^c)$, so the posterior $P(A|B)$ increases above the prior.
+
+**When evidence opposes $A$:** The likelihood $P(B|A)$ is low relative to $P(B|A^c)$, so the posterior decreases.
+
+**When evidence is neutral:** The likelihood is similar under $A$ and $A^c$, so the posterior stays close to the prior.
+
+### When Priors Matter and When They Fade
+
+**Strong evidence overwhelms priors:**
+
+If you observe overwhelming evidence, the posterior converges to what the data implies regardless of your prior (unless the prior was exactly 0 or 1).
+
+**Weak evidence preserves priors:**
+
+If evidence is ambiguous or uninformative, the posterior stays close to the prior.
+
+**With enough data, priors fade:**
+
+This is why Bayesian and frequentist approaches often agree asymptotically. With sufficient data, the likelihood dominates and the prior becomes irrelevant.
+
+**Financial implication:** In data-rich environments (high-frequency trading), priors matter less. In data-scarce environments (predicting rare events), priors matter enormously.
+
+---
+
+## 4. Evidence and Likelihood
+
+### Likelihood as Compatibility of Data with a Hypothesis
+
+The likelihood $P(B|A)$ answers: "If $A$ were true, how likely would we be to see evidence $B$?"
+
+**Critical distinction:**
+- $P(A|B)$ = probability of hypothesis given data (what we want)
+- $P(B|A)$ = probability of data given hypothesis (what we can often calculate)
+
+These are not the same! Confusing them is a common and serious error.
+
+### Why Unlikely Data Causes Belief Shifts
+
+Suppose you observe surprising data, something unlikely under your current belief.
+
+If $P(B|A)$ is much higher than $P(B|A^c)$, then observing $B$ strongly supports $A$.
+
+**Example:** A trading signal rarely fires (low base rate). When it does fire, it's usually right. If the signal fires today, your belief in its prediction should increase substantially.
+
+The more surprising the evidence (lower $P(B)$), the more informative it is.
+
+### Financial Interpretation: Signals and Observations
+
+Every piece of market information can be viewed through a Bayesian lens:
+
+**Earnings surprise:** How likely is this earnings number if the company is healthy vs. troubled?
+
+**Credit spread widening:** How likely is this spread move if the economy is entering recession vs. continuing expansion?
+
+**Technical signal:** How likely is this pattern if a trend reversal is coming vs. noise?
+
+The likelihood captures the "diagnostic value" of the signal.
+
+---
+
+## 5. Sequential Updating
+
+### Updating Beliefs Repeatedly Over Time
+
+Bayes' Rule isn't a one-time calculation. In practice, you update continuously as new information arrives.
+
+**The key insight:** Today's posterior becomes tomorrow's prior.
+
+$$
+P(A|B_1) \text{ becomes the new prior, then}
+$$
+$$
+P(A|B_1, B_2) = \frac{P(B_2|A, B_1) \cdot P(A|B_1)}{P(B_2|B_1)}
+$$
+
+Each update incorporates one piece of evidence while carrying forward everything learned previously.
+
+### Connection to Learning and Filtering
+
+Sequential Bayesian updating is the foundation of:
+
+**Kalman filters:** Optimal state estimation for linear systems with Gaussian noise. Used in tracking, signal processing, and volatility estimation.
+
+**Particle filters:** Nonlinear, non-Gaussian state estimation. Used in complex regime models.
+
+**Online learning:** Updating model parameters as data streams in.
+
+### Why This Mirrors How Markets Operate
+
+Markets update continuously:
+- Price at time $t$ reflects all information up to $t$
+- New information arrives
+- Price at $t+1$ incorporates the update
+
+This is precisely sequential Bayesian updating. Market prices are (approximately) posterior beliefs of the marginal investor.
+
+---
+
+## 6. Computing Bayes' Rule in Practice
+
+### Using Law of Total Probability
+
+Often we don't know $P(B)$ directly. We compute it using the law of total probability:
+
+$$
+P(B) = P(B|A) \cdot P(A) + P(B|A^c) \cdot P(A^c)
+$$
+
+So Bayes' Rule becomes:
+
+$$
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B|A) \cdot P(A) + P(B|A^c) \cdot P(A^c)}
+$$
+
+### Multiple Hypotheses
+
+If hypotheses $A_1, A_2, \ldots, A_n$ partition the sample space:
+
+$$
+P(A_i|B) = \frac{P(B|A_i) \cdot P(A_i)}{\sum_{j=1}^n P(B|A_j) \cdot P(A_j)}
+$$
+
+The denominator sums over all possible hypotheses.
+
+---
+
+## 7. Quant-Oriented Examples
+
+### Example 1: Updating Probability of a Regime
+
+**Setup:** You're trying to determine the market regime.
+
+Prior beliefs:
+- Bull market: $P(R_1) = 0.50$
+- Bear market: $P(R_2) = 0.30$
+- High volatility: $P(R_3) = 0.20$
+
+You observe: VIX spikes above 30 (event $V$).
+
+Likelihoods (probability of VIX spike in each regime):
+- $P(V|R_1) = 0.05$ (rare in bull markets)
+- $P(V|R_2) = 0.30$ (more common in bear markets)
+- $P(V|R_3) = 0.80$ (very common in high-vol regime)
+
+**Compute posteriors:**
+
+First, find $P(V)$:
+$$
+P(V) = 0.05(0.50) + 0.30(0.30) + 0.80(0.20) = 0.025 + 0.09 + 0.16 = 0.275
+$$
+
+Then apply Bayes' Rule:
+$$
+P(R_1|V) = \frac{0.05 \times 0.50}{0.275} = \frac{0.025}{0.275} \approx 0.091
+$$
+
+$$
+P(R_2|V) = \frac{0.30 \times 0.30}{0.275} = \frac{0.09}{0.275} \approx 0.327
+$$
+
+$$
+P(R_3|V) = \frac{0.80 \times 0.20}{0.275} = \frac{0.16}{0.275} \approx 0.582
+$$
+
+**Interpretation:** The VIX spike dramatically shifts beliefs. Bull market probability drops from 50% to 9%. High-vol regime probability jumps from 20% to 58%.
+
+### Example 2: Signal Accuracy
+
+**Setup:** A trading signal predicts market direction.
+
+- Prior: $P(\text{up}) = 0.50$ (no directional view)
+- Signal accuracy when market goes up: $P(\text{signal=buy}|\text{up}) = 0.70$
+- False positive rate: $P(\text{signal=buy}|\text{down}) = 0.25$
+
+The signal says "buy." What's the probability the market goes up?
+
+$$
+P(\text{up}|\text{buy}) = \frac{P(\text{buy}|\text{up}) \cdot P(\text{up})}{P(\text{buy}|\text{up}) \cdot P(\text{up}) + P(\text{buy}|\text{down}) \cdot P(\text{down})}
+$$
+
+$$
+= \frac{0.70 \times 0.50}{0.70 \times 0.50 + 0.25 \times 0.50} = \frac{0.35}{0.35 + 0.125} = \frac{0.35}{0.475} \approx 0.737
+$$
+
+**Interpretation:** The buy signal increases confidence from 50% to about 74%.
+
+### Example 3: Risk Assessment as Belief Updating
+
+**Setup:** Assessing default probability for a corporate bond.
+
+Prior (based on credit rating): $P(\text{default}) = 0.02$
+
+You observe: The company misses an interest payment (event $M$).
+
+Likelihoods:
+- $P(M|\text{default}) = 0.95$ (companies that default almost always miss payments first)
+- $P(M|\text{no default}) = 0.005$ (healthy companies rarely miss payments)
+
+$$
+P(\text{default}|M) = \frac{0.95 \times 0.02}{0.95 \times 0.02 + 0.005 \times 0.98}
+$$
+
+$$
+= \frac{0.019}{0.019 + 0.0049} = \frac{0.019}{0.0239} \approx 0.795
+$$
+
+**Interpretation:** A missed payment is extremely diagnostic. Default probability jumps from 2% to nearly 80%.
+
+---
+
+## 8. Common Misunderstandings
+
+### Confusing Likelihood with Probability of Hypothesis
+
+**Wrong:** "The likelihood $P(B|A) = 0.9$ means there's a 90% chance $A$ is true."
+
+**Right:** The likelihood tells you how probable the evidence is *if* $A$ is true. It says nothing directly about whether $A$ is true.
+
+To get $P(A|B)$, you must use Bayes' Rule, which requires the prior.
+
+### Base Rate Neglect
+
+People often ignore priors when evaluating evidence.
+
+**Example:** A test for a rare disease is 99% accurate. You test positive. What's the probability you have the disease?
+
+If the disease affects 1 in 10,000 people:
+
+$$
+P(\text{disease}|\text{positive}) = \frac{0.99 \times 0.0001}{0.99 \times 0.0001 + 0.01 \times 0.9999} \approx 0.01
+$$
+
+Despite a "99% accurate" test, there's only a 1% chance you have the disease! The low base rate dominates.
+
+**Financial parallel:** A "highly accurate" trading signal may still be wrong most of the time if profitable opportunities are rare.
+
+### Ignoring Alternative Hypotheses
+
+Bayes' Rule requires considering all hypotheses. If you only compute $P(B|A)$ without comparing to $P(B|A^c)$, you can't properly update.
+
+**Example:** "The stock dropped 10% after the CEO resigned. The resignation must have caused the drop."
+
+But what's the probability of a 10% drop given the resignation vs. a 10% drop given no resignation but a market crash? Without comparing likelihoods across hypotheses, you can't conclude causation.
+
+---
+
+## 9. Summary
+
+### Key Concepts
+
+**Bayes' Rule** reverses conditional probabilities:
+$$
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}
+$$
+
+**Prior:** Initial belief before evidence
+
+**Likelihood:** Probability of evidence given hypothesis
+
+**Posterior:** Updated belief after evidence
+
+**Sequential updating:** Today's posterior becomes tomorrow's prior
+
+### Key Formulas
+
+**Bayes' Rule (two hypotheses):**
+$$
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B|A) \cdot P(A) + P(B|A^c) \cdot P(A^c)}
+$$
+
+**Bayes' Rule (multiple hypotheses):**
+$$
+P(A_i|B) = \frac{P(B|A_i) \cdot P(A_i)}{\sum_j P(B|A_j) \cdot P(A_j)}
+$$
+
+### Key Insights for Quants
+
+1. **Bayes' Rule is the foundation of rational belief updating**
+2. **Priors matter**, especially when data is scarce
+3. **Likelihood ≠ posterior**, don't confuse them
+4. **Base rates matter**, rare events stay rare even with "strong" evidence
+5. **Sequential updating** underlies filtering, regime detection, and market dynamics
+
+---
+
+## 10. What's Next?
+
+We've established how to reason about events and update beliefs. But to model quantities like prices, returns, and volatilities, we need a new concept: **random variables**, functions that assign numbers to outcomes.
+
+**Next lesson: Random Variables and Distributions**
+
+You'll learn:
+- What random variables are and why they matter
+- Discrete vs. continuous random variables
+- Probability distributions and their properties
+- Key distributions used in finance

@@ -1,0 +1,482 @@
+# Row & Column Spaces
+
+## 1. What Row and Column Spaces Are
+
+Every matrix defines fundamental **subspaces** that reveal what the matrix can do and what information it contains.
+
+### Rows and Columns as Vectors
+
+A matrix is built from vectors:
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 4 & 5 & 6 \end{pmatrix}
+$$
+
+**Row vectors:**
+
+- Row 1: $(1, 2, 3)$
+- Row 2: $(4, 5, 6)$
+
+**Column vectors:**
+
+- Column 1: $\begin{pmatrix} 1 \\ 4 \end{pmatrix}$
+- Column 2: $\begin{pmatrix} 2 \\ 5 \end{pmatrix}$
+- Column 3: $\begin{pmatrix} 3 \\ 6 \end{pmatrix}$
+
+### Two Natural Vector Spaces
+
+From these vectors, we define two spaces:
+
+- **Column space:** All linear combinations of the columns
+- **Row space:** All linear combinations of the rows
+
+These spaces tell us:
+
+- What outputs the transformation can produce
+- What constraints the system imposes
+- Whether solutions exist and how many
+
+### Why These Spaces Matter
+
+**For solving $A\mathbf{x} = \mathbf{b}$:**
+
+- Solution exists if and only if $\mathbf{b}$ is in the column space
+- The row space determines the constraints
+
+**For finance:**
+
+- Column space = achievable portfolio returns using given factors
+- Row space = the features/exposures that matter
+- Rank = number of truly independent risk factors
+
+---
+
+## 2. Column Space
+
+### Definition
+
+The **column space** (or range) of matrix $A$ is the span of its columns:
+
+$$
+\text{Col}(A) = \text{span}(\mathbf{a}_1, \mathbf{a}_2, \ldots, \mathbf{a}_n)
+$$
+
+where $\mathbf{a}_j$ is column $j$ of $A$.
+
+### Equivalent Definition: All Possible Outputs
+
+$$
+\text{Col}(A) = \{ A\mathbf{x} : \mathbf{x} \in \mathbb{R}^n \}
+$$
+
+The column space is **everything the matrix can produce** when multiplying vectors.
+
+### Why This Works
+
+Recall the column viewpoint of matrix-vector multiplication:
+
+$$
+A\mathbf{x} = x_1 \mathbf{a}_1 + x_2 \mathbf{a}_2 + \cdots + x_n \mathbf{a}_n
+$$
+
+Every output $A\mathbf{x}$ is a linear combination of columns. So the set of all outputs equals the span of columns.
+
+### Example: Column Space
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 3 & 6 \end{pmatrix}
+$$
+
+Columns: $\mathbf{a}_1 = \begin{pmatrix} 1 \\ 3 \end{pmatrix}$, $\mathbf{a}_2 = \begin{pmatrix} 2 \\ 6 \end{pmatrix}$
+
+Notice: $\mathbf{a}_2 = 2\mathbf{a}_1$ (column 2 is a multiple of column 1)
+
+**Column space:** All multiples of $\begin{pmatrix} 1 \\ 3 \end{pmatrix}$
+
+This is a **line** through the origin in $\mathbb{R}^2$, not all of $\mathbb{R}^2$.
+
+### Dimension of Column Space
+
+The **dimension** of the column space equals the number of linearly independent columns.
+
+In the example above: $\dim(\text{Col}(A)) = 1$ (only one independent column).
+
+### When Can We Solve $A\mathbf{x} = \mathbf{b}$?
+
+**Theorem:** The equation $A\mathbf{x} = \mathbf{b}$ has a solution if and only if $\mathbf{b} \in \text{Col}(A)$.
+
+If $\mathbf{b}$ is not in the column space, no combination of columns can produce it.
+
+---
+
+## 3. Row Space
+
+### Definition
+
+The **row space** of $A$ is the span of its rows:
+
+$$
+\text{Row}(A) = \text{span}(\text{row}_1, \text{row}_2, \ldots, \text{row}_m)
+$$
+
+Equivalently: $\text{Row}(A) = \text{Col}(A^T)$
+
+### Interpretation: Constraints and Features
+
+Each row of $A$ in the system $A\mathbf{x} = \mathbf{b}$ represents one constraint (equation).
+
+The row space captures **what features or exposures the matrix extracts** from input vectors.
+
+### Example: Row Space
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 2 & 4 & 6 \end{pmatrix}
+$$
+
+Rows: $(1, 2, 3)$ and $(2, 4, 6)$
+
+Notice: Row 2 = 2 × Row 1 (rows are dependent)
+
+**Row space:** All multiples of $(1, 2, 3)$
+
+This is a **line** in $\mathbb{R}^3$.
+
+### Connection to Linear Systems
+
+In the system $A\mathbf{x} = \mathbf{b}$:
+
+- Each row gives one equation
+- Dependent rows give redundant equations
+- The row space dimension = number of independent constraints
+
+---
+
+## 4. Relationship Between Row and Column Spaces
+
+### Key Theorem: Equal Dimensions
+
+For any matrix $A$:
+
+$$
+\dim(\text{Row}(A)) = \dim(\text{Col}(A))
+$$
+
+This common dimension is called the **rank** of $A$.
+
+### Why This Is Remarkable
+
+- Row space lives in $\mathbb{R}^n$ (where $n$ = number of columns)
+- Column space lives in $\mathbb{R}^m$ (where $m$ = number of rows)
+- These are different spaces, yet they have the same dimension!
+
+### Row Operations Preserve Row Space
+
+Elementary row operations (used in Gaussian elimination):
+
+- **Do** preserve the row space
+- **Do not** preserve the column space (individual columns change)
+
+This is why row reduction is useful for finding rank.
+
+### Example: Same Rank
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 0 & 1 & 2 \\ 1 & 3 & 5 \end{pmatrix}
+$$
+
+Row 3 = Row 1 + Row 2, so only 2 independent rows.
+
+$\text{rank}(A) = 2$
+
+This means:
+
+- Column space has dimension 2 (only 2 independent columns)
+- Row space has dimension 2 (only 2 independent rows)
+
+---
+
+## 5. Rank: The Bridge Between Spaces
+
+### Definition of Rank
+
+$$
+\text{rank}(A) = \dim(\text{Col}(A)) = \dim(\text{Row}(A))
+$$
+
+Rank counts the number of **independent directions** the matrix captures.
+
+### Computing Rank
+
+**Method:** Row reduce $A$ to echelon form. Count the non-zero rows (pivots).
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 2 & 4 & 6 \\ 1 & 3 & 5 \end{pmatrix} \rightarrow \begin{pmatrix} 1 & 2 & 3 \\ 0 & 1 & 2 \\ 0 & 0 & 0 \end{pmatrix}
+$$
+
+Two pivots → $\text{rank}(A) = 2$
+
+### Full Rank vs. Rank Deficient
+
+For an $m \times n$ matrix:
+
+**Full rank:** $\text{rank}(A) = \min(m, n)$
+
+- All rows (or all columns) are independent
+- Maximum possible information
+- Square full-rank matrices are invertible
+
+**Rank deficient:** $\text{rank}(A) < \min(m, n)$
+
+- Some rows/columns are redundant
+- Information is lost or repeated
+
+### Financial Interpretation
+
+**Factor loading matrix** (assets × factors):
+
+- Rank = number of independent risk factors
+- Full rank means each factor contributes unique risk
+- Rank deficient means some factors are redundant (collinear)
+
+**Return covariance matrix:**
+
+- Should be full rank for $n$ assets
+- Rank deficiency indicates perfect correlation or redundant assets
+
+---
+
+## 6. Null Space: Vectors Mapped to Zero
+
+### Definition
+
+The **null space** (or kernel) of $A$ is:
+
+$$
+\text{Null}(A) = \{ \mathbf{x} \in \mathbb{R}^n : A\mathbf{x} = \mathbf{0} \}
+$$
+
+All vectors that the transformation sends to zero.
+
+### Dimension of Null Space
+
+**Rank-Nullity Theorem:** For $m \times n$ matrix $A$:
+
+$$
+\text{rank}(A) + \dim(\text{Null}(A)) = n
+$$
+
+or equivalently:
+
+$$
+\dim(\text{Null}(A)) = n - \text{rank}(A)
+$$
+
+### Financial Interpretation
+
+**Null space = market-neutral portfolios**
+
+If $A$ contains factor exposures (assets × factors), then $\mathbf{x} \in \text{Null}(A)$ means:
+
+$$
+A\mathbf{x} = \mathbf{0}
+$$
+
+The portfolio $\mathbf{x}$ has **zero exposure to all factors**.
+
+### Example: Finding the Null Space
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 2 & 4 & 6 \end{pmatrix}
+$$
+
+Row reduce: Already row 2 = 2 × row 1
+
+Effective system: $x_1 + 2x_2 + 3x_3 = 0$
+
+Free variables: $x_2, x_3$ (two free variables)
+
+General solution:
+
+$$
+\mathbf{x} = x_2 \begin{pmatrix} -2 \\ 1 \\ 0 \end{pmatrix} + x_3 \begin{pmatrix} -3 \\ 0 \\ 1 \end{pmatrix}
+$$
+
+Null space dimension: 2 (matches $n - \text{rank} = 3 - 1 = 2$)
+
+---
+
+## 7. The Four Fundamental Subspaces
+
+Every $m \times n$ matrix $A$ defines four subspaces:
+
+**From $A$:**
+
+- **Column space** $\text{Col}(A) \subset \mathbb{R}^m$ — dimension = $r$
+- **Null space** $\text{Null}(A) \subset \mathbb{R}^n$ — dimension = $n - r$
+
+**From $A^T$:**
+
+- **Row space** $\text{Row}(A) = \text{Col}(A^T) \subset \mathbb{R}^n$ — dimension = $r$
+- **Left null space** $\text{Null}(A^T) \subset \mathbb{R}^m$ — dimension = $m - r$
+
+where $r = \text{rank}(A)$.
+
+### Orthogonality Relations
+
+- Row space and null space are **orthogonal complements** in $\mathbb{R}^n$
+- Column space and left null space are **orthogonal complements** in $\mathbb{R}^m$
+
+Every vector in $\mathbb{R}^n$ can be written as:
+
+$$
+\mathbf{x} = \mathbf{x}_{\text{row}} + \mathbf{x}_{\text{null}}
+$$
+
+where $\mathbf{x}_{\text{row}} \in \text{Row}(A)$ and $\mathbf{x}_{\text{null}} \in \text{Null}(A)$.
+
+---
+
+## 8. Applications in Quantitative Finance
+
+### Factor Model Analysis
+
+For factor loading matrix $B$ (assets × factors):
+
+- $\text{Col}(B)$ = achievable return patterns from factors
+- $\text{rank}(B)$ = number of independent factors
+- $\text{Null}(B^T)$ = portfolios with zero systematic risk (pure alpha)
+
+### Portfolio Construction
+
+**Constraint matrix** $A$ for portfolio optimization:
+
+- Each row is a constraint (budget, sector limits, etc.)
+- $\text{rank}(A)$ = number of independent constraints
+- $\text{Null}(A)$ = portfolios satisfying all constraints with zero RHS
+
+### Regression and Multicollinearity
+
+In regression $Y = X\beta + \epsilon$:
+
+- If $\text{rank}(X) < $ number of predictors: **multicollinearity**
+- Some predictors are linear combinations of others
+- $\text{Null}(X^T X)$ contains directions where $\beta$ is undetermined
+
+---
+
+## 9. Worked Examples
+
+### Example 1: Determining Solvability
+
+**Question:** Can we solve $A\mathbf{x} = \mathbf{b}$ where:
+
+$$
+A = \begin{pmatrix} 1 & 2 \\ 2 & 4 \end{pmatrix}, \quad \mathbf{b} = \begin{pmatrix} 3 \\ 7 \end{pmatrix}
+$$
+
+**Analysis:**
+
+Column space of $A$: Both columns are multiples of $\begin{pmatrix} 1 \\ 2 \end{pmatrix}$
+
+So $\text{Col}(A) = \text{span}\left(\begin{pmatrix} 1 \\ 2 \end{pmatrix}\right)$ = a line
+
+Is $\mathbf{b} = \begin{pmatrix} 3 \\ 7 \end{pmatrix}$ on this line?
+
+Check: Is $\begin{pmatrix} 3 \\ 7 \end{pmatrix} = c \begin{pmatrix} 1 \\ 2 \end{pmatrix}$ for some $c$?
+
+Would need $c = 3$ and $c = 3.5$ — contradiction!
+
+**Answer:** No solution exists. $\mathbf{b} \notin \text{Col}(A)$.
+
+### Example 2: Finding Rank
+
+$$
+A = \begin{pmatrix} 1 & 0 & 2 \\ 0 & 1 & 3 \\ 1 & 1 & 5 \end{pmatrix}
+$$
+
+Row reduce:
+
+$$
+\begin{pmatrix} 1 & 0 & 2 \\ 0 & 1 & 3 \\ 1 & 1 & 5 \end{pmatrix} \rightarrow \begin{pmatrix} 1 & 0 & 2 \\ 0 & 1 & 3 \\ 0 & 0 & 0 \end{pmatrix}
+$$
+
+Two pivots → $\text{rank}(A) = 2$
+
+$\dim(\text{Null}(A)) = 3 - 2 = 1$
+
+### Example 3: Factor Redundancy
+
+A fund claims exposure to 4 factors, with loading matrix:
+
+$$
+B = \begin{pmatrix} 1 & 0 & 1 & 2 \\ 0 & 1 & 1 & 1 \\ 1 & 1 & 2 & 3 \end{pmatrix}
+$$
+
+Find: How many independent factors?
+
+Notice: Column 3 = Column 1 + Column 2, Column 4 = 2×Column 1 + Column 2
+
+$\text{rank}(B) = 2$
+
+**Only 2 independent factors.** The fund's "4 factors" are really just 2 with redundancy.
+
+---
+
+## 10. Summary
+
+### Key Concepts
+
+**Column space** $\text{Col}(A)$:
+
+- Span of columns
+- All possible outputs $A\mathbf{x}$
+- Determines if $A\mathbf{x} = \mathbf{b}$ is solvable
+
+**Row space** $\text{Row}(A)$:
+
+- Span of rows
+- Constraints/features the matrix extracts
+- Same dimension as column space
+
+**Rank:**
+
+$$
+\text{rank}(A) = \dim(\text{Col}(A)) = \dim(\text{Row}(A))
+$$
+
+- Number of independent directions
+- Full rank = maximum information
+
+**Null space** $\text{Null}(A)$:
+
+- Vectors mapped to zero
+- Dimension = $n - \text{rank}(A)$
+- Market-neutral portfolios in finance
+
+### Key Formulas
+
+**Rank-Nullity Theorem:**
+
+$$
+\text{rank}(A) + \dim(\text{Null}(A)) = n
+$$
+
+**Solvability:**
+
+$A\mathbf{x} = \mathbf{b}$ has a solution $\Leftrightarrow$ $\mathbf{b} \in \text{Col}(A)$
+
+---
+
+## 11. What's Next?
+
+We've discussed "independent" vectors informally. How do we formally test whether vectors are linearly independent? And how does this connect to rank?
+
+**Next lesson: Linear Independence & Rank**
+
+You'll learn:
+
+- Precise definition of linear independence
+- How to test for independence
+- Connection between independence and rank
+- Why full rank matrices are invertible
+- Applications to portfolio diversification

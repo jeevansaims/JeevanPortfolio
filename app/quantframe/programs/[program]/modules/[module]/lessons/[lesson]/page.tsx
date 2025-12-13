@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, CheckCircle2, Clock, BookCheck } from 'lucide-react'
+import { CheckCircle2, Clock, BookCheck } from 'lucide-react'
 import { loadMDXContent } from '@/lib/mdx/loader'
 import { LessonContent } from '@/components/academy/lesson-content'
 import { CompleteLessonButton } from './complete-lesson-button'
@@ -95,27 +95,6 @@ export default async function LessonPage({
 
   return (
     <div className="min-h-screen">
-      {/* Top Navigation */}
-      <div className="sticky top-0 z-10 border-b border-zinc-800 bg-zinc-900/95 backdrop-blur-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href={`/quantframe/programs/${params.program}/modules/${params.module}`}>
-              <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Module
-              </Button>
-            </Link>
-
-            {isCompleted && (
-              <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Completed
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Lesson Header */}
       <div className="bg-gradient-to-b from-zinc-900 to-black border-b border-zinc-800">
         <div className="max-w-5xl mx-auto px-6 py-12">
@@ -136,9 +115,17 @@ export default async function LessonPage({
             <span className="text-zinc-400">{lesson.title}</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
-            {lesson.title}
-          </h1>
+          <div className="flex items-center gap-3 mb-3">
+            <h1 className="text-4xl md:text-5xl font-bold text-white">
+              {lesson.title}
+            </h1>
+            {isCompleted && (
+              <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                <CheckCircle2 className="w-3 h-3 mr-1" />
+                Completed
+              </Badge>
+            )}
+          </div>
 
           {lesson.subtitle && (
             <p className="text-xl text-phthalo-400 mb-4">

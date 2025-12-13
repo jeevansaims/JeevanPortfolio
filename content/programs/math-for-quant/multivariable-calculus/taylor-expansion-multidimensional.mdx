@@ -1,0 +1,540 @@
+# Taylor Expansion in Multiple Dimensions
+
+## 1. Why Taylor Expansions Matter
+
+In Lesson 4, we learned that the Hessian captures curvature and classifies critical points. Now we'll see how the gradient and Hessian combine to give us **local approximations** of any smooth function.
+
+### The Core Idea
+
+A Taylor expansion approximates a complex function using its derivatives at a single point:
+
+$$
+\text{complex function} \approx \text{simple polynomial}
+$$
+
+In single-variable calculus:
+
+$$
+f(x) \approx f(a) + f'(a)(x-a) + \frac{f''(a)}{2}(x-a)^2 + \cdots
+$$
+
+In multiple dimensions, the first derivative becomes the **gradient** and the second derivative becomes the **Hessian**.
+
+### Why Quants Rely on Taylor Approximations
+
+**Pricing:** Option prices are complex functions of many variables. Taylor expansions give tractable approximations for quick valuation.
+
+**Hedging:** Delta hedging uses first-order Taylor. Delta-gamma hedging adds second-order corrections for better accuracy.
+
+**Risk:** Portfolio risk attribution decomposes value changes into contributions from each factor, this is Taylor expansion in disguise.
+
+**Speed:** Full model revaluation is expensive. Taylor approximations provide fast estimates for real-time trading decisions.
+
+### When First Order is Enough vs. When Second Order is Essential
+
+**First order (linear) works when:**
+- Changes are small
+- The function is nearly linear locally
+- Speed matters more than precision
+
+**Second order (quadratic) is essential when:**
+- The function has significant curvature (options, bonds)
+- Changes are moderate to large
+- Accurate risk measurement is critical
+
+---
+
+## 2. First-Order Taylor Approximation
+
+### The Formula
+
+Near a point $\mathbf{a} = (a_1, a_2, \ldots, a_n)$:
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{a}) + \nabla f(\mathbf{a}) \cdot (\mathbf{x} - \mathbf{a})
+$$
+
+**Components:**
+- $f(\mathbf{a})$: function value at the expansion point
+- $\nabla f(\mathbf{a})$: gradient at that point
+- $(\mathbf{x} - \mathbf{a})$: displacement from the expansion point
+
+### Interpretation: Best Linear Prediction
+
+The first-order Taylor approximation is the **best linear approximation** to $f$ near $\mathbf{a}$.
+
+It answers: "If I move slightly from $\mathbf{a}$, how does $f$ change?"
+
+The gradient tells you the rate of change in each direction, and the dot product combines these into the total predicted change.
+
+### Two-Variable Form
+
+For $f(x, y)$ expanded around $(a, b)$:
+
+$$
+f(x, y) \approx f(a, b) + f_x(a,b)(x-a) + f_y(a,b)(y-b)
+$$
+
+### Geometric Meaning: Tangent Plane
+
+In 3D, the surface $z = f(x, y)$ has a **tangent plane** at each point.
+
+The first-order Taylor expansion IS the equation of this tangent plane:
+
+$$
+z = f(a,b) + f_x(a,b)(x-a) + f_y(a,b)(y-b)
+$$
+
+The tangent plane is the best flat surface that approximates the curved surface locally.
+
+---
+
+## 3. Second-Order Taylor Approximation
+
+### Adding Curvature Through the Hessian
+
+The first-order approximation misses curvature. To capture how the function bends, we add a quadratic term using the Hessian:
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{a}) + \nabla f(\mathbf{a})^T (\mathbf{x} - \mathbf{a}) + \frac{1}{2} (\mathbf{x} - \mathbf{a})^T H(\mathbf{a}) (\mathbf{x} - \mathbf{a})
+$$
+
+### The Quadratic Form
+
+The second-order term $\frac{1}{2} \mathbf{h}^T H \mathbf{h}$ (where $\mathbf{h} = \mathbf{x} - \mathbf{a}$) is a **quadratic form**.
+
+This term captures:
+- How the function curves in each direction (diagonal entries of $H$)
+- How curvature interacts between directions (off-diagonal entries)
+
+### Two-Variable Expanded Form
+
+For $f(x, y)$ around $(a, b)$:
+
+$$
+f(x, y) \approx f(a, b) + f_x (x-a) + f_y (y-b) + \frac{1}{2}\left[ f_{xx}(x-a)^2 + 2f_{xy}(x-a)(y-b) + f_{yy}(y-b)^2 \right]
+$$
+
+**Term by term:**
+- $f(a,b)$: constant (starting value)
+- $f_x(x-a) + f_y(y-b)$: linear terms (slope)
+- $\frac{1}{2}[...]$: quadratic terms (curvature)
+
+### Why Second Order Dramatically Improves Accuracy
+
+Consider approximating $f(x) = e^x$ near $x = 0$. At $x = 0.5$, the true value is $e^{0.5} \approx 1.649$.
+
+**First-order approximation:** $1 + x = 1.5$ → Error: 9%
+
+**Second-order approximation:** $1 + x + \frac{x^2}{2} = 1.625$ → Error: 1.5%
+
+The curvature term reduces error by a factor of 6. For curved functions (options, bonds), this improvement is critical.
+
+---
+
+## 4. Full Matrix Formulation
+
+### Vector Notation
+
+For displacement $\mathbf{h} = \mathbf{x} - \mathbf{a}$:
+
+$$
+f(\mathbf{a} + \mathbf{h}) \approx f(\mathbf{a}) + \nabla f(\mathbf{a})^T \mathbf{h} + \frac{1}{2} \mathbf{h}^T H(\mathbf{a}) \mathbf{h}
+$$
+
+This compact form works for **any number of dimensions**.
+
+### Why Matrix Form is Cleanest for Finance
+
+In finance, we often have many variables:
+- Portfolio with $n$ assets: $V(S_1, S_2, \ldots, S_n)$
+- Option on multiple factors: $C(S, \sigma, r, T)$
+
+The matrix form handles all dimensions uniformly:
+
+$$
+\Delta V \approx \nabla V^T \Delta \mathbf{S} + \frac{1}{2} \Delta \mathbf{S}^T H \Delta \mathbf{S}
+$$
+
+### Link to Quadratic Models and Optimization
+
+The second-order Taylor expansion is a **quadratic model** of the function.
+
+**Newton's method** for optimization uses this:
+
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - H^{-1} \nabla f
+$$
+
+By approximating the function as quadratic, Newton's method jumps directly to the minimum of the approximation, converging much faster than gradient descent.
+
+---
+
+## 5. Worked Example: Approximating a Nonlinear Function
+
+Let's approximate $f(x, y) = e^{x+y}$ near $(0, 0)$.
+
+### Step 1: Function Value
+
+$$
+f(0, 0) = e^0 = 1
+$$
+
+### Step 2: Gradient
+
+$$
+f_x = e^{x+y}, \quad f_y = e^{x+y}
+$$
+
+At $(0, 0)$:
+
+$$
+\nabla f(0,0) = \begin{pmatrix} 1 \\ 1 \end{pmatrix}
+$$
+
+### Step 3: Hessian
+
+$$
+f_{xx} = e^{x+y}, \quad f_{yy} = e^{x+y}, \quad f_{xy} = e^{x+y}
+$$
+
+At $(0, 0)$:
+
+$$
+H(0,0) = \begin{pmatrix} 1 & 1 \\ 1 & 1 \end{pmatrix}
+$$
+
+### Step 4: Construct Approximations
+
+**First-order:**
+
+$$
+f(x, y) \approx 1 + x + y
+$$
+
+**Second-order:**
+
+$$
+f(x, y) \approx 1 + x + y + \frac{1}{2}(x^2 + 2xy + y^2) = 1 + x + y + \frac{1}{2}(x + y)^2
+$$
+
+### Step 5: Compare Accuracy
+
+At $(0.3, 0.2)$, the true value is $e^{0.5} = 1.649$.
+
+**First-order:** $1 + 0.3 + 0.2 = 1.5$ → Error: 9%
+
+**Second-order:** $1.5 + 0.5(0.25) = 1.625$ → Error: 1.5%
+
+The curvature term captures the exponential growth that the linear approximation misses.
+
+---
+
+## 6. Approximation Error
+
+### Order of the Remainder
+
+The error in a Taylor approximation is controlled by higher-order derivatives:
+
+- First-order error: $O(\|\mathbf{h}\|^2)$
+- Second-order error: $O(\|\mathbf{h}\|^3)$
+
+As $\mathbf{h} \to 0$, the error shrinks faster for higher-order approximations.
+
+### When Taylor Works Well
+
+- **Near the expansion point:** Error is small when $\|\mathbf{h}\|$ is small
+- **Smooth functions:** Works best when higher derivatives are bounded
+- **Moderate curvature:** Highly curved regions need higher-order terms
+
+### When Taylor Breaks Down
+
+**Large moves:** If the underlying moves 20%, a linear delta approximation may be badly wrong.
+
+**Discontinuities:** Taylor assumes smoothness. Near barriers, defaults, or regime changes, it fails.
+
+**Fat tails:** Extreme events violate the "small displacement" assumption.
+
+### How Quants Interpret "Local Accuracy"
+
+- **Intraday risk:** Small moves, first-order usually sufficient
+- **Overnight risk:** Moderate moves, second-order important for options
+- **Stress testing:** Large moves, full revaluation required
+
+---
+
+## 7. Delta Approximation (First-Order Finance Application)
+
+### The Setup
+
+For any instrument with value $V(S_1, \ldots, S_n)$:
+
+$$
+\Delta V \approx \sum_{i=1}^n \frac{\partial V}{\partial S_i} \Delta S_i = \nabla V \cdot \Delta \mathbf{S}
+$$
+
+This is a **first-order Taylor expansion**.
+
+### Applications
+
+**Delta Hedging:** To neutralize exposure to $S$, hold $-\frac{\partial V}{\partial S}$ units of the underlying.
+
+**PnL Attribution:** Decompose daily PnL into contributions from each risk factor:
+
+$$
+\text{PnL} \approx \Delta_1 \cdot \Delta S_1 + \Delta_2 \cdot \Delta S_2 + \cdots
+$$
+
+**Real-time Risk:** Quick estimates without full revaluation.
+
+### Limitations
+
+Delta approximation assumes **linearity**. For instruments with curvature (options), it underestimates large moves:
+
+- Stock up 5%: Delta says option up $5\% \times \Delta$
+- Reality: Option up more (positive gamma)
+
+---
+
+## 8. Delta-Gamma Approximation (Second-Order Finance Application)
+
+### The Formula
+
+For an option with price $C(S)$:
+
+$$
+\Delta C \approx \Delta \cdot \Delta S + \frac{1}{2} \Gamma \cdot (\Delta S)^2
+$$
+
+where:
+- $\Delta = \frac{\partial C}{\partial S}$ (delta, first derivative)
+- $\Gamma = \frac{\partial^2 C}{\partial S^2}$ (gamma, second derivative)
+
+### Why Traders Use Delta-Gamma
+
+**Nonlinear products:** Options have convex payoffs. Delta alone misses this.
+
+**Better hedging:** Delta-gamma hedging accounts for how delta changes as $S$ moves.
+
+**Risk limits:** Trading desks set both delta and gamma limits.
+
+### Performance: Delta vs. Delta-Gamma
+
+For a call option with $\Delta = 0.5$, $\Gamma = 0.02$, and $S$ moves up 10%:
+
+**Delta only:** $0.5 \times 10\% = 5\%$
+
+**Delta-Gamma:** $5\% + \frac{1}{2}(0.02)(10\%)^2 = 5\% + 1\% = 6\%$
+
+The gamma term captures the acceleration in option value.
+
+### Convexity Effect on PnL
+
+**Long gamma position:** Benefits from large moves in either direction.
+
+$$
+\text{PnL from gamma} = \frac{1}{2} \Gamma (\Delta S)^2 > 0
+$$
+
+This is always positive for long options, explaining why gamma is valuable.
+
+---
+
+## 9. Bond Duration and Convexity
+
+### Duration as First Derivative
+
+For a bond with price $P(y)$ as a function of yield $y$:
+
+$$
+\text{Duration} = -\frac{1}{P} \frac{dP}{dy}
+$$
+
+First-order approximation:
+
+$$
+\frac{\Delta P}{P} \approx -D \cdot \Delta y
+$$
+
+### Convexity as Second Derivative
+
+$$
+\text{Convexity} = \frac{1}{P} \frac{d^2 P}{dy^2}
+$$
+
+Second-order approximation:
+
+$$
+\frac{\Delta P}{P} \approx -D \cdot \Delta y + \frac{1}{2} C \cdot (\Delta y)^2
+$$
+
+### Exact Parallel with Taylor Coefficients
+
+- **First derivative** $f'(a)$ → **Duration** (measures linear sensitivity to yield)
+- **Second derivative** $f''(a)$ → **Convexity** (measures curvature)
+
+### When Convexity Becomes Critical
+
+For small yield changes (< 50 bps), duration alone is accurate.
+
+For large yield changes (> 100 bps), convexity matters significantly:
+
+- Duration says: 100 bp rise → price down 5%
+- With convexity: price down 4.5% (convexity cushions the fall)
+
+Bonds with higher convexity outperform in volatile rate environments.
+
+---
+
+## 10. Portfolio Risk Expansions
+
+### Value as a Function of Asset Returns
+
+Portfolio value depends on all asset prices:
+
+$$
+V = V(S_1, S_2, \ldots, S_n)
+$$
+
+### First-Order Approximation: Delta Risk
+
+$$
+\Delta V \approx \sum_{i=1}^n \frac{\partial V}{\partial S_i} \Delta S_i
+$$
+
+This is **linear factor risk**, the foundation of:
+- Beta models
+- Factor risk attribution
+- Delta hedging
+
+### Second-Order Approximation for Nonlinear Portfolios
+
+For portfolios with options:
+
+$$
+\Delta V \approx \nabla V^T \Delta \mathbf{S} + \frac{1}{2} \Delta \mathbf{S}^T H \Delta \mathbf{S}
+$$
+
+The Hessian $H$ captures:
+- Individual gammas (diagonal)
+- Cross-gammas (off-diagonal): how gamma in one asset changes with another
+
+### Relationship to Variance and Covariance
+
+Taking expectations:
+
+$$
+\text{Var}(\Delta V) \approx \nabla V^T \Sigma \nabla V
+$$
+
+where $\Sigma$ is the covariance matrix of returns.
+
+**The portfolio variance formula is a consequence of first-order Taylor expansion!**
+
+---
+
+## 11. Taylor Expansions in Quant Models and ML
+
+### Linearization for Sensitivity Analysis
+
+Complex models are often linearized around current parameters:
+
+$$
+\text{Model output} \approx \text{Base case} + \sum_i \text{Sensitivity}_i \times \Delta \text{Input}_i
+$$
+
+This enables:
+- Scenario analysis
+- Stress testing
+- Model validation
+
+### Quadratic Approximations in Optimization
+
+Many optimization algorithms use second-order Taylor expansions:
+
+**Newton's method:**
+
+$$
+\mathbf{x}_{k+1} = \mathbf{x}_k - H^{-1} \nabla f
+$$
+
+**Quasi-Newton methods (BFGS, L-BFGS):** Approximate the Hessian for faster computation.
+
+### Role in Model Calibration
+
+When calibrating models to market data:
+1. Start with initial parameters
+2. Compute gradient and Hessian of objective
+3. Use Taylor expansion to predict improvement
+4. Update parameters
+5. Repeat until converged
+
+### Curvature-Driven Corrections
+
+In machine learning for finance:
+- **Second-order optimizers** (Adam with curvature) converge faster
+- **Hessian eigenvalues** diagnose training stability
+- **Fisher information** (expected Hessian) guides learning rates
+
+---
+
+## 12. Summary
+
+### What We've Learned
+
+**Taylor expansions** provide local polynomial approximations of smooth functions:
+
+**First-order (linear):**
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{a}) + \nabla f(\mathbf{a})^T (\mathbf{x} - \mathbf{a})
+$$
+
+- Uses the gradient
+- Gives the tangent plane
+- Foundation of delta hedging
+
+**Second-order (quadratic):**
+
+$$
+f(\mathbf{x}) \approx f(\mathbf{a}) + \nabla f(\mathbf{a})^T (\mathbf{x} - \mathbf{a}) + \frac{1}{2} (\mathbf{x} - \mathbf{a})^T H(\mathbf{a}) (\mathbf{x} - \mathbf{a})
+$$
+
+- Adds the Hessian
+- Captures curvature
+- Foundation of delta-gamma hedging
+
+### Quant Finance Applications
+
+- **Options:** First-order = Delta, Second-order = Gamma
+- **Bonds:** First-order = Duration, Second-order = Convexity
+- **Portfolios:** First-order = Linear risk, Second-order = Quadratic risk
+- **Optimization:** First-order = Gradient descent, Second-order = Newton's method
+
+### Key Insight
+
+The tools we've built in this module, partial derivatives, gradients, Hessians, now combine into Taylor expansions that power quantitative finance:
+- **Pricing** uses Taylor for fast approximations
+- **Hedging** uses Taylor to compute required positions
+- **Risk** uses Taylor to decompose and attribute exposures
+- **Optimization** uses Taylor to find optimal portfolios
+
+---
+
+## 13. What's Next?
+
+You've now completed **Multivariable Calculus for Quants**:
+
+- Functions of several variables
+- Partial derivatives (the Greeks)
+- Gradients and directional derivatives
+- Hessians and curvature
+- Taylor expansions
+
+The next module is **Linear Algebra for Quants**, which provides the tools for:
+- Matrix operations for portfolio mathematics
+- Eigenvalues and eigenvectors for risk decomposition (PCA)
+- Solving systems of equations for equilibrium pricing
+- Covariance matrices and their properties
+
+**Multivariable calculus + linear algebra = the mathematical foundation of quantitative finance.**

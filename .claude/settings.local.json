@@ -6,7 +6,15 @@
       "mcp__supabase__apply_migration",
       "mcp__supabase__execute_sql",
       "Bash(find:*)",
-      "mcp__supabase__list_migrations"
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_tables",
+      "Bash(ren:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 30 npm run build:*)",
+      "Bash(node -e:*)",
+      "Bash(curl:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

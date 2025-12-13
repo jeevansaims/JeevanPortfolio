@@ -2,10 +2,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, ArrowRight, CheckCircle2, Circle, Trophy, Lock } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Circle, Trophy, Lock, FolderKanban, Clock } from 'lucide-react'
+import { getProjectByModuleId } from '@/lib/projects/loader'
+import { getProjectProgress } from '@/lib/projects/supabaseProgress'
 
 interface Lesson {
   id: string
@@ -25,6 +26,7 @@ interface ModuleExam {
   total_questions: number
   user_passed: boolean | null
   best_score: number | null
+  in_progress_count: number | null
 }
 
 export default async function ModulePage({
@@ -116,6 +118,7 @@ export default async function ModulePage({
 
     let userPassed: boolean | null = null
     let bestScore: number | null = null
+    let inProgressCount: number | null = null
 
     if (user) {
       const { data: attempts } = await supabase
@@ -130,6 +133,18 @@ export default async function ModulePage({
         userPassed = attempts[0].passed
         bestScore = attempts[0].score
       }
+
+      // Check for in-progress exam
+      const { data: progress } = await supabase
+        .from('user_exam_progress')
+        .select('answers')
+        .eq('user_id', user.id)
+        .eq('exam_id', exam.id)
+        .maybeSingle()
+
+      if (progress?.answers) {
+        inProgressCount = Object.keys(progress.answers).length
+      }
     }
 
     examData = {
@@ -139,24 +154,22 @@ export default async function ModulePage({
       passing_score: exam.passing_score,
       total_questions: questionCount || 0,
       user_passed: userPassed,
-      best_score: bestScore
+      best_score: bestScore,
+      in_progress_count: inProgressCount
     }
+  }
+
+  // Fetch module project (if any)
+  const moduleProject = await getProjectByModuleId(module.id)
+
+  // Get project progress if user is logged in
+  let projectProgress = null
+  if (moduleProject && user) {
+    projectProgress = await getProjectProgress(user.id, moduleProject.slug)
   }
 
   return (
     <div className="min-h-screen">
-      {/* Back Button */}
-      <div className="border-b border-zinc-800 bg-zinc-900/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <Link href={`/quantframe/programs/${params.program}`}>
-            <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Program
-            </Button>
-          </Link>
-        </div>
-      </div>
-
       {/* Module Hero */}
       <div className="relative overflow-hidden bg-gradient-to-b from-zinc-900 to-black border-b border-zinc-800">
         <div className="absolute inset-0 overflow-hidden">
@@ -275,7 +288,77 @@ export default async function ModulePage({
           </div>
         )}
 
-        {/* Module Exam */}
+        {/* Module Project (if linked) - shown between lessons and exam */}
+        {moduleProject && (
+          <div className="mt-12">
+            <h2 className="text-3xl font-bold text-white mb-8">Module Project</h2>
+
+            <Link href={`/quantframe/projects/${moduleProject.slug}`}>
+              <Card className="group bg-zinc-900/50 border-zinc-800 backdrop-blur-sm hover:border-phthalo-500/50 transition-all duration-300 cursor-pointer">
+                <div className="p-6">
+                  <div className="flex items-center gap-6">
+                    {/* Icon */}
+                    <div className="flex-shrink-0">
+                      {projectProgress?.completed ? (
+                        <div className="w-10 h-10 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
+                          <FolderKanban className="w-6 h-6 text-green-400" />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center group-hover:border-phthalo-500 transition-colors">
+                          <FolderKanban className="w-6 h-6 text-zinc-600 group-hover:text-phthalo-500 transition-colors" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Project Info */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-sm font-medium text-zinc-500">
+                          Module Project
+                        </span>
+                        <Badge variant="outline" className="bg-zinc-800 text-zinc-400 border-zinc-700">
+                          {moduleProject.estimatedMinutes} min
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={
+                            moduleProject.difficulty === 'beginner'
+                              ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                              : moduleProject.difficulty === 'intermediate'
+                              ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
+                              : 'bg-red-500/10 text-red-400 border-red-500/30'
+                          }
+                        >
+                          {moduleProject.difficulty}
+                        </Badge>
+                        {projectProgress?.completed && (
+                          <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/30">
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-bold text-white mb-1 group-hover:text-white transition-colors">
+                        {moduleProject.title}
+                      </h3>
+                      {moduleProject.description && (
+                        <p className="text-sm text-zinc-400">
+                          {moduleProject.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="flex-shrink-0">
+                      <ArrowRight className="w-6 h-6 text-zinc-600 group-hover:text-phthalo-500 group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          </div>
+        )}
+
+        {/* Module Exam - shown after project */}
         {examData && (
           <div className="mt-12">
             <h2 className="text-3xl font-bold text-white mb-8">Module Exam</h2>
@@ -310,6 +393,14 @@ export default async function ModulePage({
                           <Badge variant="outline" className="bg-zinc-800 text-zinc-400 border-zinc-700">
                             {examData.passing_score}% to pass
                           </Badge>
+                          {examData.in_progress_count !== null && examData.in_progress_count > 0 && examData.user_passed === null && (
+                            <Badge
+                              variant="outline"
+                              className="bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                            >
+                              In Progress ({examData.in_progress_count}/{examData.total_questions})
+                            </Badge>
+                          )}
                           {examData.user_passed !== null && (
                             <Badge
                               variant="outline"

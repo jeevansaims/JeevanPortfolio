@@ -1,0 +1,474 @@
+# Linear Independence & Rank
+
+## 1. Why Linear Independence Matters
+
+### Unique Information vs. Redundancy
+
+**Linear independence** means each vector carries information that cannot be obtained from the others. **Linear dependence** means redundancy, some vectors are combinations of others.
+
+### Why Quants Care
+
+**Redundant factors:** If your "5-factor model" has only 3 independent factors, you're overfitting with 2 meaningless parameters.
+
+**Redundant signals:** Trading signals that are linear combinations of others add noise, not alpha.
+
+**Unstable models:** When predictors are nearly dependent (multicollinearity), regression coefficients become unstable and meaningless.
+
+**Portfolio risk:** If assets are linearly dependent, the covariance matrix becomes singular and optimization fails.
+
+### The Core Question
+
+Given a collection of vectors (returns, factors, signals), how many of them are **truly independent**?
+
+This number is the **rank**, one of the most important concepts in applied linear algebra.
+
+---
+
+## 2. Definition of Linear Independence
+
+### Formal Definition
+
+Vectors $\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_k$ are **linearly independent** if:
+
+$$
+c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \cdots + c_k \mathbf{v}_k = \mathbf{0}
+$$
+
+implies $c_1 = c_2 = \cdots = c_k = 0$.
+
+**In words:** The only way to combine these vectors to get zero is with all zero coefficients.
+
+### Linear Dependence
+
+Vectors are **linearly dependent** if there exist coefficients (not all zero) such that:
+
+$$
+c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \cdots + c_k \mathbf{v}_k = \mathbf{0}
+$$
+
+**Equivalently:** At least one vector can be written as a linear combination of the others.
+
+### Geometric Interpretation
+
+**In $\mathbb{R}^2$:**
+
+- Two vectors are independent if they point in different directions (not parallel)
+- Two parallel vectors are dependent, one is a scalar multiple of the other
+
+**In $\mathbb{R}^3$:**
+
+- Three vectors are independent if they span all of 3D space (not coplanar)
+- Three coplanar vectors are dependent, one can be written using the other two
+
+### Example: Detecting Dependence
+
+$$
+\mathbf{v}_1 = \begin{pmatrix} 1 \\ 2 \end{pmatrix}, \quad \mathbf{v}_2 = \begin{pmatrix} 3 \\ 6 \end{pmatrix}
+$$
+
+Notice: $\mathbf{v}_2 = 3\mathbf{v}_1$
+
+This means: $3\mathbf{v}_1 - \mathbf{v}_2 = \mathbf{0}$ with $c_1 = 3, c_2 = -1$ (not all zero)
+
+**Conclusion:** $\mathbf{v}_1, \mathbf{v}_2$ are **linearly dependent**.
+
+### Example: Independent Vectors
+
+$$
+\mathbf{v}_1 = \begin{pmatrix} 1 \\ 0 \end{pmatrix}, \quad \mathbf{v}_2 = \begin{pmatrix} 0 \\ 1 \end{pmatrix}
+$$
+
+To get $c_1\mathbf{v}_1 + c_2\mathbf{v}_2 = \mathbf{0}$:
+
+$$
+\begin{pmatrix} c_1 \\ c_2 \end{pmatrix} = \begin{pmatrix} 0 \\ 0 \end{pmatrix}
+$$
+
+Only solution: $c_1 = c_2 = 0$
+
+**Conclusion:** $\mathbf{v}_1, \mathbf{v}_2$ are **linearly independent**.
+
+---
+
+## 3. Testing Independence
+
+### Method 1: Solve the Homogeneous System
+
+To check if columns of matrix $A$ are independent:
+
+1. Form the equation $A\mathbf{c} = \mathbf{0}$
+2. Row reduce $A$ to echelon form
+3. If only solution is $\mathbf{c} = \mathbf{0}$: **independent**
+4. If non-trivial solutions exist: **dependent**
+
+### Method 2: Count Pivots
+
+After row reduction:
+
+- **Number of pivots = number of independent vectors**
+- Free variables correspond to dependent vectors
+
+### Example: Testing Three Vectors
+
+Are these vectors independent?
+
+$$
+\mathbf{v}_1 = \begin{pmatrix} 1 \\ 2 \\ 3 \end{pmatrix}, \quad \mathbf{v}_2 = \begin{pmatrix} 4 \\ 5 \\ 6 \end{pmatrix}, \quad \mathbf{v}_3 = \begin{pmatrix} 7 \\ 8 \\ 9 \end{pmatrix}
+$$
+
+Form matrix $A = [\mathbf{v}_1 \; \mathbf{v}_2 \; \mathbf{v}_3]$ and row reduce:
+
+$$
+\begin{pmatrix} 1 & 4 & 7 \\ 2 & 5 & 8 \\ 3 & 6 & 9 \end{pmatrix} \rightarrow \begin{pmatrix} 1 & 4 & 7 \\ 0 & -3 & -6 \\ 0 & 0 & 0 \end{pmatrix}
+$$
+
+Only 2 pivots (not 3), so vectors are **dependent**.
+
+In fact: $\mathbf{v}_3 = 2\mathbf{v}_2 - \mathbf{v}_1$
+
+### Reducing to the Independent Core
+
+Given dependent vectors, row reduction identifies:
+
+- **Pivot columns:** Independent vectors (keep these)
+- **Free columns:** Dependent vectors (combinations of pivot columns)
+
+This extracts the "independent core" from redundant data.
+
+---
+
+## 4. Rank of a Matrix
+
+### Definition
+
+The **rank** of matrix $A$ is:
+
+$$
+\text{rank}(A) = \text{number of linearly independent columns}
+$$
+
+Equivalently:
+
+- Number of linearly independent rows
+- Number of pivots after row reduction
+- Dimension of column space
+- Dimension of row space
+
+### Why Column Rank = Row Rank
+
+This is a fundamental theorem: for any matrix,
+
+$$
+\text{rank}(A) = \dim(\text{Col}(A)) = \dim(\text{Row}(A))
+$$
+
+Even though rows and columns live in different spaces, the number of independent vectors is the same.
+
+### Computing Rank
+
+**Method:** Row reduce and count non-zero rows (pivots).
+
+$$
+A = \begin{pmatrix} 1 & 2 & 3 \\ 2 & 4 & 6 \\ 3 & 5 & 7 \end{pmatrix} \rightarrow \begin{pmatrix} 1 & 2 & 3 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{pmatrix}
+$$
+
+Two pivots → $\text{rank}(A) = 2$
+
+### Rank as Active Directions
+
+Think of $A$ as a transformation. Rank tells you:
+
+- How many **independent output directions** exist
+- The "effective dimensionality" of the transformation
+- How much information $A$ preserves vs. destroys
+
+---
+
+## 5. Relationship Between Rank, Column Space, and Row Space
+
+### Rank = Dimension of Column Space
+
+$$
+\text{rank}(A) = \dim(\text{Col}(A))
+$$
+
+The rank counts how many independent columns there are, which equals the dimension of their span.
+
+### Rank = Dimension of Row Space
+
+$$
+\text{rank}(A) = \dim(\text{Row}(A))
+$$
+
+Similarly for rows.
+
+### Rank as the Bridge
+
+For an $m \times n$ matrix with rank $r$:
+
+- $A$ maps $\mathbb{R}^n$ to a **$r$-dimensional subspace** of $\mathbb{R}^m$
+- The transformation "compresses" $n$ dimensions into $r$ dimensions
+- $(n - r)$ dimensions are "killed" (sent to zero)
+
+### Full Rank vs. Rank Deficient
+
+**Full rank:** $\text{rank}(A) = \min(m, n)$
+
+- Maximum possible rank
+- No redundancy in columns or rows
+- Square full-rank matrices are invertible
+
+**Rank deficient:** $\text{rank}(A) < \min(m, n)$
+
+- Some columns/rows are redundant
+- Information is lost
+- Square rank-deficient matrices are not invertible
+
+---
+
+## 6. Linear Systems and Rank
+
+### Rank Determines Solution Structure
+
+For $A\mathbf{x} = \mathbf{b}$ where $A$ is $m \times n$:
+
+**Full column rank** ($\text{rank}(A) = n$):
+
+- At most **one solution** (unique if it exists)
+- No free variables
+- Null space = $\{\mathbf{0}\}$
+
+**Rank deficient** ($\text{rank}(A) < n$):
+
+- Either **no solution** or **infinitely many**
+- Free variables exist
+- Null space has positive dimension
+
+### Under vs. Overdetermined Systems
+
+**Overdetermined** ($m > n$, more equations than unknowns):
+
+- Often no exact solution
+- Need least squares approximation
+
+**Underdetermined** ($m < n$, more unknowns than equations):
+
+- If solvable, infinitely many solutions
+- Need additional criteria to select one (e.g., minimum norm)
+
+### Rank Deficiency and Infinite Solutions
+
+If $\text{rank}(A) < n$ and $\mathbf{b} \in \text{Col}(A)$:
+
+- Solutions form an **affine subspace**
+- Dimension of solution space = $n - \text{rank}(A)$
+- Each free variable gives one degree of freedom
+
+### Financial Example: Underdetermined Optimization
+
+With $n$ assets and fewer than $n$ constraints, infinitely many portfolios satisfy the constraints. Additional objectives (minimize variance, maximize return) select a unique solution.
+
+---
+
+## 7. The Fundamental Theorem of Linear Algebra
+
+### Rank and Null Space
+
+**Rank-Nullity Theorem:** For $m \times n$ matrix $A$:
+
+$$
+\text{rank}(A) + \dim(\text{Null}(A)) = n
+$$
+
+- **Rank:** Independent directions (information preserved)
+- **Null space dimension:** "Killed" directions (information destroyed)
+- Total always equals $n$ (the input dimension)
+
+### Example
+
+A $5 \times 8$ matrix with rank 3:
+
+- 3 independent directions are preserved
+- $\dim(\text{Null}(A)) = 8 - 3 = 5$ directions are killed
+
+### Why Null Space Structure Matters
+
+**Portfolio constraints:** If factor exposure matrix $B$ has rank $k < n$, then:
+
+$$
+\dim(\text{Null}(B)) = n - k
+$$
+
+This $(n-k)$-dimensional space contains all **factor-neutral portfolios**.
+
+**Arbitrage detection:** Null space of payoff matrix = arbitrage-free pricing constraints.
+
+### Orthogonality Preview
+
+The four fundamental subspaces have orthogonality relationships:
+
+- Null space $\perp$ Row space
+- Left null space $\perp$ Column space
+
+This orthogonal decomposition is the foundation of **PCA** and **regression**.
+
+---
+
+## 8. Quant Applications
+
+### Independent Return Factors vs. Redundant Ones
+
+A "6-factor model" with rank-4 factor matrix really has only 4 independent factors. The other 2 are linear combinations and add no explanatory power.
+
+**Red flag:** If adding factors doesn't increase rank, you're overfitting.
+
+### Rank of Factor Exposure Matrix
+
+For factor loading matrix $B$ (assets × factors):
+
+$$
+\text{rank}(B) = \text{number of independent risk factors}
+$$
+
+If $\text{rank}(B) < $ number of factors claimed, some factors are redundant.
+
+### Detecting Overfitting
+
+If you have $n$ observations and $p$ predictors:
+
+$$
+\text{effective predictors} \leq \text{rank}(X) \leq \min(n, p)
+$$
+
+When $p > n$, you **cannot** have $p$ independent predictors. The model is fundamentally underdetermined.
+
+### Rank-One Structures: Single-Factor Markets
+
+A covariance matrix with rank 1 means all returns are driven by **one factor**:
+
+$$
+\Sigma = \sigma^2 \mathbf{v}\mathbf{v}^T
+$$
+
+All correlations are perfect (up to sign). No diversification benefit exists.
+
+**Example:** In a pure-beta market, all stocks move with the market. The covariance matrix has rank 1 (approximately), and only market risk matters.
+
+### Rank and Covariance Matrix Invertibility
+
+Portfolio optimization requires $\Sigma^{-1}$. This exists only if:
+
+$$
+\text{rank}(\Sigma) = n \quad \text{(full rank)}
+$$
+
+If $\text{rank}(\Sigma) < n$: some assets are perfectly correlated, and optimization fails without regularization.
+
+---
+
+## 9. Worked Examples
+
+### Example 1: Checking Independence
+
+Are these vectors linearly independent?
+
+$$
+\mathbf{v}_1 = \begin{pmatrix} 1 \\ 0 \\ 1 \end{pmatrix}, \quad \mathbf{v}_2 = \begin{pmatrix} 0 \\ 1 \\ 1 \end{pmatrix}, \quad \mathbf{v}_3 = \begin{pmatrix} 1 \\ 1 \\ 2 \end{pmatrix}
+$$
+
+Form matrix and row reduce:
+
+$$
+\begin{pmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 1 & 1 & 2 \end{pmatrix} \rightarrow \begin{pmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{pmatrix}
+$$
+
+Only 2 pivots → **dependent**
+
+The dependence: $\mathbf{v}_3 = \mathbf{v}_1 + \mathbf{v}_2$
+
+### Example 2: Finding Rank
+
+$$
+A = \begin{pmatrix} 1 & 2 & 1 & 0 \\ 2 & 4 & 0 & 2 \\ 3 & 6 & 1 & 2 \end{pmatrix}
+$$
+
+Row reduce:
+
+$$
+\rightarrow \begin{pmatrix} 1 & 2 & 1 & 0 \\ 0 & 0 & -2 & 2 \\ 0 & 0 & 0 & 0 \end{pmatrix}
+$$
+
+Two pivots (columns 1 and 3) → $\text{rank}(A) = 2$
+
+Null space dimension: $4 - 2 = 2$
+
+### Example 3: Factor Redundancy
+
+A fund claims a 3-factor model with loadings:
+
+$$
+B = \begin{pmatrix} 1.0 & 0.5 & 1.5 \\ 0.8 & 0.4 & 1.2 \\ 1.2 & 0.6 & 1.8 \end{pmatrix}
+$$
+
+Notice: Column 3 = Column 1 + Column 2
+
+$\text{rank}(B) = 2$
+
+**Only 2 independent factors.** The third factor is redundant.
+
+---
+
+## 10. Summary
+
+### Key Concepts
+
+**Linear independence:**
+
+- Vectors are independent if none is a combination of others
+- The only zero combination uses all zero coefficients
+- Independence = no redundancy
+
+**Rank:**
+
+$$
+\text{rank}(A) = \text{number of independent columns} = \text{number of independent rows}
+$$
+
+- Equals dimension of column space and row space
+- Counts the "effective dimensionality" of the matrix
+
+**Rank-Nullity Theorem:**
+
+$$
+\text{rank}(A) + \dim(\text{Null}(A)) = n
+$$
+
+### Key Results
+
+- Full rank square matrices are invertible
+- Rank deficiency implies redundancy
+- Rank determines solution structure of linear systems
+- Null space dimension = degrees of freedom in solutions
+
+### Financial Implications
+
+- Rank = number of independent risk factors
+- Rank deficiency = redundant assets or factors
+- Full-rank covariance required for optimization
+- Null space = factor-neutral portfolios
+
+---
+
+## 11. What's Next?
+
+We now know which vectors are independent and how to measure the "effective dimension" of data. The next step: how do we **decompose** a vector into components relative to a subspace?
+
+**Next lesson: Projections**
+
+You'll learn:
+
+- Projecting vectors onto subspaces
+- Orthogonal decomposition: factor + residual
+- Least squares as projection
+- Gram-Schmidt orthogonalization
+- Applications to regression and factor models
