@@ -113,8 +113,8 @@ export function CreativeHero() {
             }}
           >
             <img
-              src="/pfpicon.png"
-              alt="Shine Kyaw Kyaw Aung"
+              src="/jeevan-profile.jpg"
+              alt="Jeevan Sai Simbothula Mukundaiah"
               className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
             />
 
