@@ -63,7 +63,7 @@ INSERT INTO public.journal_posts (
   1,
   'Quantitative Finance',
   ARRAY['Options', 'Derivatives', 'Black-Scholes', 'Pricing Models', 'Greeks'],
-  'Antonije Mirkovic',
+  'Jeevan Sai',
   'https://[YOUR-PROJECT].supabase.co/storage/v1/object/public/journal-images/black-scholes-cover.jpg',
   'understanding-black-scholes.mdx',
   true,
@@ -77,7 +77,7 @@ INSERT INTO public.journal_posts (
   2,
   'Mathematics',
   ARRAY['Stochastic Calculus', 'Brownian Motion', 'Itô Lemma', 'SDEs', 'Derivatives'],
-  'Antonije Mirkovic',
+  'Jeevan Sai',
   'https://[YOUR-PROJECT].supabase.co/storage/v1/object/public/journal-images/stochastic-calculus-cover.jpg',
   'intro-to-stochastic-calculus.mdx',
   true,
@@ -114,7 +114,7 @@ Insert a new row in the `journal_posts` table with:
 - `week_number` - Week number (optional)
 - `category` - Category from predefined list
 - `tags` - Array of relevant tags
-- `author_name` - Author name (default: 'Antonije Mirkovic')
+- `author_name` - Author name (default: 'Jeevan Sai')
 - `image_url` - Full URL to cover image in Supabase Storage
 - `content_path` - Filename of MDX file (e.g., 'my-post-title.mdx')
 - `published` - true/false

@@ -41,7 +41,7 @@ export default function Portfolio() {
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
               <span className="block">Hi, I'm</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
-                Jeevan Sai Simbothula Mukundaiah
+                Jeevan Sai
               </span>
             </h1>
             
@@ -85,7 +85,7 @@ export default function Portfolio() {
             
             {/* 6. Social icons */}
             <div className="flex gap-4 justify-center">
-              <Link href="https://github.com/mirkovicdev" target="_blank" rel="noopener noreferrer">
+              <Link href="https://github.com/jeevansaims" target="_blank" rel="noopener noreferrer">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -105,7 +105,7 @@ export default function Portfolio() {
                   <span className="sr-only">LinkedIn</span>
                 </Button>
               </Link>
-              <Link href="mailto:contact@mirkovic.dev">
+              <Link href="mailto:jeevansaims@gmail.com">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -131,7 +131,7 @@ export default function Portfolio() {
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
                 <span className="block">Hi, I'm</span>
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
-                  Jeevan Sai Simbothula Mukundaiah
+                  Jeevan Sai
                 </span>
               </h1>
               <p className="text-xl text-zinc-400 max-w-[600px]">
@@ -156,7 +156,7 @@ export default function Portfolio() {
                 </Link>
               </div>
               <div className="flex gap-4 pt-4">
-                <Link href="https://github.com/mirkovicdev" target="_blank" rel="noopener noreferrer">
+                <Link href="https://github.com/jeevansaims" target="_blank" rel="noopener noreferrer">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -176,7 +176,7 @@ export default function Portfolio() {
                     <span className="sr-only">LinkedIn</span>
                   </Button>
                 </Link>
-                <Link href="mailto:contact@mirkovic.dev">
+                <Link href="mailto:jeevansaims@gmail.com">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -219,7 +219,7 @@ export default function Portfolio() {
               description="A real-time ECG monitoring application that streams live cardiac data from Polar H10 chest straps and performs intelligent arrhythmia detection using advanced signal processing algorithms. Tracks PVC burden, detects patterns like bigeminy and trigeminy, and supports session-based analysis with planned alarm functionality for high-risk events."
               tags={["Next.js", "TypeScript", "Expo", "Python", "IOS Development"]}
               image="/p4.png?height=400&width=600"
-              repoUrl="https://github.com/mirkovicdev/Polar-H10-ECG-IOS-app"
+              repoUrl="https://github.com/jeevansaims/Polar-H10-ECG-IOS-app"
             />
 
 
@@ -228,7 +228,7 @@ export default function Portfolio() {
               description="This project explores portfolio optimization under cardinality constraints, where the number of assets selected in a portfolio is explicitly limited. Using integer programming, the project demonstrates how adding a cardinality constraint transforms a convex Markowitz optimization problem into a combinatorial, non-convex challenge."
               tags={["Jupyter", "Python", "NumPy", "CVXPY"]}
               image="/portfolio.png"
-              repoUrl="https://github.com/mirkovicdev/Cardinality-Constrained-Portfolio-Optimization"
+              repoUrl="https://github.com/jeevansaims/Cardinality-Constrained-Portfolio-Optimization"
             />
             <ProjectCard
               title="SOLUSDT signal bot"
@@ -346,7 +346,7 @@ export default function Portfolio() {
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">Email</div>
-                    <div className="font-medium">contact@mirkovic.dev</div>
+                    <div className="font-medium">jeevansaims@gmail.com</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -364,7 +364,7 @@ export default function Portfolio() {
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">GitHub</div>
-                    <div className="font-medium">github.com/mirkovicdev</div>
+                    <div className="font-medium">github.com/jeevansaims</div>
                   </div>
                 </div>
               </div>
@@ -434,11 +434,11 @@ export default function Portfolio() {
               <span className="text-white">Sai</span>
             </Link>
             <p className="text-sm text-zinc-500 mt-2">
-              © {new Date().getFullYear()} Jeevan Sai Simbothula Mukundaiah. All rights reserved.
+              © {new Date().getFullYear()} Jeevan Sai. All rights reserved.
             </p>
           </div>
           <div className="flex gap-4">
-            <Link href="https://github.com/mirkovicdev" target="_blank" rel="noopener noreferrer">
+            <Link href="https://github.com/jeevansaims" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
@@ -458,7 +458,7 @@ export default function Portfolio() {
                 <span className="sr-only">LinkedIn</span>
               </Button>
             </Link>
-            <Link href="mailto:contact@mirkovic.dev">
+            <Link href="mailto:jeevansaims@gmail.com">
               <Button
                 variant="ghost"
                 size="icon"

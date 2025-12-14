@@ -114,7 +114,7 @@ export function CreativeHero() {
           >
             <img
               src="/jeevan-profile.jpg"
-              alt="Jeevan Sai Simbothula Mukundaiah"
+              alt="Jeevan Sai"
               className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
             />
 

@@ -214,13 +214,13 @@ export default function quantframePage() {
               <span className="text-white">Frame</span>
             </Link>
             <p className="text-sm text-zinc-500 mt-2">
-              © {new Date().getFullYear()} Antonije Mirkovic. All rights reserved.
+              © {new Date().getFullYear()} Jeevan Sai. All rights reserved.
             </p>
           </div>
 
           {/* Middle: Social Media Icons */}
           <div className="flex gap-4 items-center">
-            <Link href="https://github.com/mirkovicdev" target="_blank" rel="noopener noreferrer">
+            <Link href="https://github.com/jeevansaims" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
@@ -230,7 +230,7 @@ export default function quantframePage() {
                 <span className="sr-only">GitHub</span>
               </Button>
             </Link>
-            <Link href="https://www.linkedin.com/in/amirkovic" target="_blank" rel="noopener noreferrer">
+            <Link href="https://www.linkedin.com/in/jeevansaism" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
@@ -240,7 +240,7 @@ export default function quantframePage() {
                 <span className="sr-only">LinkedIn</span>
               </Button>
             </Link>
-            <Link href="https://www.instagram.com/mirkovicdev/" target="_blank" rel="noopener noreferrer">
+            <Link href="https://www.instagram.com/jeevansaism/" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
@@ -250,7 +250,7 @@ export default function quantframePage() {
                 <span className="sr-only">Instagram</span>
               </Button>
             </Link>
-            <Link href="https://www.tiktok.com/@mirkovicdev" target="_blank" rel="noopener noreferrer">
+            <Link href="https://www.tiktok.com/@jeevansaism" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
@@ -263,7 +263,7 @@ export default function quantframePage() {
                 <span className="sr-only">TikTok</span>
               </Button>
             </Link>
-            <Link href="mailto:contact@mirkovic.dev">
+            <Link href="mailto:jeevansaims@gmail.com">
               <Button
                 variant="ghost"
                 size="icon"

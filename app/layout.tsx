@@ -4,8 +4,11 @@ import { Toaster } from '@/components/ui/sonner'
 import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
-  title: 'Mirkovic',
-  description: 'Portfolio',
+  title: "Jeevan Sai | Software Engineer",
+  description: "Portfolio of Jeevan Sai Simbothula Mukundaiah, a Software Engineer II at Microsoft",
+  keywords: ["Software Engineer", "React", "Next.js", "TypeScript", "Tailwind CSS", "Portfolio", "Jeevan Sai", "JeevanDev"],
+  authors: [{ name: "Jeevan Sai" }],
+  creator: "Jeevan Sai",
 }
 
 export default function RootLayout({

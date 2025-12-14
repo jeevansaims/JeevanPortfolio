@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Quant Journal | QuantFrame',
   description:
-    'Deep dives into quantitative finance, mathematics, and coding. Weekly insights from Antonije Mirkovic.',
+    'Deep dives into quantitative finance, mathematics, and coding. Weekly insights from Jeevan Sai.',
 };
 
 // Format date helper
