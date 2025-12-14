@@ -5,25 +5,25 @@ import { useMobile } from "@/hooks/use-mobile"
 
 const experiences = [
   {
-    title: "Founding Software Engineer",
-    company: "Alumco",
-    period: "2025 - Present",
+    title: "Software Engineer II",
+    company: "Microsoft",
+    period: "Oct 2024 - Present",
     description:
-      "Developed and iterated on 8 AI product builds, applying rapid prototyping and statistical A/B testing to drive engagement. Engineered and deployed 2 production-grade platforms, translating algorithms into scalable, real-time systems. Built a forward-deployed feedback agent in 4 days, leveraging context engineering and applied machine learning to improve prediction accuracy and user interaction. Collaborate closely with founders, designers, and product teams in a venture studio environment to rapidly launch and scale startups.",
-  },
-
-  {
-    title: "Mathematics Tutor",
-    company: "MentorNorge",
-    period: "2021 - present",
-    description:
-      "Tutored high school students in mathematics, focusing on problem-solving and conceptual understanding. Developed personalized learning plans and resources.",
+      "Full-time Software Engineer II at Microsoft, based in Redmond, Washington (Hybrid). Contributing to core Microsoft products and services.",
   },
   {
-    title: "Combat Engineer",
-    company: "Norwegian Armed Forces",
-    period: "2022 - 2023",
-    description: "Served as a combat engineer. Developed skills in teamwork, leadership, and problem-solving under pressure.",
+    title: "Software Engineer",
+    company: "Apple",
+    period: "Jan 2024 - Sep 2024",
+    description:
+      "Contract role at Apple. Worked on Avalon Core Data Service, leading to a 40% reduction in redundant data processing. Designed user-friendly interfaces increasing adoption by 60%. Developed the Avalon Core Data Service CDK reducing development time by 20% and onboarding time by 50%.",
+  },
+  {
+    title: "Software Development Engineer",
+    company: "Amazon",
+    period: "Mar 2022 - Jan 2024",
+    description:
+      "Developed high-performance caching solutions reducing latency from 15s to 1s. Optimized system performance by 25% through improved data management. Enhanced logging systems using AWS CloudWatch and Kinesis, increasing troubleshooting efficiency by 30%. Implemented API Gateways and new analytical tools.",
   },
 ]
 

@@ -17,7 +17,7 @@ import { KnowledgeBrain } from "@/components/knowledge-brain"
 import { Marquee } from "@/components/magicui/marquee"
 import { ECGProjectCard } from "@/components/ECGProjectCard"
 import { LearnNavbar } from "@/components/learn-navbar"
-import { StorySection } from "@/components/story-section"
+import { Education } from "@/components/education"
 
 export default function Portfolio() {
   return (
@@ -41,7 +41,7 @@ export default function Portfolio() {
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
               <span className="block">Hi, I'm</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
-                Antonije Mirkovic
+                Jeevan Sai Simbothula Mukundaiah
               </span>
             </h1>
             
@@ -53,14 +53,14 @@ export default function Portfolio() {
             {/* 3. Software engineer badge */}
             <div className="flex justify-center">
               <div className="relative px-3 py-1 text-xs font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                <span className="relative z-10">Software Engineer & Quantitative Researcher</span>
+                <span className="relative z-10">Software Engineer II at Microsoft</span>
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
               </div>
             </div>
 
             {/* 4. Description */}
             <p className="text-lg text-zinc-400 max-w-[600px]">
-              I blend advanced mathematics, machine learning, and full-stack engineering to turn complex ideas into real-world tools.
+              Software Engineer II at Microsoft. Experienced in building scalable systems, cloud infrastructure, and data-driven solutions.
             </p>
             
             {/* 5. Buttons */}
@@ -95,7 +95,7 @@ export default function Portfolio() {
                   <span className="sr-only">GitHub</span>
                 </Button>
               </Link>
-              <Link href="https://www.linkedin.com/in/amirkovic" target="_blank" rel="noopener noreferrer">
+              <Link href="https://www.linkedin.com/in/jeevansaism/" target="_blank" rel="noopener noreferrer">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -123,7 +123,7 @@ export default function Portfolio() {
             <div className="space-y-6 text-left">
               <div className="inline-block">
                 <div className="relative px-3 py-1 text-sm font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-4">
-                  <span className="relative z-10">Software Engineer & Quantitative Researcher</span>
+                  <span className="relative z-10">Software Engineer II at Microsoft</span>
                   <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
                 </div>
               </div>
@@ -131,11 +131,11 @@ export default function Portfolio() {
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
                 <span className="block">Hi, I'm</span>
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
-                  Antonije Mirkovic
+                  Jeevan Sai Simbothula Mukundaiah
                 </span>
               </h1>
               <p className="text-xl text-zinc-400 max-w-[600px]">
-                I blend advanced mathematics, machine learning, and full-stack engineering to turn complex ideas into real-world tools.
+                 Software Engineer II at Microsoft. Experienced in building scalable systems, cloud infrastructure, and data-driven solutions.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="#projects">
@@ -166,7 +166,7 @@ export default function Portfolio() {
                     <span className="sr-only">GitHub</span>
                   </Button>
                 </Link>
-                <Link href="https://www.linkedin.com/in/amirkovic" target="_blank" rel="noopener noreferrer">
+                <Link href="https://www.linkedin.com/in/jeevansaism/" target="_blank" rel="noopener noreferrer">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -201,10 +201,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* About Section - Full Story */}
-      <section id="about" className="relative">
-        <StorySection />
-      </section>
+
 
       {/* Projects Section */}
       <section id="projects" className="py-32 relative">
@@ -313,6 +310,22 @@ export default function Portfolio() {
         </div>
       </section>
 
+      {/* Education Section */}
+      <section id="education" className="py-32 relative">
+         <div className="absolute inset-0 z-0">
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+          <div className="absolute bottom-1/3 left-1/3 w-64 h-64 bg-phthalo-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+        </div>
+
+        <div className="container relative z-10">
+          <SectionHeading title="Education" subtitle="Academic background" />
+
+          <div className="mt-16">
+            <Education />
+          </div>
+        </div>
+      </section>
+
       {/* Contact Section */}
       <section id="contact" className="py-32 relative">
         <div className="absolute inset-0 z-0">
@@ -342,7 +355,7 @@ export default function Portfolio() {
                   </div>
                   <div>
                     <div className="text-sm text-zinc-500">LinkedIn</div>
-                    <div className="font-medium">www.linkedin.com/in/amirkovic</div>
+                    <div className="font-medium">linkedin.com/in/jeevansaism</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -416,12 +429,12 @@ export default function Portfolio() {
           <div>
             <Link href="/" className="font-bold text-xl">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
-                Mirkovic
+                Jeevan
               </span>
-              <span className="text-white">Dev</span>
+              <span className="text-white">Sai</span>
             </Link>
             <p className="text-sm text-zinc-500 mt-2">
-              © {new Date().getFullYear()} Antonije Mirkovic. All rights reserved.
+              © {new Date().getFullYear()} Jeevan Sai Simbothula Mukundaiah. All rights reserved.
             </p>
           </div>
           <div className="flex gap-4">
@@ -435,7 +448,7 @@ export default function Portfolio() {
                 <span className="sr-only">GitHub</span>
               </Button>
             </Link>
-            <Link href="https://www.linkedin.com/in/amirkovic" target="_blank" rel="noopener noreferrer">
+            <Link href="https://www.linkedin.com/in/jeevansaism" target="_blank" rel="noopener noreferrer">
               <Button
                 variant="ghost"
                 size="icon"
