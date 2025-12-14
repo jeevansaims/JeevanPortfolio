@@ -318,6 +318,7 @@ export default function Portfolio() {
               tags={["Plasmo", "Supabase", "Next.js", "TypeScript"]}
               image="/promptfox.png"
               demoUrl="https://prompt-fox.com"
+              repoUrl="https://github.com/jeevansaims/prompt-fox"
               studioUrl="https://kairoventures.com"
               studioName="Kairo Ventures"
             />
