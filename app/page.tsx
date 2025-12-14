@@ -230,6 +230,62 @@ export default function Portfolio() {
               image="/portfolio.png"
               repoUrl="https://github.com/jeevansaims/Cardinality-Constrained-Portfolio-Optimization"
             />
+
+            <ProjectCard
+              title="Minimum Variance Portfolio"
+              description="Implementation of Minimum Variance Portfolio optimization strategies. Focuses on minimizing portfolio risk through efficient asset allocation using covariance matrix calculations."
+              tags={["Python", "Finance", "Optimization", "NumPy"]}
+              image="/portfolio.png"
+              repoUrl="https://github.com/jeevansaims/min-variance-portfolio"
+            />
+
+            <ProjectCard
+              title="Polar H10 Arrhythmia Classifier"
+              description="Machine learning classifier aimed at detecting arrhythmias using ECG data from the Polar H10 device. Features signal preprocessing and classification algorithms."
+              tags={["Python", "Machine Learning", "Signal Processing", "ECG"]}
+              image="/p4.png?height=400&width=600"
+              repoUrl="https://github.com/jeevansaims/Polar-H10-ECG-Arrythmia-classifier"
+            />
+
+            <ProjectCard
+              title="QFT & Eigenvalue Estimation"
+              description="Deep dive into Quantum Fourier Transform (QFT) and Quantum Phase Estimation (QPE). Includes implementation and rigorous analysis of these fundamental quantum algorithms."
+              tags={["Quantum Computing", "Qiskit", "Python", "Algorithms"]}
+              image="/trade.png"
+              repoUrl="https://github.com/jeevansaims/QFT-Eigenvalue-Estimation"
+            />
+
+            <ProjectCard
+              title="Quantum Computing Crash Course"
+              description="A comprehensive collection of educational resources, notebooks, and code examples designed to fast-track learning in quantum computing fundamentals."
+              tags={["Education", "Quantum Computing", "Jupyter", "Qiskit"]}
+              image="/trade.png"
+              repoUrl="https://github.com/jeevansaims/quantum-computing-crash-course"
+            />
+
+            <ProjectCard
+              title="Sharpe Ratio Optimization"
+              description="Portfolio optimization framework dedicated to maximizing the Sharpe ratio. Balances risk and return to construct optimal investment portfolios."
+              tags={["Python", "Finance", "Optimization", "Pandas"]}
+              image="/portfolio.png"
+              repoUrl="https://github.com/jeevansaims/Sharpe-ratio-optimization"
+            />
+
+            <ProjectCard
+              title="Stochastic Modeling"
+              description="Modeling and simulation of various stochastic processes used in quantitative finance, including Geometric Brownian Motion and mean-reverting processes."
+              tags={["Stochastic Calculus", "Python", "Finance", "Simulation"]}
+              image="/trade.png"
+              repoUrl="https://github.com/jeevansaims/stokmod"
+            />
+
+            <ProjectCard
+              title="Superposition & Entanglement"
+              description="Exploration of core quantum mechanical properties—superposition and entanglement—through interactive code and simulation experiments."
+              tags={["Quantum Computing", "Qiskit", "Physics", "Python"]}
+              image="/trade.png"
+              repoUrl="https://github.com/jeevansaims/Superposition-Entanglement"
+            />
             <ProjectCard
               title="SOLUSDT signal bot"
               description="A custom algorithmic trading system for Solana using custom signals, enhanced with BTCUSDT price context for confirmation. The strategy includes dynamic stop-loss, ATR-based take-profit, slippage modeling, and realistic funding/fee handling. Backtested on 5-minute candles with live simulation support. It has been deployed live and generated consistent profit in high freq trading environments."
