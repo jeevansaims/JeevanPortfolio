@@ -21,7 +21,7 @@ import { Education } from "@/components/education"
 
 export default function Portfolio() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-900 via-zinc-900 to-black text-white overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <MouseFollower />
       <ScrollProgress />
       <FloatingNav />
@@ -29,9 +29,9 @@ export default function Portfolio() {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 sm:pt-24">
         <div className="absolute inset-0 z-0">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-phthalo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-phthalo-700 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute top-40 right-10 w-72 h-72 bg-secondary/40 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-accent/40 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="container relative z-10 px-4 sm:px-6">
@@ -40,7 +40,7 @@ export default function Portfolio() {
             {/* 1. Name first */}
             <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
               <span className="block">Hi, I'm</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
                 Jeevan Sai
               </span>
             </h1>
@@ -52,31 +52,31 @@ export default function Portfolio() {
             
             {/* 3. Software engineer badge */}
             <div className="flex justify-center">
-              <div className="relative px-3 py-1 text-xs font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+              <div className="relative px-3 py-1 text-xs font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 text-foreground">
                 <span className="relative z-10">Software Engineer II at Microsoft</span>
-                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
+                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></span>
               </div>
             </div>
 
             {/* 4. Description */}
-            <p className="text-lg text-zinc-400 max-w-[600px]">
+            <p className="text-lg text-muted-foreground max-w-[600px]">
               Software Engineer II at Microsoft. Experienced in building scalable systems, cloud infrastructure, and data-driven solutions.
             </p>
             
             {/* 5. Buttons */}
             <div className="flex flex-wrap gap-4 pt-4 justify-center">
               <Link href="#projects">
-                <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0">
+                <Button className="relative overflow-hidden group bg-gradient-to-r from-primary to-secondary border-0">
                   <span className="relative z-10 flex items-center">
                     View Projects <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </span>
-                  <span className="absolute inset-0 bg-gradient-to-r from-phthalo-700 to-phthalo-900 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                  <span className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                 </Button>
               </Link>
               <Link href="#contact">
                 <Button
                   variant="outline"
-                  className="border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 bg-transparent"
+                  className="border-border text-foreground hover:text-primary hover:border-primary bg-transparent"
                 >
                   Contact Me
                 </Button>
@@ -89,7 +89,7 @@ export default function Portfolio() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                  className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                 >
                   <Github className="h-5 w-5" />
                   <span className="sr-only">GitHub</span>
@@ -99,7 +99,7 @@ export default function Portfolio() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                  className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                 >
                   <Linkedin className="h-5 w-5" />
                   <span className="sr-only">LinkedIn</span>
@@ -109,7 +109,7 @@ export default function Portfolio() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                  className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                 >
                   <Mail className="h-5 w-5" />
                   <span className="sr-only">Email</span>
@@ -122,34 +122,34 @@ export default function Portfolio() {
           <div className="hidden lg:grid grid-cols-2 gap-12 items-center">
             <div className="space-y-6 text-left">
               <div className="inline-block">
-                <div className="relative px-3 py-1 text-sm font-medium rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-4">
+                <div className="relative px-3 py-1 text-sm font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 mb-4 text-foreground">
                   <span className="relative z-10">Software Engineer II at Microsoft</span>
-                  <span className="absolute inset-0 rounded-full bg-gradient-to-r from-phthalo-500/20 to-phthalo-700/20 animate-pulse"></span>
+                  <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></span>
                 </div>
               </div>
 
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
                 <span className="block">Hi, I'm</span>
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-phthalo-400 to-phthalo-600">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
                   Jeevan Sai
                 </span>
               </h1>
-              <p className="text-xl text-zinc-400 max-w-[600px]">
+              <p className="text-xl text-muted-foreground max-w-[600px]">
                  Software Engineer II at Microsoft. Experienced in building scalable systems, cloud infrastructure, and data-driven solutions.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link href="#projects">
-                  <Button className="relative overflow-hidden group bg-gradient-to-r from-phthalo-600 to-phthalo-800 border-0">
+                  <Button className="relative overflow-hidden group bg-gradient-to-r from-primary to-secondary border-0">
                     <span className="relative z-10 flex items-center">
                       View Projects <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-phthalo-700 to-phthalo-900 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="absolute inset-0 bg-gradient-to-r from-primary/80 to-secondary/80 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                   </Button>
                 </Link>
                 <Link href="#contact">
                   <Button
                     variant="outline"
-                    className="border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-500 bg-transparent"
+                    className="border-border text-foreground hover:text-primary hover:border-primary bg-transparent"
                   >
                     Contact Me
                   </Button>
@@ -160,7 +160,7 @@ export default function Portfolio() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                    className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                   >
                     <Github className="h-5 w-5" />
                     <span className="sr-only">GitHub</span>
@@ -170,7 +170,7 @@ export default function Portfolio() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                    className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                   >
                     <Linkedin className="h-5 w-5" />
                     <span className="sr-only">LinkedIn</span>
@@ -180,7 +180,7 @@ export default function Portfolio() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                    className="rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground"
                   >
                     <Mail className="h-5 w-5" />
                     <span className="sr-only">Email</span>
@@ -195,8 +195,8 @@ export default function Portfolio() {
         </div>
 
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce hidden sm:block">
-          <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center items-start p-1">
-            <div className="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse"></div>
+          <div className="w-6 h-10 rounded-full border-2 border-border/60 flex justify-center items-start p-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-foreground/50 animate-pulse"></div>
           </div>
         </div>
       </section>
