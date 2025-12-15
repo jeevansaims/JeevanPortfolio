@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { Analytics } from "@vercel/analytics/next"
+import { Geist, Geist_Mono } from "geist/font"
+import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
   title: "Jeevan Sai | Software Engineer",
@@ -11,28 +13,39 @@ export const metadata: Metadata = {
   creator: "Jeevan Sai",
 }
 
+const geistSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
+})
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
+})
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body>
-        {children}
-        <Analytics />
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body className={`${geistSans.className} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          {children}
+          <Analytics />
           <Toaster 
             position="top-right"
             richColors
-            theme="dark"
             toastOptions={{
               style: {
-                background: 'rgba(39, 39, 42, 0.95)',
-                border: '1px solid rgba(63, 63, 70, 0.5)',
-                color: 'white',
+                background: 'oklch(var(--popover))',
+                border: '1px solid oklch(var(--border))',
+                color: 'oklch(var(--foreground))',
               },
             }}
           />
+        </ThemeProvider>
       </body>
     </html>
   )
