@@ -51,8 +51,11 @@ export default function Portfolio() {
             
             {/* 3. Software engineer badge */}
             <div className="flex justify-center">
-              <div className="relative px-3 py-1 text-xs font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 text-foreground">
+              <div className="relative inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 text-foreground">
                 <span className="relative z-10">Software Engineer II at Microsoft</span>
+                <span className="relative z-10 flex h-4 w-4 items-center justify-center rounded-sm border border-border/70 bg-card">
+                  <img src="/microsoft.png" alt="Microsoft" className="h-3 w-3 object-contain" />
+                </span>
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></span>
               </div>
             </div>
@@ -121,10 +124,13 @@ export default function Portfolio() {
           <div className="hidden lg:grid grid-cols-2 gap-12 items-center">
             <div className="space-y-6 text-left">
               <div className="inline-block">
-                <div className="relative px-3 py-1 text-sm font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 mb-4 text-foreground">
-                  <span className="relative z-10">Software Engineer II at Microsoft</span>
-                  <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></span>
-                </div>
+              <div className="relative inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 mb-4 text-foreground">
+                <span className="relative z-10">Software Engineer II at Microsoft</span>
+                <span className="relative z-10 flex h-4 w-4 items-center justify-center rounded-sm border border-border/70 bg-card">
+                  <img src="/microsoft.png" alt="Microsoft" className="h-3 w-3 object-contain" />
+                </span>
+                <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></span>
+              </div>
               </div>
 
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
