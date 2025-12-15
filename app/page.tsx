@@ -12,7 +12,6 @@ import { MouseFollower } from "@/components/mouse-follower"
 import { ScrollProgress } from "@/components/scroll-progress"
 import { SectionHeading } from "@/components/section-heading"
 import { GlassmorphicCard } from "@/components/glassmorphic-card"
-import { GrindSection } from "@/components/grind-section"
 import { KnowledgeBrain } from "@/components/knowledge-brain"
 import { Marquee } from "@/components/magicui/marquee"
 import { ECGProjectCard } from "@/components/ECGProjectCard"
@@ -324,18 +323,6 @@ export default function Portfolio() {
             />
 
           </div>
-        </div>
-      </section>
-
-      {/* Grind Section */}
-      <section className="py-32 relative" id="grind">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-phthalo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-64 h-64 bg-phthalo-700 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        </div>
-
-        <div className="container relative z-10">
-          <GrindSection />
         </div>
       </section>
 
