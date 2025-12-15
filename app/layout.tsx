@@ -2,7 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { Analytics } from "@vercel/analytics/next"
-import { Geist, Geist_Mono } from "geist/font"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import { ThemeProvider } from '@/components/theme-provider'
 
 export const metadata: Metadata = {
@@ -13,12 +14,12 @@ export const metadata: Metadata = {
   creator: "Jeevan Sai",
 }
 
-const geistSans = Geist({
+const geistSans = GeistSans({
   subsets: ["latin"],
   variable: "--font-geist-sans",
 })
 
-const geistMono = Geist_Mono({
+const geistMono = GeistMono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 })
