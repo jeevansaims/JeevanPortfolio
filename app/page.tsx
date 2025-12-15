@@ -53,8 +53,8 @@ export default function Portfolio() {
             <div className="flex justify-center">
               <div className="relative inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 text-foreground">
                 <span className="relative z-10">Software Engineer II at Microsoft</span>
-                <span className="relative z-10 flex h-5 w-5 items-center justify-center rounded-sm border border-border/50 bg-card/90 shadow-sm">
-                  <img src="/microsoft.png" alt="Microsoft" className="h-4 w-4 object-contain" />
+                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-border/40 bg-card/90 shadow-sm">
+                  <img src="/microsoft-logo.svg" alt="Microsoft logo" className="h-4 w-auto object-contain" />
                 </span>
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse -z-10"></span>
               </div>
@@ -126,8 +126,8 @@ export default function Portfolio() {
               <div className="inline-block">
               <div className="relative inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full bg-accent/30 backdrop-blur-sm border border-border/60 mb-4 text-foreground">
                 <span className="relative z-10">Software Engineer II at Microsoft</span>
-                <span className="relative z-10 flex h-5 w-5 items-center justify-center rounded-sm border border-border/50 bg-card/90 shadow-sm">
-                  <img src="/microsoft.png" alt="Microsoft" className="h-4 w-4 object-contain" />
+                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-sm border border-border/40 bg-card/90 shadow-sm">
+                  <img src="/microsoft-logo.svg" alt="Microsoft logo" className="h-4 w-auto object-contain" />
                 </span>
                 <span className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse -z-10"></span>
               </div>
