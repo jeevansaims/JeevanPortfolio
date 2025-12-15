@@ -14,15 +14,8 @@ export const metadata: Metadata = {
   creator: "Jeevan Sai",
 }
 
-const geistSans = GeistSans({
-  subsets: ["latin"],
-  variable: "--font-geist-sans",
-})
-
-const geistMono = GeistMono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
-})
+const geistSans = GeistSans
+const geistMono = GeistMono
 
 export default function RootLayout({
   children,
